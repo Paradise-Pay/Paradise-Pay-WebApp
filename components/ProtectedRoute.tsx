@@ -14,7 +14,6 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, roles 
   const { user, loading } = useAuth();
   const router = useRouter();
 
-  // Redirect if user is not allowed
   useEffect(() => {
     if (!loading) {
       if (!user || (roles && !roles.includes(user.role))) {
