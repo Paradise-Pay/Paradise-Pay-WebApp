@@ -10,7 +10,7 @@ import {
   Clock,
   CreditCard,
   FastForward,
-  Percent,s
+  Percent,
   ScanLine,
   Ticket,
   Check,
