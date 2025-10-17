@@ -19,6 +19,7 @@ import DarkModeRoundedIcon from "@mui/icons-material/DarkModeRounded";
 import LightModeRoundedIcon from "@mui/icons-material/LightModeRounded";
 import BadgeRoundedIcon from "@mui/icons-material/BadgeRounded";
 import GoogleIcon from "@/components/ui/GoogleIcon";
+import { login } from "@/lib/api";
 
 interface FormElements extends HTMLFormControlsCollection {
   email: HTMLInputElement;
@@ -155,15 +156,40 @@ export default function JoySignInSideTemplate() {
             </Divider>
             <Stack sx={{ gap: 4, mt: 2 }}>
               <form
-                onSubmit={(event: React.FormEvent<SignInFormElement>) => {
+                onSubmit={async (event: React.FormEvent<SignInFormElement>) => {
                   event.preventDefault();
+              
                   const formElements = event.currentTarget.elements;
-                  const data = {
-                    email: formElements.email.value,
-                    password: formElements.password.value,
-                    persistent: formElements.persistent.checked,
-                  };
-                  alert(JSON.stringify(data, null, 2));
+                  const email = formElements.email.value.trim();
+                  const password = formElements.password.value;
+              
+                  if (!email || !password) {
+                    alert("Please enter both email and password.");
+                    return;
+                  }
+              
+                  try {
+                    console.log("🔐 Logging in...");
+                    const response = await login(email, password);
+              
+                    console.log("✅ Login successful:", response);
+              
+                    if (response.accessToken) {
+                      // the backend returns the tokens directly
+                      localStorage.setItem("accessToken", response.accessToken);
+                      localStorage.setItem("refreshToken", response.refreshToken);
+                      localStorage.setItem("user", JSON.stringify(response.user));
+                    
+                      window.location.href = "/dashboard";
+                    } else {
+                      throw new Error("Invalid credentials");
+                    }                    
+                  } catch (error: any) {
+                    console.error("❌ Login failed:", error);
+                    alert(
+                      error?.message || "Login failed. Please check your credentials or network."
+                    );
+                  }
                 }}
               >
                 <FormControl required>
