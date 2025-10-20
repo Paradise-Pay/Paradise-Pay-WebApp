@@ -1,70 +1,141 @@
 "use client";
 
-import React, { useState } from "react";
-import { Search } from "lucide-react";
-import Button from "@mui/material/Button";
-import Link from "next/link";
+/**
+ * Header component with responsive navigation
+ * - Desktop: Shows navigation links horizontally
+ * - Mobile: Shows hamburger menu with dropdown
+ * - Hydration-safe: Uses client-side detection to prevent SSR mismatches
+ */
 
+import React, { useState, useEffect } from "react";
+import {
+  Box,
+  Button,
+  Container,
+  Flex,
+  Heading,
+  Text,
+  HStack,
+  Image,
+  IconButton,
+  VStack,
+} from "@chakra-ui/react";
+import { Search, Menu } from "lucide-react";
+import Link from "next/link";
 export default function Header() {
   const [activeLink, setActiveLink] = useState("Home");
-  const links = ["Home", "Discover Event", "Bundles", "Pricing", "Contact"];
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  
+  // Handle hydration and responsive behavior
+  useEffect(() => {
+    setIsMounted(true);
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+  
+  const links = ["Home", "Discover Events", "Bundles", "Pricing", "Contact"];
+  const logoPath = "/logos/Paradise Pay_Logo.png";
 
   return (
-    <header className="w-full bg-white shadow-md">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-26">
-          {/* Logo */}
-          <div className="flex-shrink-0">
-            <h1 className="text-2xl font-bold" style={{ color: "#278bf7ff" }}>
-              ParadisePay
-            </h1>
-          </div>
+    <Box bg="white" shadow="sm" position="sticky" top={0} zIndex={1000} py={2} px={38}>
+      <Container maxW="7xl">
+        <Flex h="20" align="center" justify="space-between">
+          <Flex align="center">
+            <Image
+              src={logoPath}
+              alt="Paradise Pay"
+              height="44px"
+              width="154px"
+              objectFit="contain"
+            />
+          </Flex>
 
-          {/* Navigation Links */}
-          <nav className="hidden md:flex space-x-8">
-            {links.map((link) => (
-              <a
-                key={link}
-                href="#"
-                onClick={() => setActiveLink(link)}
-                style={{
-                  color: activeLink === link ? "#278bf7ff" : "#5e5e5eff",
-                  fontWeight: activeLink === link ? 600 : 400,
-                  fontSize: "1.125rem",
-                }}
-                className="hover:text-[#00BFFF]"
-              >
-                {link}
-              </a>
-            ))}
-          </nav>
+          {isMounted && !isMobile && (
+            <HStack gap={8}>
+              {links.map((link) => (
+                <Text
+                  key={link}
+                  color={activeLink === link ? "#278BF7" : "#1A1A1A"}
+                  fontWeight={activeLink === link ? 600 : 500}
+                  fontSize="17px"
+                  cursor="pointer"
+                  _hover={{ color: "#278BF7" }}
+                  onClick={() => setActiveLink(link)}
+                >
+                  {link}
+                </Text>
+              ))}
+            </HStack>
+          )}
 
-          {/* Right Side: Search + Buttons */}
-          <div className="flex items-center space-x-4">
-            <Search size={24} strokeWidth={2} />
-
+          <HStack gap={4}>
+            <Search size={28} color="#1A1A1A" style={{ cursor: "pointer" }} />
+            
             <Link href="/auth/login" passHref>
               <Button
-                variant="contained"
-                sx={{
-                  fontSize: "1.125rem",
-                  fontWeight: 700,
-                  px: 6,
-                  py: 2,
-                  borderRadius: "9999px",
-                  backgroundColor: "#fdcb35",
-                  color: "#ffffff",
-                  "&:hover": {
-                    backgroundColor: "#fcca3d",
-                  },
-                }}
+                bg="#FDCB35"
+                color="white"
+                px={8}
+                py={6}
+                borderRadius="24px"
+                fontWeight={600}
+                fontSize="16px"
+                _hover={{ bg: "#E6B834" }}
               >
-                Sign Up/Login
+                Sign up/Login
               </Button>
             </Link>
-          </div>
-        </div>
-      </div>
-    </header>
+
+            {isMounted && isMobile && (
+              <IconButton
+                aria-label="Open menu"
+                variant="ghost"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              >
+                <Menu size={24} />
+              </IconButton>
+            )}
+          </HStack>
+        </Flex>
+      </Container>
+
+      {isMounted && isMobile && isMobileMenuOpen && (
+        <Box
+          position="absolute"
+          top="100%"
+          left={0}
+          right={0}
+          bg="white"
+          shadow="lg"
+          zIndex={1000}
+          p={4}
+        >
+          <VStack gap={4} align="stretch">
+            {links.map((link) => (
+              <Text
+                key={link}
+                color={activeLink === link ? "#278BF7" : "#1A1A1A"}
+                fontWeight={activeLink === link ? 600 : 500}
+                fontSize="18px"
+                cursor="pointer"
+                py={2}
+                onClick={() => {
+                  setActiveLink(link);
+                  setIsMobileMenuOpen(false);
+                }}
+              >
+                {link}
+              </Text>
+            ))}
+          </VStack>
+        </Box>
+      )}
+    </Box>
   );
 }

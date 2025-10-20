@@ -1,6 +1,18 @@
+import React, { useState } from "react";
+import {
+  Box,
+  Button,
+  Container,
+  Grid,
+  GridItem,
+  Heading,
+  Text,
+  VStack,
+  HStack,
+  Input,
+  Icon,
+} from "@chakra-ui/react";
 import { Search } from "lucide-react";
-import { useState } from "react";
-import Button from "@mui/material/Button";
 
 export default function DiscoverSection() {
   const [activeTab, setActiveTab] = useState("Category");
@@ -20,7 +32,7 @@ export default function DiscoverSection() {
       date: "Oct 20, 2025",
       time: "6:00 PM",
       venue: "Accra Stadium",
-      image: "/assets/images/event1.jpg",
+      image: "/assets/images/event-1.jpg",
     },
     {
       id: 2,
@@ -28,7 +40,7 @@ export default function DiscoverSection() {
       date: "Nov 5, 2025",
       time: "9:00 AM",
       venue: "Kempinski Hotel",
-      image: "/assets/images/event2.jpg",
+      image: "/assets/images/event-2.jpg",
     },
     {
       id: 3,
@@ -36,7 +48,7 @@ export default function DiscoverSection() {
       date: "Dec 12, 2025",
       time: "12:00 PM",
       venue: "Osu Oxford Street",
-      image: "/assets/images/event3.jpg",
+      image: "/assets/images/event-1.jpg",
     },
     {
       id: 4,
@@ -44,99 +56,103 @@ export default function DiscoverSection() {
       date: "Dec 31, 2025",
       time: "10:00 PM",
       venue: "Labadi Beach",
-      image: "/assets/images/event4.jpg",
+      image: "/assets/images/event-2.jpg",
     },
   ];
 
   return (
-    <section
-      className="relative min-h-screen flex items-center justify-center text-white px-6 py-32"
-      style={{
-        backgroundImage: "url('/assets/images/index-image.jpg')",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      }}
+    <Box
+      minH="100vh"
+        bgImage="url('/assets/images/index-image.jpg')"
+        bgSize="cover"
+      position="relative"
+      display="flex"
+      alignItems="center"
+      py={32}
     >
-      <div className="absolute inset-0 bg-gradient-to-b from-black/100 to-black/50"></div>
-
-      {/* Content */}
-      <div className="mx-auto w-full gap-16 relative z-10 max-w-7xl w-full text-center space-y-10 flex-1">
-        <h2 className="text-4xl md:text-8xl font-bold mb-6">
-          Discover What&apos;s Next?
-        </h2>
-
-        {/* Search Input */}
-        <div className="flex items-center bg-white rounded-xl overflow-hidden shadow-lg max-w-5xl mx-auto">
-          <Search className="text-gray-500 ml-4 w-6 h-6" />
-          <input
-            type="text"
-            placeholder="Search concerts, sports, festivals, and more ..."
-            className="flex-1 px-4 py-3 text-black outline-none"
-          />
-        </div>
-
-        {/* Tabs */}
-        <div className="flex flex-wrap justify-center gap-4 mt-8">
-          {tabs.map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-12 py-2 rounded-full text-sm md:text-base font-medium transition ${
-                activeTab === tab
-                  ? "bg-yellow-400 text-black"
-                  : "bg-white/20 hover:bg-white/30"
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
-
-        {/* Event Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mt-12">
-          {events.map((event) => (
-            <div
-              key={event.id}
-              className="flex flex-col rounded-xl overflow-hidden shadow-lg"
-            >
-              <div className="relative min-h-[400px]">
-                <img
-                  src={event.image}
-                  alt={event.name}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-white/90 to-transparent p-4 flex flex-col justify-end text-black">
-                  <h3 className="text-xl font-bold">{event.name}</h3>
-                  <p className="text-sm">
-                    {event.date} • {event.time}
-                  </p>
-                  <p className="text-sm">{event.venue}</p>
-                </div>
-              </div>
-
-              <div className="p-4">
-                <Button
-                  fullWidth
-                  variant="contained"
-                  sx={{
-                    py: 2,
-                    fontSize: "1.125rem",
-                    fontWeight: 600,
-                    borderRadius: "9999px",
-                    backgroundColor: "#fdcb35",
-                    color: "#3a3a3aff",
-                    "&:hover": {
-                      backgroundColor: "#fcca3d",
-                    },
-                  }}
+      {/* Dark Overlay */}
+      <Box position="absolute" top={0} left={0} right={0} bottom={0} bg="black" opacity={0.7} />
+      
+      <Container maxW="7xl" position="relative" zIndex={1}>
+        <VStack gap={16}>
+          <Heading as="h2" size="4xl" color="white" fontWeight="bold" textAlign="left" w="full">
+            Discover What's Next.
+          </Heading>
+          
+          {/* Search Bar */}
+          <Box w="full" maxW="5xl" position="relative">
+            <Input
+              bg="white"
+              placeholder="Search for events, venues, and artists..."
+              borderRadius="xl"
+              fontSize="lg"
+              py={6}
+              pl={12}
+            />
+            <Box position="absolute" left={4} top="50%" transform="translateY(-50%)">
+              <Search size={20} color="gray.500" />
+            </Box>
+          </Box>
+          
+          {/* Filter Buttons */}
+          <HStack gap={4} wrap="wrap" justify="center">
+            {tabs.map((tab) => (
+              <Button
+                key={tab}
+                bg={tab === activeTab ? "gray.800" : "transparent"}
+                color="white"
+                border="2px solid white"
+                borderRadius="full"
+                px={12}
+                py={2}
+                fontSize="md"
+                fontWeight="500"
+                _hover={{ bg: tab === activeTab ? "gray.700" : "white", color: tab === activeTab ? "white" : "black" }}
+                onClick={() => setActiveTab(tab)}
+              >
+                {tab}
+              </Button>
+            ))}
+          </HStack>
+          
+          {/* Event Cards */}
+          <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)", lg: "repeat(4, 1fr)" }} gap={8} w="full">
+            {events.map((event) => (
+              <GridItem key={event.id}>
+                <Box
+                  bg="gray.800"
+                  borderRadius="xl"
+                  overflow="hidden"
+                  shadow="xl"
+                  h="500px"
+                  position="relative"
                 >
-                  Add To Cart
-                </Button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
+                    <Box h="60%" bgImage={`url('${event.image}')`} bgSize="cover" />
+                  <Box h="40%" bg="gray.800" p={6}>
+                    <VStack align="start" gap={4} h="full" justify="space-between">
+                      <Box>
+                        <Heading size="md" color="white" mb={2}>{event.name}</Heading>
+                        <Text color="gray.300" fontSize="sm">{event.date} • {event.time}</Text>
+                        <Text color="gray.300" fontSize="sm">{event.venue}</Text>
+                      </Box>
+                      <Button
+                        w="full"
+                        bg="#fdcb35"
+                        color="gray.800"
+                        borderRadius="full"
+                        fontWeight="600"
+                        _hover={{ bg: "#fcca3d" }}
+                      >
+                        Add To Card
+                      </Button>
+                    </VStack>
+                  </Box>
+                </Box>
+              </GridItem>
+            ))}
+          </Grid>
+        </VStack>
+      </Container>
+    </Box>
   );
 }

@@ -1,71 +1,124 @@
 "use client";
 
 import React from "react";
-import Button from "@mui/material/Button";
-import Image from "next/image";
+import {
+  Box,
+  Button,
+  Container,
+  Grid,
+  GridItem,
+  Heading,
+  Text,
+  VStack,
+  Flex,
+} from "@chakra-ui/react";
 
 export default function HeroSection() {
   return (
-    <div>
-      {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center">
-        {/* Background Image */}
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: "url('/assets/images/index-image.jpg')" }}
-        ></div>
-
-        {/* Black Overlay */}
-        <div className="absolute inset-0 bg-black opacity-80"></div>
-
-        {/* Content */}
-        <div className="relative z-10 max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between px-6 py-28 w-full text-white">
-          <div className="flex-1 space-y-8">
-            <h1 className="font-bold leading-tight text-5xl md:text-7xl lg:text-8xl">
-              All Your <br />
-              Events. One <br />
-              Digital Card
-            </h1>
-            <p className="text-lg md:text-2xl text-gray-300 leading-relaxed">
-              Your Event Passport — scan, enter, <br />
-              and enjoy unforgettable experiences.
-            </p>
-
-            <div className="flex flex-col mt-24">
+    <Box
+      minH="100vh"
+      bgImage="url('/assets/images/index-image.jpg')"
+      bgSize="cover"
+      bgPosition="center"
+      position="relative"
+      display="flex"
+      alignItems="center"
+      pb={16}
+    >
+      {/* Dark Overlay */}
+      <Box position="absolute" top={0} left={0} right={0} bottom={0} bg="black" opacity={0.75} />
+      
+      <Container maxW="7xl" position="relative" zIndex={1}>
+        <Grid templateColumns={{ base: "1fr", lg: "1fr 1fr" }} gap={16} alignItems="center">
+          <GridItem>
+            <VStack align="start" gap={8}>
+              <Heading
+                as="h1"
+                className="heading-hero"
+                color="white"
+                maxW="600px"
+              >
+                All Your Events.
+                <br />
+                One Digital Card.
+              </Heading>
+              <Text 
+                className="text-body"
+                color="rgba(255, 255, 255, 0.8)" 
+                maxW="500px"
+              >
+                Your Event Passport — scan, enter, and enjoy unforgettable experiences.
+              </Text>
               <Button
-                variant="outlined"
-                sx={{
-                  fontSize: { xs: "1rem", md: "1.25rem" },
-                  fontWeight: 700,
-                  px: 8,
-                  py: 3,
-                  borderColor: "#fdcb35",
-                  color: "#ffffff",
-                  borderRadius: "40px",
-                  "&:hover": {
-                    backgroundColor: "#fdcb35",
-                    color: "#000000",
-                    borderColor: "#fdcb35",
-                  },
-                  width: "fit-content",
+                bg="#FDCB35"
+                color="#1A1A1A"
+                size="lg"
+                px={8}
+                py={3}
+                borderRadius="12px"
+                fontSize="18px"
+                fontWeight={600}
+                _hover={{
+                  bg: "#E6B834",
                 }}
               >
                 Get Your Card
               </Button>
-            </div>
-          </div>
-
-          <div className="flex-1 flex justify-center mt-12 md:mt-0">
-            <Image
-              src="/card.png"
-              alt="Event Card"
-              width={450}
-              height={350}
-              className="drop-shadow-xl"
-            />
-          </div>
-        </div>
-      </section>
-    </div>
+            </VStack>
+          </GridItem>
+          
+          <GridItem display={{ base: "none", lg: "block" }}>
+            <Flex justify="center" position="relative">
+              {/* Digital Cards */}
+              <Box position="relative">
+                {/* Top Card */}
+                <Box
+                  position="absolute"
+                  top={-20}
+                  left={-20}
+                  w="320px"
+                  h="200px"
+                  bg="#278BF7"
+                  borderRadius="16px"
+                  p={6}
+                  transform="rotate(-8deg)"
+                  boxShadow="0 20px 40px rgba(0, 0, 0, 0.3)"
+                >
+                  <VStack align="start" gap={4} h="full" justify="space-between">
+                    <Box>
+                      <Heading size="sm" color="white" mb={2} fontWeight={600}>Paradise Pay</Heading>
+                      <Text color="white" fontSize="14px" fontWeight={500}>ROXANNE D.</Text>
+                      <Text color="white" fontSize="14px" fontWeight={500}>0000 9999 9999</Text>
+                    </Box>
+                    <Box w="full" h="20" bg="white" borderRadius="8px" />
+                  </VStack>
+                </Box>
+                
+                {/* Bottom Card */}
+                <Box
+                  w="320px"
+                  h="200px"
+                  bg="#FDCB35"
+                  borderRadius="16px"
+                  p={6}
+                  transform="rotate(8deg)"
+                  boxShadow="0 20px 40px rgba(0, 0, 0, 0.3)"
+                  mt={20}
+                >
+                  <VStack align="start" gap={4} h="full" justify="space-between">
+                    <Box>
+                      <Heading size="sm" color="#1A1A1A" mb={2} fontWeight={600}>Paradise Pay</Heading>
+                      <Text color="#1A1A1A" fontSize="14px" fontWeight={500}>VALID THRU</Text>
+                      <Text color="#1A1A1A" fontSize="14px" fontWeight={500}>00/00</Text>
+                    </Box>
+                    <Box w="full" h="20" bg="#1A1A1A" borderRadius="8px" />
+                  </VStack>
+                </Box>
+              </Box>
+            </Flex>
+          </GridItem>
+        </Grid>
+      </Container>
+    </Box>
   );
 }

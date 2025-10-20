@@ -54,7 +54,7 @@ function ColorSchemeToggle(props: IconButtonProps) {
   );
 }
 
-const customTheme = extendTheme({ defaultColorScheme: "dark" });
+const customTheme = extendTheme({ colorSchemes: { dark: {} } });
 
 export default function JoySignInSideTemplate() {
   return (
