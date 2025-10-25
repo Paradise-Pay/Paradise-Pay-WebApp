@@ -22,6 +22,7 @@ import {
 } from "@chakra-ui/react";
 import { Search, Menu } from "lucide-react";
 import Link from "next/link";
+import { ColorModeButton } from "@/components/ui/color-mode";
 export default function Header() {
   const [activeLink, setActiveLink] = useState("Home");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -91,6 +92,8 @@ export default function Header() {
                 Sign up/Login
               </Button>
             </Link>
+
+            <ColorModeButton />
 
             {isMounted && isMobile && (
               <IconButton

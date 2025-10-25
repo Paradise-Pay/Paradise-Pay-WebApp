@@ -17,18 +17,21 @@ import {
   Flex,
 } from '@chakra-ui/react';
 import Link from 'next/link';
-import { login } from '@/lib/api';
+import { signup } from '@/lib/api';
 import { ColorModeButton, useColorModeValue } from '@/components/ui/color-mode';
 
 /**
- * Login page component with modern UI design
- * Features: Form validation, password visibility toggle, responsive design
+ * Signup page component with comprehensive form validation
+ * Features: Multi-field form, password strength validation, responsive design
  */
-export default function LoginPage() {
+export default function SignupPage() {
   // Form state management
   const [formData, setFormData] = useState({
+    name: '',
     email: '',
     password: '',
+    phone: '',
+    nickname: '',
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -50,22 +53,22 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Basic validation
-    if (!formData.email || !formData.password) {
-      alert('Please enter both email and password');
+    // Password strength validation
+    if (formData.password.length < 6) {
+      alert('Password must be at least 6 characters long');
       return;
     }
 
     setIsLoading(true);
     
     try {
-      await login(formData.email, formData.password);
-      alert('Login successful! Welcome back to Paradise Pay');
+      await signup(formData);
+      alert('Account created successfully! Please log in.');
       
-      // Redirect to dashboard after successful login
-      window.location.href = '/dashboard';
+      // Redirect to login page after successful signup
+      window.location.href = '/auth/login';
     } catch (error: any) {
-      alert(error.message || 'Invalid credentials. Please try again.');
+      alert(error.message || 'An error occurred during signup');
     } finally {
       setIsLoading(false);
     }
@@ -108,10 +111,12 @@ export default function LoginPage() {
                 />
               </Link>
             </Box>
-            <ColorModeButton />
+            <Box>
+              <ColorModeButton />
+            </Box>
           </Flex>
 
-          {/* Login Form Card with Beautiful Borders */}
+          {/* Signup Form Card with Beautiful Borders */}
           <Box
             bg={useColorModeValue('rgba(255, 255, 255, 0.95)', 'rgba(26, 32, 44, 0.95)')}
             p={8}
@@ -140,13 +145,47 @@ export default function LoginPage() {
                   color={textColor}
                   mb={2}
                 >
-                  Login to your account
+                  Create your account
                 </Heading>
               </Box>
 
-              {/* Login Form */}
+              {/* Signup Form */}
               <form onSubmit={handleSubmit}>
                 <VStack gap={4}>
+                  {/* Full Name Field */}
+                  <Field.Root>
+                    <Field.Label 
+                      fontSize="sm" 
+                      fontWeight="semibold" 
+                      color={textColor}
+                      mb={2}
+                    >
+                      Full Name
+                    </Field.Label>
+                    <Input
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      placeholder="John Doe"
+                      bg={inputBg}
+                      borderColor="#2f89ff"
+                      borderWidth="1px"
+                      h="44px"
+                      fontSize="sm"
+                      rounded="lg"
+                      _focus={{
+                        borderColor: '#2f89ff',
+                        boxShadow: '0 0 0 3px rgba(47, 137, 255, 0.1)',
+                      }}
+                      color={textColor}
+                      _placeholder={{
+                        color: useColorModeValue('gray.400', 'gray.500'),
+                        fontSize: 'sm',
+                      }}
+                      required
+                    />
+                  </Field.Root>
+
                   {/* Email Field */}
                   <Field.Root>
                     <Field.Label 
@@ -162,18 +201,87 @@ export default function LoginPage() {
                       type="email"
                       value={formData.email}
                       onChange={handleInputChange}
-                      placeholder="balamia@gmail.com"
+                      placeholder="john@example.com"
                       bg={inputBg}
                       borderColor="#2f89ff"
                       borderWidth="1px"
                       h="44px"
                       fontSize="sm"
                       rounded="lg"
-                      color={textColor}
                       _focus={{
                         borderColor: '#2f89ff',
                         boxShadow: '0 0 0 3px rgba(47, 137, 255, 0.1)',
                       }}
+                      color={textColor}
+                      _placeholder={{
+                        color: useColorModeValue('gray.400', 'gray.500'),
+                        fontSize: 'sm',
+                      }}
+                      required
+                    />
+                  </Field.Root>
+
+                  {/* Phone Field */}
+                  <Field.Root>
+                    <Field.Label 
+                      fontSize="sm" 
+                      fontWeight="semibold" 
+                      color={textColor}
+                      mb={2}
+                    >
+                      Phone Number
+                    </Field.Label>
+                    <Input
+                      name="phone"
+                      type="tel"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      placeholder="1234567890"
+                      bg={inputBg}
+                      borderColor="#2f89ff"
+                      borderWidth="1px"
+                      h="44px"
+                      fontSize="sm"
+                      rounded="lg"
+                      _focus={{
+                        borderColor: '#2f89ff',
+                        boxShadow: '0 0 0 3px rgba(47, 137, 255, 0.1)',
+                      }}
+                      color={textColor}
+                      _placeholder={{
+                        color: useColorModeValue('gray.400', 'gray.500'),
+                        fontSize: 'sm',
+                      }}
+                      required
+                    />
+                  </Field.Root>
+
+                  {/* Nickname Field */}
+                  <Field.Root>
+                    <Field.Label 
+                      fontSize="sm" 
+                      fontWeight="semibold" 
+                      color={textColor}
+                      mb={2}
+                    >
+                      Nickname
+                    </Field.Label>
+                    <Input
+                      name="nickname"
+                      value={formData.nickname}
+                      onChange={handleInputChange}
+                      placeholder="John Doe"
+                      bg={inputBg}
+                      borderColor="#2f89ff"
+                      borderWidth="1px"
+                      h="44px"
+                      fontSize="sm"
+                      rounded="lg"
+                      _focus={{
+                        borderColor: '#2f89ff',
+                        boxShadow: '0 0 0 3px rgba(47, 137, 255, 0.1)',
+                      }}
+                      color={textColor}
                       _placeholder={{
                         color: useColorModeValue('gray.400', 'gray.500'),
                         fontSize: 'sm',
@@ -184,44 +292,33 @@ export default function LoginPage() {
 
                   {/* Password Field */}
                   <Field.Root>
-                    <Flex justify="space-between" align="center" mb={2} gap={4}>
-                      <Field.Label 
-                        fontSize="sm" 
-                        fontWeight="semibold" 
-                        color={textColor}
-                      >
-                        Password
-                      </Field.Label>
-                      <ChakraLink
-                        fontSize="sm"
-                        color="#ffc03a"
-                        fontWeight="semibold"
-                        href="#"
-                        _hover={{ textDecoration: 'underline', color: '#e6ac00' }}
-                      >
-                        Forgot?
-                      </ChakraLink>
-                    </Flex>
+                    <Field.Label 
+                      fontSize="sm" 
+                      fontWeight="semibold" 
+                      color={textColor}
+                      mb={2}
+                    >
+                      Password
+                    </Field.Label>
                     <Box position="relative">
                       <Input
                         name="password"
                         type={showPassword ? 'text' : 'password'}
                         value={formData.password}
                         onChange={handleInputChange}
-                        placeholder="Enter your password"
+                        placeholder="StrongPass123"
                         bg={inputBg}
                         borderColor={useColorModeValue('gray.300', 'gray.600')}
                         borderWidth="1px"
                         h="44px"
                         fontSize="sm"
                         rounded="lg"
-                        color={textColor}
                         _focus={{
                           borderColor: '#2f89ff',
                           boxShadow: '0 0 0 3px rgba(47, 137, 255, 0.1)',
                         }}
                         _placeholder={{
-                          color: useColorModeValue('gray.400', 'gray.500'),
+                          color: 'gray.400',
                           fontSize: 'sm',
                         }}
                         required
@@ -244,7 +341,7 @@ export default function LoginPage() {
                     </Box>
                   </Field.Root>
 
-                  {/* Login Button */}
+                  {/* Signup Button */}
                   <Button
                     type="submit"
                     w="full"
@@ -264,34 +361,34 @@ export default function LoginPage() {
                       transform: 'translateY(0)',
                     }}
                     loading={isLoading}
-                    loadingText="Logging in..."
+                    loadingText="Creating Account..."
                     transition="all 0.3s ease"
                     mt={2}
                   >
-                    Login now
+                    Create Account
                   </Button>
                 </VStack>
               </form>
 
-              {/* Signup Link */}
+              {/* Login Link */}
               <Box textAlign="center" pt={2}>
                 <Text fontSize="sm" color={useColorModeValue('gray.500', 'gray.400')}>
-                  Don't Have An Account?{' '}
+                  Already Have An Account?{' '}
                   <ChakraLink 
                     as={Link} 
-                    href="/auth/signup" 
+                    href="/auth/login" 
                     color="#ffc03a" 
                     fontWeight="semibold"
                     _hover={{ textDecoration: 'underline', color: '#e6ac00' }}
                   >
-                    Sign Up
+                    Sign In
                   </ChakraLink>
                 </Text>
-          </Box>
+              </Box>
             </VStack>
           </Box>
         </VStack>
       </Container>
-      </Box>
+    </Box>
   );
 }

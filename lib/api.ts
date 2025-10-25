@@ -1,12 +1,17 @@
 import { ApiResponse } from "@/types/api";
 import { User } from "@/types/auth";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api/v1";
+// API configuration
+const API_BASE_URL = "https://paradise-pay-webapp-production.up.railway.app/api/v1";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || API_BASE_URL;
 
 interface FetchOptions extends RequestInit {
   body?: any;
 }
 
+/**
+ * Generic API fetch wrapper with authentication and error handling
+ */
 const apiFetch = async <T>(
   endpoint: string,
   options: FetchOptions = {}
@@ -37,7 +42,10 @@ const apiFetch = async <T>(
   return data;
 };
 
-// 👇 Updated login to handle accessToken, refreshToken, and user
+/**
+ * User authentication: Login with email and password
+ * Stores tokens and user data in localStorage
+ */
 export const login = async (email: string, password: string) => {
   const res = await fetch(`${API_URL}/auth/login`, {
     method: "POST",
@@ -48,6 +56,7 @@ export const login = async (email: string, password: string) => {
   if (!res.ok) throw new Error("Login failed");
   const data = await res.json();
 
+  // Store authentication data
   localStorage.setItem("accessToken", data.accessToken);
   localStorage.setItem("refreshToken", data.refreshToken);
   localStorage.setItem("user", JSON.stringify(data.user));
@@ -55,7 +64,34 @@ export const login = async (email: string, password: string) => {
   return data;
 };
 
-// 🔐 logout just clears tokens
+/**
+ * User registration: Create new account with user data
+ */
+export const signup = async (userData: {
+  name: string;
+  email: string;
+  password: string;
+  phone: string;
+  nickname: string;
+}) => {
+  const res = await fetch(`${API_URL}/auth/signup`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(userData),
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.message || "Signup failed");
+  }
+  
+  const data = await res.json();
+  return data;
+};
+
+/**
+ * User logout: Clear stored authentication data
+ */
 export const logout = () => {
   localStorage.removeItem("accessToken");
   localStorage.removeItem("refreshToken");
