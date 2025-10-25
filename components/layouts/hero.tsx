@@ -1,71 +1,141 @@
 "use client";
 
+/**
+ * HeroSection component - Main landing page hero
+ * Features hero text and digital card showcase
+ */
+
 import React from "react";
-import Button from "@mui/material/Button";
-import Image from "next/image";
+import {
+  Box,
+  Button,
+  Container,
+  Grid,
+  GridItem,
+  Heading,
+  Text,
+  VStack,
+  Flex,
+  Image,
+} from "@chakra-ui/react";
 
 export default function HeroSection() {
   return (
-    <div>
-      {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center">
-        {/* Background Image */}
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: "url('/assets/images/index-image.jpg')" }}
-        ></div>
+    <Box
+      minH={{ base: "80vh", md: "100vh" }}
+      bgImage="url('/assets/images/index-image.jpg')"
+      bgSize="cover"
+      backgroundPosition="center"
+      position="relative"
+      display="flex"
+      alignItems="center"
+      p={{ base: 4, md: 16 }}
+    >
+      {/* Dark Overlay */}
+      <Box position="absolute" top={0} left={0} right={0} bottom={0} bg="black" opacity={0.75} />
 
-        {/* Black Overlay */}
-        <div className="absolute inset-0 bg-black opacity-80"></div>
-
-        {/* Content */}
-        <div className="relative z-10 max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between px-6 py-28 w-full text-white">
-          <div className="flex-1 space-y-8">
-            <h1 className="font-bold leading-tight text-5xl md:text-7xl lg:text-8xl">
-              All Your <br />
-              Events. One <br />
-              Digital Card
-            </h1>
-            <p className="text-lg md:text-2xl text-gray-300 leading-relaxed">
-              Your Event Passport — scan, enter, <br />
-              and enjoy unforgettable experiences.
-            </p>
-
-            <div className="flex flex-col mt-24">
+      <Container maxW="7xl" position="relative" zIndex={1}>
+        <Grid templateColumns={{ base: "1fr", lg: "1fr 1fr" }} gap={{ base: 8, md: 16 }} alignItems="center">
+          <GridItem>
+            <VStack align={{ base: "center", md: "start" }} gap={{ base: 6, md: 8 }} pl={{ base: 0, md: 24 }} textAlign={{ base: "center", md: "left" }}>
+              <Heading
+                as="h1"
+                className="heading-hero"
+                color="white"
+                maxW={{ base: "100%", md: "600px" }}
+                fontSize={{ base: "2.5rem", sm: "3rem", md: "3.5rem" }}
+                lineHeight={{ base: "1.2", md: "1.1" }}
+              >
+                All Your
+                <br />
+                Events. One
+                <br />
+                Digital Card.
+              </Heading>
+              <Text
+                className="text-body"
+                color="white"
+                maxW={{ base: "100%", md: "500px" }}
+                fontSize={{ base: "16px", md: "18px" }}
+                fontWeight={500}
+                lineHeight="1.4"
+                opacity={0.9}
+              >
+                "Your Event Passport — scan, enter,
+                <br />
+                and enjoy unforgettable experiences."
+              </Text>
               <Button
-                variant="outlined"
-                sx={{
-                  fontSize: { xs: "1rem", md: "1.25rem" },
-                  fontWeight: 700,
-                  px: 8,
-                  py: 3,
-                  borderColor: "#fdcb35",
-                  color: "#ffffff",
-                  borderRadius: "40px",
-                  "&:hover": {
-                    backgroundColor: "#fdcb35",
-                    color: "#000000",
-                    borderColor: "#fdcb35",
-                  },
-                  width: "fit-content",
+                bg="transparent"
+                color="white"
+                size={{ base: "md", md: "lg" }}
+                px={{ base: 8, md: 12 }}
+                py={{ base: 3, md: 4 }}
+                mt={{ base: 4, md: 8 }}
+                borderRadius="full"
+                fontSize={{ base: "16px", md: "18px" }}
+                fontWeight={700}
+                textTransform="capitalize"
+                border="2px solid #FDCB35"
+                _hover={{
+                  bg: "#1A1A1A",
+                  borderColor: "#E6B834",
                 }}
+                transition="all 0.2s ease"
+                w={{ base: "auto", sm: "200px" }}
               >
                 Get Your Card
               </Button>
-            </div>
-          </div>
+            </VStack>
+          </GridItem>
 
-          <div className="flex-1 flex justify-center mt-12 md:mt-0">
-            <Image
-              src="/card.png"
-              alt="Event Card"
-              width={450}
-              height={350}
-              className="drop-shadow-xl"
-            />
-          </div>
-        </div>
-      </section>
-    </div>
+          <GridItem display={{ base: "none", lg: "block" }}>
+            <Flex justify="center" position="relative">
+              {/* Digital Cards Showcase */}
+              <Box position="relative">
+                {/* Top Card */}
+                <Box
+                  w="320px"
+                  h="200px"
+                  borderRadius="16px"
+                  transform="rotate(8deg)"
+                  boxShadow="0 20px 40px rgba(0, 0, 0, 0.3)"
+                  overflow="hidden"
+                >
+                  <Image
+                    src="/cards/paradise-card-yellow.png"
+                    alt="Paradise Pay Yellow Card"
+                    w="100%"
+                    h="100%"
+                    objectFit="cover"
+                  />
+                </Box>
+
+                {/* Bottom Card */}
+                <Box
+                  position="absolute"
+                  top={-16}
+                  left={-20}
+                  w="320px"
+                  h="200px"
+                  borderRadius="16px"
+                  transform="rotate(-8deg)"
+                  boxShadow="0 20px 40px rgba(0, 0, 0, 0.3)"
+                  overflow="hidden"
+                >
+                  <Image
+                    src="/cards/paradise-card-blue.png"
+                    alt="Paradise Pay Blue Card"
+                    w="100%"
+                    h="100%"
+                    objectFit="cover"
+                  />
+                </Box>
+              </Box>
+            </Flex>
+          </GridItem>
+        </Grid>
+      </Container>
+    </Box>
   );
 }
