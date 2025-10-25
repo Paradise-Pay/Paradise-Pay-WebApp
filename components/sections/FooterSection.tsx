@@ -1,5 +1,10 @@
 "use client";
 
+/**
+ * FooterSection component
+ * Simple footer with quick links and copyright information
+ */
+
 import React from "react";
 import {
   Box,
@@ -18,16 +23,7 @@ export default function FooterSection() {
         <VStack gap={4}>
           {/* Top Section - Logo and Quick Links */}
           <Flex justify="space-between" align="center" w="full" wrap="wrap" gap={8}>
-            {/* Logo */}
-            <Flex align="center">
-              <Image
-                src="/logos/Paradise Pay_Logo_Blue.png"
-                alt="Paradise Pay"
-                height="40px"
-                width="auto"
-                objectFit="contain"
-              />
-            </Flex>
+          
             
             {/* Quick Links */}
             <HStack gap={6} display={{ base: "none", md: "flex" }}>
@@ -56,7 +52,7 @@ export default function FooterSection() {
           
           {/* Bottom Section - Copyright */}
           <Text fontSize="16px" color="#333333" textAlign="center">
-            All Rights Reseved, 2025 | Wildcard Technologies LLC
+            All Rights Reserved, 2025 | Wildcard Technologies LLC
           </Text>
         </VStack>
       </Container>

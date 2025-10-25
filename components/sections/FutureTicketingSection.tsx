@@ -1,5 +1,10 @@
 "use client";
 
+/**
+ * FutureTicketingSection component
+ * Showcases the future of event ticketing with mobile app preview
+ */
+
 import React from "react";
 import {
   Box,
@@ -16,24 +21,29 @@ import {
 
 export default function FutureTicketingSection() {
   return (
-    <Box bg="#FFC138" py={24} position="relative">
+    <Box bg="#FFC138" py={{ base: 12, md: 16, lg: 24 }} position="relative">
       {/* Top Blue Border */}
       <Box position="absolute" top="0" left="0" right="0" h="8px" bg="#42A5F5" />
       
       {/* Bottom Blue Border */}
       <Box position="absolute" bottom="0" left="0" right="0" h="8px" bg="#42A5F5" />
       
-      <Container maxW="7xl" position="relative" zIndex={1} >
-        <Grid templateColumns={{ base: "1fr", lg: "1fr 1fr" }} gap={12} alignItems="center">
-          <GridItem>
-            <VStack align="start" gap={12} pl={32} py={16}>
+      <Container maxW="7xl" position="relative" zIndex={1}>
+        <Grid templateColumns={{ base: "1fr", lg: "1fr 1fr" }} gap={{ base: 8, md: 10, lg: 12 }} alignItems="center">
+          <GridItem order={{ base: 2, lg: 1 }}>
+            <VStack 
+              align={{ base: "center", md: "start" }} 
+              gap={{ base: 6, md: 8, lg: 12 }} 
+              pl={{ base: 0, md: 8, lg: 32 }} 
+              py={{ base: 8, md: 12, lg: 16 }}
+              textAlign={{ base: "center", md: "left" }}
+            >
               <Heading
                 as="h2"
                 color="#333333"
                 fontWeight={900}
-                fontSize="48px"
+                fontSize={{ base: "2.5rem", sm: "3rem", md: "3.5rem", lg: "48px" }}
                 lineHeight="1.1"
-                textAlign="left"
               >
                 The Future
                 <br />
@@ -43,40 +53,41 @@ export default function FutureTicketingSection() {
               </Heading>
               <Text 
                 color="#333333" 
-                maxW="540px"
-                fontSize="18px"
+                maxW={{ base: "100%", md: "500px", lg: "540px" }}
+                fontSize={{ base: "16px", md: "17px", lg: "18px" }}
                 fontWeight={400}
                 lineHeight="1.6"
-                textAlign="left"
+                whiteSpace="pre-line"
               >
-                Paradise Pay is more than a ticketing app — <br /> it's your event passport. From concerts to <br /> sports to festivals, your Paradise Pay keeps all <br /> your tickets in one place. No lost emails, no <br /> printouts, no stress. Just scan and enter.
+                Paradise Pay is more than a ticketing app —{'\n'}it's your event passport. From concerts to{'\n'}sports to festivals, your Paradise Pay keeps all{'\n'}your tickets in one place. No lost emails, no{'\n'}printouts, no stress. Just scan and enter.
               </Text>
               <Button
                 bg="#42A5F5"
                 color="white"
-                size="lg"
-                px={12}
-                py={4}
+                size={{ base: "md", md: "lg" }}
+                px={{ base: 8, md: 10, lg: 12 }}
+                py={{ base: 3, md: 4 }}
                 borderRadius="12px"
-                fontSize="18px"
+                fontSize={{ base: "16px", md: "17px", lg: "18px" }}
                 fontWeight={600}
                 _hover={{ bg: "#1976D2" }}
                 transition="all 0.3s ease"
+                w={{ base: "auto", sm: "200px" }}
               >
                 Get Your Card
               </Button>
             </VStack>
           </GridItem>
           
-          <GridItem>
-            <Flex  position="relative">
+          <GridItem order={{ base: 1, lg: 2 }}>
+            <Flex justify="center" position="relative">
               <Box position="relative">
                 <Image
                   src="/assets/images/hand-with-phone.png"
                   alt="Hand holding phone"
                   w="auto"
-                  h="500px"
-                  maxW="300px"
+                  h={{ base: "300px", sm: "350px", md: "400px", lg: "500px" }}
+                  maxW={{ base: "250px", sm: "280px", md: "300px" }}
                   objectFit="contain"
                   position="relative"
                   zIndex={1}

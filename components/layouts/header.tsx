@@ -2,9 +2,11 @@
 
 /**
  * Header component with responsive navigation
+ * Features:
  * - Desktop: Shows navigation links horizontally
  * - Mobile: Shows hamburger menu with dropdown
- * - Hydration-safe: Uses client-side detection to prevent SSR mismatches
+ * - Theme toggle functionality
+ * - Search functionality
  */
 
 import React, { useState, useEffect } from "react";
@@ -13,21 +15,21 @@ import {
   Button,
   Container,
   Flex,
-  Heading,
   Text,
   HStack,
   Image,
   IconButton,
   VStack,
 } from "@chakra-ui/react";
-import { Search, Menu } from "lucide-react";
+import { Search, Menu, Sun, Moon } from "lucide-react";
 import Link from "next/link";
-import { ColorModeButton } from "@/components/ui/color-mode";
+
 export default function Header() {
   const [activeLink, setActiveLink] = useState("Home");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   
   // Handle hydration and responsive behavior
   useEffect(() => {
@@ -43,22 +45,29 @@ export default function Header() {
   const links = ["Home", "Discover Events", "Bundles", "Pricing", "Contact"];
   const logoPath = "/logos/Paradise Pay_Logo.png";
 
+  const toggleTheme = () => {
+    setIsDarkMode(!isDarkMode);
+    // You can add theme switching logic here
+  };
+
   return (
-    <Box bg="white" shadow="sm" position="sticky" top={0} zIndex={1000} py={2} px={38}>
+    <Box bg="white" shadow="sm" position="sticky" top={0} zIndex={1000} py={2} px={{ base: 4, md: 6 }}>
       <Container maxW="7xl">
-        <Flex h="20" align="center" justify="space-between">
-          <Flex align="center">
+        <Flex h={{ base: "16", md: "20" }} align="center" justify="space-between" w="full">
+          {/* Logo */}
+          <Flex align="center" flexShrink={0}>
             <Image
               src={logoPath}
               alt="Paradise Pay"
-              height="44px"
-              width="154px"
+              height={{ base: "36px", md: "44px" }}
+              width={{ base: "120px", md: "154px" }}
               objectFit="contain"
             />
           </Flex>
 
+          {/* Desktop Navigation Links */}
           {isMounted && !isMobile && (
-            <HStack gap={8}>
+            <HStack gap={8} flex="1" justify="center">
               {links.map((link) => (
                 <Text
                   key={link}
@@ -75,31 +84,63 @@ export default function Header() {
             </HStack>
           )}
 
-          <HStack gap={4}>
-            <Search size={28} color="#1A1A1A" style={{ cursor: "pointer" }} />
-            
-            <Link href="/auth/login" passHref>
-              <Button
-                bg="#FDCB35"
-                color="white"
-                px={8}
-                py={6}
-                borderRadius="24px"
-                fontWeight={600}
-                fontSize="16px"
-                _hover={{ bg: "#E6B834" }}
-              >
-                Sign up/Login
-              </Button>
-            </Link>
+          {/* Right side buttons */}
+          <HStack gap={{ base: 2, md: 4 }} flexShrink={0}>
+            {/* Search Icon - Always visible */}
+            <IconButton
+              aria-label="Search"
+              variant="ghost"
+              size={{ base: "md", md: "sm" }}
+              color="#1A1A1A"
+              _hover={{ bg: "gray.100" }}
+            >
+              <Search size={isMobile ? 22 : 20} />
+            </IconButton>
 
-            <ColorModeButton />
+            {/* Desktop buttons - hide on mobile */}
+            {isMounted && !isMobile && (
+              <>
+                {/* Sign up/Login Button */}
+                <Link href="/auth/login">
+                  <Button
+                    bg="#FDCB35"
+                    color="white"
+                    px={6}
+                    py={2}
+                    borderRadius="24px"
+                    fontWeight={600}
+                    fontSize="14px"
+                    _hover={{ bg: "#E6B834" }}
+                    size="sm"
+                  >
+                    Sign up/Login
+                  </Button>
+                </Link>
 
+                {/* Theme Switcher */}
+                <IconButton
+                  aria-label="Toggle theme"
+                  variant="ghost"
+                  size="sm"
+                  onClick={toggleTheme}
+                  color="#1A1A1A"
+                  _hover={{ bg: "gray.100" }}
+                >
+                  {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+                </IconButton>
+              </>
+            )}
+
+            {/* Mobile Menu Button - only show on mobile */}
             {isMounted && isMobile && (
               <IconButton
-                aria-label="Open menu"
+                aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
                 variant="ghost"
+                size="md"
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                color="#1A1A1A"
+                _hover={{ bg: "gray.100" }}
+                borderRadius="md"
               >
                 <Menu size={24} />
               </IconButton>
@@ -108,6 +149,7 @@ export default function Header() {
         </Flex>
       </Container>
 
+      {/* Mobile Menu Dropdown */}
       {isMounted && isMobile && isMobileMenuOpen && (
         <Box
           position="absolute"
@@ -117,9 +159,11 @@ export default function Header() {
           bg="white"
           shadow="lg"
           zIndex={1000}
-          p={4}
+          p={6}
+          borderTop="1px solid"
+          borderColor="gray.200"
         >
-          <VStack gap={4} align="stretch">
+          <VStack gap={2} align="stretch">
             {links.map((link) => (
               <Text
                 key={link}
@@ -127,7 +171,10 @@ export default function Header() {
                 fontWeight={activeLink === link ? 600 : 500}
                 fontSize="18px"
                 cursor="pointer"
-                py={2}
+                py={3}
+                px={4}
+                borderRadius="md"
+                _hover={{ bg: "gray.50" }}
                 onClick={() => {
                   setActiveLink(link);
                   setIsMobileMenuOpen(false);
@@ -136,6 +183,39 @@ export default function Header() {
                 {link}
               </Text>
             ))}
+            
+            {/* Mobile Action Buttons */}
+            <Box pt={4} borderTop="1px solid" borderColor="gray.200">
+              <VStack gap={3} align="stretch">
+                <Link href="/auth/login" onClick={() => setIsMobileMenuOpen(false)}>
+                  <Button
+                    bg="#FDCB35"
+                    color="white"
+                    w="full"
+                    py={3}
+                    borderRadius="md"
+                    fontWeight={600}
+                    fontSize="16px"
+                    _hover={{ bg: "#E6B834" }}
+                  >
+                    Sign up/Login
+                  </Button>
+                </Link>
+                
+                <Flex justify="center">
+                  <IconButton
+                    aria-label="Toggle theme"
+                    variant="ghost"
+                    size="md"
+                    onClick={toggleTheme}
+                    color="#1A1A1A"
+                    _hover={{ bg: "gray.100" }}
+                  >
+                    {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+                  </IconButton>
+                </Flex>
+              </VStack>
+            </Box>
           </VStack>
         </Box>
       )}

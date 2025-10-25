@@ -1,5 +1,10 @@
 "use client";
 
+/**
+ * PricingSection component
+ * Displays pricing plans in a responsive grid layout
+ */
+
 import React from "react";
 import {
   Box,
@@ -12,6 +17,7 @@ import {
   Button,
 } from "@chakra-ui/react";
 
+// Pricing plans configuration
 const pricingPlans = [
   {
     title: "Free",
@@ -67,41 +73,63 @@ const pricingPlans = [
 
 export default function PricingSection() {
   return (
-    <Box bg="#FFC107" py={24} px={16}>
+    <Box bg="#FFC107" py={{ base: 12, md: 16, lg: 24 }} px={{ base: 4, md: 8, lg: 16 }}>
       <Container maxW="7xl">
-        <VStack gap={16}>
-          <Heading as="h2" color="#1A1A1A" fontWeight={700} fontSize="48px" textAlign="center">
+        <VStack gap={{ base: 8, md: 12, lg: 16 }}>
+          <Heading 
+            as="h2" 
+            color="#1A1A1A" 
+            fontWeight={700} 
+            fontSize={{ base: "2.5rem", sm: "3rem", md: "3.5rem", lg: "48px" }}
+            textAlign="center"
+            lineHeight="1.1"
+          >
             Choose Your Passport.
           </Heading>
           
-          <Grid templateColumns={{ base: "1fr", md: "repeat(3, 1fr)" }} gap={8} w="full">
+          <Grid 
+            templateColumns={{ base: "1fr", md: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" }} 
+            gap={{ base: 6, md: 8 }} 
+            w="full"
+          >
             {pricingPlans.map((plan, idx) => (
               <GridItem key={idx}>
                 <Box
                   bg={plan.bgColor}
                   color={plan.textColor}
-                  p={8}
+                  p={{ base: 6, md: 7, lg: 8 }}
                   borderRadius="16px"
                   border={plan.borderColor ? "3px solid" : "none"}
                   borderColor={plan.borderColor}
-                  minH="500px"
+                  minH={{ base: "auto", md: "450px", lg: "500px" }}
                   display="flex"
                   flexDirection="column"
                   justifyContent="space-between"
                   position="relative"
                   shadow="lg"
+                  w="full"
                 >
-                  <VStack gap={6} align="start">
+                  <VStack gap={{ base: 4, md: 5, lg: 6 }} align="start" h="full">
                     <VStack align="start" gap={2}>
-                      <Heading size="2xl" fontWeight={700} fontSize="32px">{plan.title}</Heading>
-                      <Text fontSize="16px" fontWeight={400} fontStyle={idx === 1 ? "italic" : "normal"}>
+                      <Heading 
+                        size="2xl" 
+                        fontWeight={700} 
+                        fontSize={{ base: "24px", md: "28px", lg: "32px" }}
+                      >
+                        {plan.title}
+                      </Heading>
+                      <Text 
+                        fontSize={{ base: "14px", md: "15px", lg: "16px" }}
+                        fontWeight={400} 
+                        fontStyle={idx === 1 ? "italic" : "normal"}
+                      >
                         {plan.subtitle}
                       </Text>
                     </VStack>
                     
-                    <Box flex="1" mt={4}>
+                    <Box flex="1" mt={{ base: 2, md: 4 }}>
                       {plan.features.map((feature, i) => (
-                        <Box key={i} display="flex" alignItems="flex-start" mb={3}>
+                        <Box key={i} display="flex" alignItems="flex-start" mb={{ base: 2, md: 3 }}>
                           <Box
                             w="6px"
                             h="6px"
@@ -111,24 +139,36 @@ export default function PricingSection() {
                             mr={3}
                             flexShrink={0}
                           />
-                          <Text fontSize="16px" lineHeight="1.5">{feature}</Text>
+                          <Text 
+                            fontSize={{ base: "14px", md: "15px", lg: "16px" }}
+                            lineHeight="1.5"
+                          >
+                            {feature}
+                          </Text>
                         </Box>
                       ))}
                     </Box>
                     
-                    <Text fontSize="24px" fontWeight={700} mt={4}>{plan.price}</Text>
+                    <Text 
+                      fontSize={{ base: "20px", md: "22px", lg: "24px" }}
+                      fontWeight={700} 
+                      mt={{ base: 2, md: 4 }}
+                    >
+                      {plan.price}
+                    </Text>
                   </VStack>
                   
                   <Button
                     w="full"
                     bg={plan.btnBg}
                     color={plan.btnColor}
-                    size="lg"
-                    py={4}
+                    size={{ base: "md", md: "lg" }}
+                    py={{ base: 3, md: 4 }}
                     borderRadius="12px"
-                    fontSize="18px"
+                    fontSize={{ base: "16px", md: "17px", lg: "18px" }}
                     fontWeight={700}
                     _hover={{ opacity: 0.9 }}
+                    mt={{ base: 4, md: 6 }}
                   >
                     {plan.btnText}
                   </Button>

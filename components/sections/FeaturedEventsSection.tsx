@@ -1,5 +1,10 @@
 "use client";
 
+/**
+ * FeaturedEventsSection component
+ * Displays featured events in a responsive grid layout
+ */
+
 import React from "react";
 import {
   Box,
@@ -13,6 +18,7 @@ import {
 } from "@chakra-ui/react";
 import { MapPin, Calendar, Ticket } from "lucide-react";
 
+// Sample featured events data
 const featuredEvents = [
   {
     id: 1,
@@ -73,10 +79,11 @@ export default function FeaturedEventsSection() {
             as="h2" 
             color="white" 
             fontWeight={700} 
-            fontSize="40px"
+            fontSize="36px"
             textAlign="left" 
             w="full"
             pl="5%"
+            lineHeight="1.1"
           >
             Featured Events
           </Heading>
