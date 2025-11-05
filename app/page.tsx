@@ -13,7 +13,6 @@ import DiscoverSection from "@/components/sections/DiscoverSection";
 import OrganizerSection from "@/components/sections/OrganizerSection";
 import FAQSection from "@/components/sections/FAQSection";
 import FooterSection from "@/components/sections/FooterSection";
-
 /**
  * Main landing page component
  * Composes all sections in order for the complete homepage experience
