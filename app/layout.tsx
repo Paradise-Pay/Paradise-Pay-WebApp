@@ -1,52 +1,46 @@
-import type { Metadata } from "next";
+"use client";
+
+import React from 'react';
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { ThemeProvider } from "@/context/ThemeContext";
 import { AuthProvider } from "@/context/AuthProvider";
-import { Provider } from "@/components/ui/provider";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { CssBaseline } from '@mui/material';
+import { Provider } from "@/components/ui/provider";
+import Header from "@/components/layouts/header";
+import Footer from "@/components/layout/Footer";
 
 const inter = Inter({
-  variable: "--font-inter",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
+  variable: "--font-inter",
 });
 
-export const metadata: Metadata = {
-  title: "Paradise Pay",
-  description: "Ticketing Platform Powered By Paradise Pay",
-  icons: {
-    icon: '/favicon.svg',
-  },
+type RootLayoutProps = {
+  children: React.ReactNode;
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: RootLayoutProps) {
   return (
-    <html lang="en">
-      <body className={`${inter.variable} antialiased`}>
-        <Provider>
-          <ThemeProvider>
-            <AuthProvider>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${inter.className} font-sans`}>
+        <AuthProvider>
+          <Provider>
+            <CssBaseline enableColorScheme />
+            <Header />
+            <main>
               {children}
-              <ToastContainer
-                position="top-center"
-                autoClose={5000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-              />
-            </AuthProvider>
-          </ThemeProvider>
-        </Provider>
+            </main>
+            <Footer />
+            <ToastContainer 
+              position="bottom-right"
+              pauseOnFocusLoss
+              draggable
+              pauseOnHover
+            />
+          </Provider>
+        </AuthProvider>
       </body>
     </html>
   );

@@ -1,5 +1,6 @@
 import { ApiResponse } from "@/types/api";
 import { User } from "@/types/auth";
+import { DashboardStats, UserProfile, ProfileUpdateRequest, Activity } from "@/types/dashboard";
 
 // API configuration
 const API_BASE_URL = "https://paradise-pay-webapp-production.up.railway.app/api/v1";
@@ -57,9 +58,11 @@ export const login = async (email: string, password: string) => {
   const data = await res.json();
 
   // Store authentication data
-  localStorage.setItem("accessToken", data.accessToken);
-  localStorage.setItem("refreshToken", data.refreshToken);
-  localStorage.setItem("user", JSON.stringify(data.user));
+  if (typeof window !== "undefined") {
+    localStorage.setItem("accessToken", data.accessToken);
+    localStorage.setItem("refreshToken", data.refreshToken);
+    localStorage.setItem("user", JSON.stringify(data.user));
+  }
 
   return data;
 };
@@ -93,8 +96,63 @@ export const signup = async (userData: {
  * User logout: Clear stored authentication data
  */
 export const logout = () => {
-  localStorage.removeItem("accessToken");
-  localStorage.removeItem("refreshToken");
-  localStorage.removeItem("user");
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("user");
+  }
   return Promise.resolve({ success: true, message: "Logged out" });
+};
+
+/**
+ * Dashboard stats: Get user's dashboard statistics
+ */
+export const getDashboardStats = async () => {
+  return apiFetch<DashboardStats>("/dashboard/stats", {
+    method: "GET",
+  });
+};
+
+/**
+ * User profile: Get current user's profile data
+ */
+export const getUserProfile = async () => {
+  return apiFetch<UserProfile>("/user/profile", {
+    method: "GET",
+  });
+};
+
+/**
+ * User profile: Update user profile data
+ */
+export const updateUserProfile = async (profileData: ProfileUpdateRequest) => {
+  return apiFetch<UserProfile>("/user/profile", {
+    method: "PUT",
+    body: profileData,
+  });
+};
+
+/**
+ * User avatar: Upload user avatar image
+ */
+export const uploadUserAvatar = async (avatarFile: File) => {
+  const formData = new FormData();
+  formData.append("avatar", avatarFile);
+  
+  return apiFetch<{ avatarUrl: string }>("/user/avatar", {
+    method: "POST",
+    body: formData,
+    headers: {
+      // Don't set Content-Type, let browser set it with boundary
+    },
+  });
+};
+
+/**
+ * User activity: Get recent user activity
+ */
+export const getUserActivity = async (limit: number = 10) => {
+  return apiFetch<Activity[]>(`/user/activity?limit=${limit}`, {
+    method: "GET",
+  });
 };

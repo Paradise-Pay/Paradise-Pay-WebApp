@@ -1,16 +1,6 @@
-export type Role = "admin" | "organiser" | "client";
+export * from './user';
 
-export interface User {
-  id: number;
-  first_name: string;
-  last_name: string;
-  email: string;
-  role: Role;
-}
-
-export interface AuthContextType {
-  user: User | null;
-  loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  logout: () => Promise<void>;
-}
+// Re-export the User type for backward compatibility
+export type { AuthUser as User } from './user';
+// Re-export the context type for backward compatibility
+export type { AuthContextType } from './user';

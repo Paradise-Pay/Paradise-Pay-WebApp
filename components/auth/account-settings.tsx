@@ -88,7 +88,7 @@ export default function MyProfile() {
   const handleAddPaymentMethod = () => {
     if (paymentMethodType === "card") {
       const newMethod = {
-        id: Date.now(),
+        id: Math.floor(Math.random() * 1000000) + 1000000,
         type: "card",
         provider: newPaymentMethod.cardNumber.startsWith("4")
           ? "Visa"
@@ -101,7 +101,7 @@ export default function MyProfile() {
       setPaymentMethods((prev) => [...prev, newMethod]);
     } else {
       const newMethod = {
-        id: Date.now(),
+        id: Math.floor(Math.random() * 1000000) + 1000000,
         type: "mobile",
         provider: `${newPaymentMethod.provider} Mobile Money`,
         phone: newPaymentMethod.phone,

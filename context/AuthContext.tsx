@@ -4,10 +4,13 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { authService } from '@/lib/api/auth';
 
-interface User {
+export interface User {
   id: string;
   name: string;
   email: string;
+  emailVerified?: boolean;
+  phone?: string;
+  avatar?: string;
   // Add other user properties as needed
 }
 
@@ -26,6 +29,7 @@ interface AuthContextType {
   forgotPassword: (email: string) => Promise<void>;
   resetPassword: (token: string, newPassword: string) => Promise<void>;
   verifyEmail: (token: string) => Promise<void>;
+  updateProfile: (userData: Partial<User>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -128,6 +132,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const updateProfile = async (userData: Partial<User>) => {
+    try {
+      // In a real app, you would call your API to update the user profile
+      // const updatedUser = await authService.updateProfile(userData);
+      setUser(prev => (prev ? { ...prev, ...userData } : null));
+      return Promise.resolve();
+    } catch (error) {
+      console.error('Profile update failed:', error);
+      throw error;
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -139,6 +155,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         forgotPassword,
         resetPassword,
         verifyEmail,
+        updateProfile,
       }}
     >
       {children}

@@ -1,0 +1,161 @@
+'use client';
+
+import { Box, Container, Grid, Link as MuiLink, Typography, Divider, IconButton } from '@mui/material';
+import Link from 'next/link';
+import { Facebook, Twitter, Instagram, LinkedIn, GitHub } from '@mui/icons-material';
+import { useEffect, useState } from 'react';
+
+const Footer = () => {
+  const [currentYear, setCurrentYear] = useState<number>(new Date().getFullYear());
+
+  useEffect(() => {
+    setCurrentYear(new Date().getFullYear());
+  }, []);
+
+  return (
+    <Box
+      component="footer"
+      sx={{
+        backgroundColor: (theme: { palette: { mode: string; grey: { [key: number]: string } } }) =>
+          theme.palette.mode === 'light'
+            ? theme.palette.grey[100]
+            : theme.palette.grey[800],
+        p: 6,
+        mt: 'auto',
+      }}
+    >
+      <Container maxWidth="lg">
+        <Grid container spacing={4}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Typography variant="h6" color="text.primary" gutterBottom>
+              Paradise Pay
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Your trusted ticketing platform for all events. Fast, secure, and reliable ticket purchasing experience.
+            </Typography>
+            <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
+              <IconButton aria-label="Facebook" component="a" href="https://facebook.com" target="_blank" rel="noopener">
+                <Facebook />
+              </IconButton>
+              <IconButton aria-label="Twitter" component="a" href="https://twitter.com" target="_blank" rel="noopener">
+                <Twitter />
+              </IconButton>
+              <IconButton aria-label="Instagram" component="a" href="https://instagram.com" target="_blank" rel="noopener">
+                <Instagram />
+              </IconButton>
+              <IconButton aria-label="LinkedIn" component="a" href="https://linkedin.com" target="_blank" rel="noopener">
+                <LinkedIn />
+              </IconButton>
+              <IconButton aria-label="GitHub" component="a" href="https://github.com" target="_blank" rel="noopener">
+                <GitHub />
+              </IconButton>
+            </Box>
+          </Grid>
+          
+          <Grid size={{ xs: 6, sm: 3, md: 2 }}>
+            <Typography variant="subtitle1" color="text.primary" gutterBottom>
+              Company
+            </Typography>
+            <MuiLink component={Link} href="/about" color="inherit" display="block" mb={1}>
+              About Us
+            </MuiLink>
+            <MuiLink component={Link} href="/careers" color="inherit" display="block" mb={1}>
+              Careers
+            </MuiLink>
+            <MuiLink component={Link} href="/blog" color="inherit" display="block" mb={1}>
+              Blog
+            </MuiLink>
+            <MuiLink component={Link} href="/press" color="inherit" display="block" mb={1}>
+              Press
+            </MuiLink>
+          </Grid>
+          
+          <Grid size={{ xs: 6, sm: 3, md: 2 }}>
+            <Typography variant="subtitle1" color="text.primary" gutterBottom>
+              Support
+            </Typography>
+            <MuiLink component={Link} href="/contact" color="inherit" display="block" mb={1}>
+              Contact Us
+            </MuiLink>
+            <MuiLink component={Link} href="/help" color="inherit" display="block" mb={1}>
+              Help Center
+            </MuiLink>
+            <MuiLink component={Link} href="/faq" color="inherit" display="block" mb={1}>
+              FAQs
+            </MuiLink>
+            <MuiLink component={Link} href="/privacy" color="inherit" display="block" mb={1}>
+              Privacy Policy
+            </MuiLink>
+          </Grid>
+          
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Typography variant="subtitle1" color="text.primary" gutterBottom>
+              Subscribe to our newsletter
+            </Typography>
+            <Typography variant="body2" color="text.secondary" mb={2}>
+              Get the latest updates on new events and special offers.
+            </Typography>
+            <Box component="form" sx={{ display: 'flex', gap: 1 }}>
+              <Box
+                component="input"
+                type="email"
+                placeholder="Enter your email"
+                sx={{
+                  flex: 1,
+                  padding: '8px 12px',
+                  borderRadius: '4px',
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  fontSize: '0.875rem',
+                  '&:focus': {
+                    outline: 'none',
+                    borderColor: 'primary.main',
+                  }
+                }}
+              />
+              <Box
+                component="button"
+                type="submit"
+                sx={{
+                  backgroundColor: 'primary.main',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  padding: '8px 16px',
+                  cursor: 'pointer',
+                  fontSize: '0.875rem',
+                  '&:hover': {
+                    backgroundColor: 'primary.dark',
+                  },
+                }}
+              >
+                Subscribe
+              </Box>
+            </Box>
+          </Grid>
+        </Grid>
+        
+        <Divider sx={{ my: 4 }} />
+        
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="body2" color="text.secondary" textAlign="center" mb={{ xs: 2, sm: 0 }}>
+            © {currentYear} Paradise Pay. All rights reserved.
+          </Typography>
+          <Box>
+            <MuiLink component={Link} href="/terms" color="text.secondary" variant="body2" mr={2}>
+              Terms of Service
+            </MuiLink>
+            <MuiLink component={Link} href="/privacy" color="text.secondary" variant="body2" mr={2}>
+              Privacy Policy
+            </MuiLink>
+            <MuiLink component={Link} href="/cookies" color="text.secondary" variant="body2">
+              Cookie Policy
+            </MuiLink>
+          </Box>
+        </Box>
+      </Container>
+    </Box>
+  );
+};
+
+export default Footer;

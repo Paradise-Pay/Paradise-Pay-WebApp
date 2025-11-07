@@ -1,15 +1,7 @@
 "use client";
 
-import { IconButton } from "@mui/material";
-import { Brightness4, Brightness7 } from "@mui/icons-material";
-import { useThemeContext } from "@/context/ThemeContext";
+import { ColorModeButton } from "@/components/ui/color-mode";
 
 export const ThemeToggle = () => {
-  const { mode, toggleTheme } = useThemeContext();
-
-  return (
-    <IconButton onClick={toggleTheme} color="inherit">
-      {mode === "light" ? <Brightness4 /> : <Brightness7 />}
-    </IconButton>
-  );
+  return <ColorModeButton />;
 };
