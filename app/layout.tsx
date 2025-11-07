@@ -3,7 +3,9 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { AuthProvider } from "@/context/AuthProvider";
-import { Provider } from "@/components/ui/provider"; 
+import { Provider } from "@/components/ui/provider";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const inter = Inter({
   variable: "--font-inter",
@@ -31,6 +33,17 @@ export default function RootLayout({
           <ThemeProvider>
             <AuthProvider>
               {children}
+              <ToastContainer
+                position="top-center"
+                autoClose={5000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+              />
             </AuthProvider>
           </ThemeProvider>
         </Provider>
