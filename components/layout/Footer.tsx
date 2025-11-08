@@ -2,7 +2,8 @@
 
 import { Box, Container, Grid, Link as MuiLink, Typography, Divider, IconButton } from '@mui/material';
 import Link from 'next/link';
-import { Facebook, Twitter, Instagram, LinkedIn, GitHub } from '@mui/icons-material';
+import { Facebook, Twitter, Instagram, YouTube } from '@mui/icons-material';
+import { SiTiktok, SiX } from 'react-icons/si';
 import { useEffect, useState } from 'react';
 
 const Footer = () => {
@@ -37,17 +38,17 @@ const Footer = () => {
               <IconButton aria-label="Facebook" component="a" href="https://facebook.com" target="_blank" rel="noopener">
                 <Facebook />
               </IconButton>
-              <IconButton aria-label="Twitter" component="a" href="https://twitter.com" target="_blank" rel="noopener">
-                <Twitter />
+              <IconButton aria-label="X (Twitter)" component="a" href="https://x.com" target="_blank" rel="noopener">
+                <SiX />
               </IconButton>
               <IconButton aria-label="Instagram" component="a" href="https://instagram.com" target="_blank" rel="noopener">
                 <Instagram />
               </IconButton>
-              <IconButton aria-label="LinkedIn" component="a" href="https://linkedin.com" target="_blank" rel="noopener">
-                <LinkedIn />
+              <IconButton aria-label="YouTube" component="a" href="https://youtube.com" target="_blank" rel="noopener">
+                <YouTube />
               </IconButton>
-              <IconButton aria-label="GitHub" component="a" href="https://github.com" target="_blank" rel="noopener">
-                <GitHub />
+              <IconButton aria-label="TikTok" component="a" href="https://tiktok.com" target="_blank" rel="noopener">
+                <SiTiktok />
               </IconButton>
             </Box>
           </Grid>

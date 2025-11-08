@@ -134,47 +134,56 @@ export default function SignupPage() {
   };
 
   return (
-    <Container component="main" maxWidth="sm" sx={{ minHeight: '100vh', py: 4 }}>
-      <Box
-        sx={{
-          marginTop: 8,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-        }}
-      >
-        <Box sx={{ position: 'absolute', top: 16, right: 16 }}>
-          <ThemeToggle />
-        </Box>
-
-        <Box sx={{ mb: 4, textAlign: 'center' }}>
-          <Image
-            src="/logos/Paradise Pay_Logo.png"
-            alt="Paradise Pay"
-            width={180}
-            height={60}
-            style={{ margin: '0 auto 16px' }}
-            priority
-          />
-          <Typography component="h1" variant="h5" sx={{ fontWeight: 600, mb: 1 }}>
-            Create Your Account
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Already have an account?{' '}
-            <MuiLink component={Link} href="/auth/login" underline="hover" color="primary.main">
-              Sign in
-            </MuiLink>
-          </Typography>
-        </Box>
-
+    <Box
+      component="main"
+      sx={{
+        minHeight: '100vh',
+        width: '100%',
+        bgcolor: '#2f89ff',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        p: 2
+      }}
+    >
+      <Box sx={{ position: 'absolute', top: 16, right: 16 }}>
+        <ThemeToggle />
+      </Box>
+      
+      <Container maxWidth="sm">
         <Paper 
           elevation={3} 
           sx={{ 
-            p: 4, 
-            width: '100%',
+            width: '552px',
+            minHeight: '678.267px',
+            p: '32px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            bgcolor: 'background.paper',
             borderRadius: 2,
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.25)'
           }}
         >
+          <Box sx={{ mb: 4, textAlign: 'center', width: '100%' }}>
+            <Image
+              src="/logos/Paradise Pay_Logo.png"
+              alt="Paradise Pay"
+              width={180}
+              height={60}
+              style={{ margin: '0 auto 16px' }}
+              priority
+            />
+            <Typography component="h1" variant="h5" sx={{ fontWeight: 600, mb: 1 }}>
+              Create Your Account
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Already have an account?{' '}
+              <MuiLink component={Link} href="/auth/login" underline="hover" color="primary.main">
+                Sign in
+              </MuiLink>
+            </Typography>
+          </Box>
           <Box component="form" onSubmit={handleSubmit} noValidate>
             <TextField
               margin="normal"
@@ -287,7 +296,7 @@ export default function SignupPage() {
             </Box>
           </Box>
         </Paper>
-      </Box>
-    </Container>
+      </Container>
+    </Box>
   );
 }

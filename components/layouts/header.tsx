@@ -46,7 +46,6 @@ export default function Header() {
   }, []);
   
   const links = [
-    { name: "Home", path: "/" },
     { name: "Discover Events", path: "/discover" },
     { name: "Bundles", path: "/bundles" },
     { name: "Pricing", path: "/pricing" },
