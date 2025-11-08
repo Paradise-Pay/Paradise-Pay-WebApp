@@ -29,10 +29,10 @@ const Footer = () => {
       <Container maxWidth="lg">
         <Grid container spacing={4}>
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-            <Typography variant="h6" color="text.primary" gutterBottom sx={{ fontFamily: 'inherit' }}>
+            <Typography variant="h6" color="text.primary" gutterBottom sx={{ fontFamily: 'inherit', fontWeight: 700 }}>
               Paradise Pay
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ fontFamily: 'inherit' }}>
+            <Typography variant="body2" color="text.secondary" sx={{ fontFamily: 'inherit', fontWeight: 500 }}>
               Your trusted ticketing platform for all events. Fast, secure, and reliable ticket purchasing experience.
             </Typography>
             <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
@@ -55,7 +55,7 @@ const Footer = () => {
           </Grid>
           
           <Grid size={{ xs: 6, sm: 3, md: 2 }}>
-            <Typography variant="subtitle1" color="text.primary" gutterBottom sx={{ fontFamily: 'inherit' }}>
+            <Typography variant="subtitle1" color="text.primary" gutterBottom sx={{ fontFamily: 'inherit', fontWeight: 600 }}>
               Company
             </Typography>
             <MuiLink component={Link} href="/about" color="inherit" display="block" mb={1}>
@@ -73,7 +73,7 @@ const Footer = () => {
           </Grid>
           
           <Grid size={{ xs: 6, sm: 3, md: 2 }}>
-            <Typography variant="subtitle1" color="text.primary" gutterBottom sx={{ fontFamily: 'inherit' }}>
+            <Typography variant="subtitle1" color="text.primary" gutterBottom sx={{ fontFamily: 'inherit', fontWeight: 600 }}>
               Support
             </Typography>
             <MuiLink component={Link} href="/contact" color="inherit" display="block" mb={1}>
@@ -91,10 +91,10 @@ const Footer = () => {
           </Grid>
           
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-            <Typography variant="subtitle1" color="text.primary" gutterBottom sx={{ fontFamily: 'inherit' }}>
+            <Typography variant="subtitle1" color="text.primary" gutterBottom sx={{ fontFamily: 'inherit', fontWeight: 600 }}>
               Subscribe to our newsletter
             </Typography>
-            <Typography variant="body2" color="text.secondary" mb={2} sx={{ fontFamily: 'inherit' }}>
+            <Typography variant="body2" color="text.secondary" mb={2} sx={{ fontFamily: 'inherit', fontWeight: 500 }}>
               Get the latest updates on new events and special offers.
             </Typography>
             <Box component="form" sx={{ display: 'flex', gap: 1 }}>
@@ -140,17 +140,17 @@ const Footer = () => {
         <Divider sx={{ my: 4 }} />
         
         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="body2" color="text.secondary" textAlign="center" mb={{ xs: 2, sm: 0 }} sx={{ fontFamily: 'inherit' }}>
+          <Typography variant="body2" color="text.secondary" textAlign="center" mb={{ xs: 2, sm: 0 }} sx={{ fontFamily: 'inherit', fontWeight: 500 }}>
             © {currentYear} Paradise Pay. All rights reserved.
           </Typography>
           <Box>
-            <MuiLink component={Link} href="/terms" color="text.secondary" variant="body2" mr={2}>
+            <MuiLink component={Link} href="/terms" color="text.secondary" variant="body2" mr={2} sx={{ fontWeight: 500 }}>
               Terms of Service
             </MuiLink>
-            <MuiLink component={Link} href="/privacy" color="text.secondary" variant="body2" mr={2}>
+            <MuiLink component={Link} href="/privacy" color="text.secondary" variant="body2" mr={2} sx={{ fontWeight: 500 }}>
               Privacy Policy
             </MuiLink>
-            <MuiLink component={Link} href="/cookies" color="text.secondary" variant="body2">
+            <MuiLink component={Link} href="/cookies" color="text.secondary" variant="body2" sx={{ fontWeight: 500 }}>
               Cookie Policy
             </MuiLink>
           </Box>
