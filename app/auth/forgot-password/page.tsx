@@ -68,46 +68,68 @@ export default function ForgotPasswordPage() {
           elevation={3} 
           sx={{ 
             width: '552px',
-            minHeight: '678.267px',
+            height: '450px',
             p: '32px',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
+            justifyContent: 'center',
             bgcolor: 'background.paper',
             borderRadius: 2,
-            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.25)'
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.25)',
+            position: 'relative'
           }}
         >
-          <Box sx={{ mb: 4, textAlign: 'center' }}>
+          <Box sx={{ textAlign: 'center', width: '100%', mb: 4 }}>
             <Image
               src="/logos/Paradise Pay_Logo.png"
               alt="Paradise Pay"
-              width={180}
-              height={60}
-              style={{ margin: '0 auto 16px' }}
+              width={140}
+              height={47}
+              style={{ margin: '0 auto 20px' }}
               priority
             />
-            <Typography component="h1" variant="h5" sx={{ fontWeight: 600, mb: 1 }}>
-              Forgot Password
+            <Typography component="h1" variant="h5" sx={{ fontWeight: 700, mb: 1.5, fontSize: '1.5rem' }}>
+              Reset Your Password
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ color: 'text.secondary' }}>
-              Enter your email and we'll send you a link to reset your password
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3, maxWidth: '400px', mx: 'auto' }}>
+              Enter the email associated with your account and we'll send you a link to reset your password.
             </Typography>
           </Box>
-          <Box component="form" onSubmit={handleSubmit} noValidate>
+          
+          <Box component="form" onSubmit={handleSubmit} noValidate sx={{ width: '100%', maxWidth: '400px', mx: 'auto' }}>
             <TextField
-              margin="normal"
-              required
               fullWidth
               id="email"
               label="Email Address"
               name="email"
+              type="email"
               autoComplete="email"
-              autoFocus
+              variant="outlined"
               value={email}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
-              variant="outlined"
-              sx={{ mb: 3 }}
+              sx={{ 
+                mb: 3,
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '8px',
+                  '& fieldset': {
+                    borderColor: 'divider',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: 'primary.main',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: 'primary.main',
+                    borderWidth: '1px',
+                  },
+                },
+                '& .MuiInputLabel-root': {
+                  color: 'text.secondary',
+                  '&.Mui-focused': {
+                    color: 'primary.main',
+                  },
+                },
+              }}
             />
 
             <Button
@@ -115,14 +137,39 @@ export default function ForgotPasswordPage() {
               fullWidth
               variant="contained"
               disabled={isLoading}
-              sx={{ py: 1.5, mb: 2 }}
+              sx={{ 
+                py: 1.5, 
+                mb: 3,
+                borderRadius: '8px',
+                textTransform: 'none',
+                fontSize: '1rem',
+                fontWeight: 600,
+                boxShadow: 'none',
+                '&:hover': {
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                },
+              }}
             >
-              {isLoading ? 'Sending...' : 'Send Reset Link'}
+              {isLoading ? 'Sending Reset Link...' : 'Send Reset Link'}
             </Button>
 
-            <Box sx={{ textAlign: 'center', mt: 2 }}>
-              <MuiLink component={Link} href="/auth/login" variant="body2" underline="hover">
-                Back to Sign In
+            <Box sx={{ textAlign: 'center', mt: 3 }}>
+              <MuiLink 
+                component={Link} 
+                href="/auth/login" 
+                variant="body2" 
+                underline="hover"
+                sx={{
+                  color: 'text.secondary',
+                  '&:hover': {
+                    color: 'primary.main',
+                  },
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 0.5
+                }}
+              >
+                <span>←</span> Back to Sign In
               </MuiLink>
             </Box>
           </Box>

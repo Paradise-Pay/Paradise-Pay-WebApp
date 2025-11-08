@@ -23,15 +23,16 @@ const Footer = () => {
             : theme.palette.grey[800],
         p: 6,
         mt: 'auto',
+        fontFamily: 'var(--font-inter), sans-serif',
       }}
     >
       <Container maxWidth="lg">
         <Grid container spacing={4}>
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-            <Typography variant="h6" color="text.primary" gutterBottom>
+            <Typography variant="h6" color="text.primary" gutterBottom sx={{ fontFamily: 'inherit' }}>
               Paradise Pay
             </Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="body2" color="text.secondary" sx={{ fontFamily: 'inherit' }}>
               Your trusted ticketing platform for all events. Fast, secure, and reliable ticket purchasing experience.
             </Typography>
             <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
@@ -54,7 +55,7 @@ const Footer = () => {
           </Grid>
           
           <Grid size={{ xs: 6, sm: 3, md: 2 }}>
-            <Typography variant="subtitle1" color="text.primary" gutterBottom>
+            <Typography variant="subtitle1" color="text.primary" gutterBottom sx={{ fontFamily: 'inherit' }}>
               Company
             </Typography>
             <MuiLink component={Link} href="/about" color="inherit" display="block" mb={1}>
@@ -72,7 +73,7 @@ const Footer = () => {
           </Grid>
           
           <Grid size={{ xs: 6, sm: 3, md: 2 }}>
-            <Typography variant="subtitle1" color="text.primary" gutterBottom>
+            <Typography variant="subtitle1" color="text.primary" gutterBottom sx={{ fontFamily: 'inherit' }}>
               Support
             </Typography>
             <MuiLink component={Link} href="/contact" color="inherit" display="block" mb={1}>
@@ -90,10 +91,10 @@ const Footer = () => {
           </Grid>
           
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-            <Typography variant="subtitle1" color="text.primary" gutterBottom>
+            <Typography variant="subtitle1" color="text.primary" gutterBottom sx={{ fontFamily: 'inherit' }}>
               Subscribe to our newsletter
             </Typography>
-            <Typography variant="body2" color="text.secondary" mb={2}>
+            <Typography variant="body2" color="text.secondary" mb={2} sx={{ fontFamily: 'inherit' }}>
               Get the latest updates on new events and special offers.
             </Typography>
             <Box component="form" sx={{ display: 'flex', gap: 1 }}>
@@ -139,7 +140,7 @@ const Footer = () => {
         <Divider sx={{ my: 4 }} />
         
         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="body2" color="text.secondary" textAlign="center" mb={{ xs: 2, sm: 0 }}>
+          <Typography variant="body2" color="text.secondary" textAlign="center" mb={{ xs: 2, sm: 0 }} sx={{ fontFamily: 'inherit' }}>
             © {currentYear} Paradise Pay. All rights reserved.
           </Typography>
           <Box>
