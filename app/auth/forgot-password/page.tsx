@@ -3,9 +3,9 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Button, TextField, Typography, Box, Container, Paper, Link as MuiLink } from '@mui/material';
+import { Button, TextField, Typography, Box, Container, Paper, Link as MuiLink, Avatar } from '@mui/material';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import Image from 'next/image';
+import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { authService } from '@/lib/api/auth';
@@ -81,14 +81,21 @@ export default function ForgotPasswordPage() {
           }}
         >
           <Box sx={{ textAlign: 'center', width: '100%', mb: 4 }}>
-            <Image
-              src="/logos/Paradise Pay_Logo.png"
-              alt="Paradise Pay"
-              width={140}
-              height={47}
-              style={{ margin: '0 auto 20px' }}
-              priority
-            />
+            <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%', mb: 2 }}>
+              <Avatar 
+                sx={{ 
+                  bgcolor: 'primary.main', 
+                  width: 56, 
+                  height: 56,
+                  '& .MuiSvgIcon-root': {
+                    fontSize: '2rem',
+                    color: 'white'
+                  }
+                }}
+              >
+                <AccountBalanceWalletIcon fontSize="large" />
+              </Avatar>
+            </Box>
             <Typography component="h1" variant="h5" sx={{ fontWeight: 700, mb: 1.5, fontSize: '1.5rem' }}>
               Reset Your Password
             </Typography>

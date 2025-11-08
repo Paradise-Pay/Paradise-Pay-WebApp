@@ -4,10 +4,9 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthProvider';
-import { Button, TextField, Typography, Box, Link as MuiLink, Container, Paper, InputAdornment, IconButton, Divider } from '@mui/material';
-import { Visibility, VisibilityOff } from '@mui/icons-material';
+import { Button, TextField, Typography, Box, Link as MuiLink, Container, Paper, InputAdornment, IconButton, Divider, Avatar } from '@mui/material';
+import { Visibility, VisibilityOff, AccountBalanceWallet as AccountBalanceWalletIcon, Google as GoogleIcon } from '@mui/icons-material';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import Image from 'next/image';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -124,14 +123,21 @@ export default function LoginPage() {
           }}
         >
           <Box sx={{ mb: 4, textAlign: 'center', width: '100%' }}>
-            <Image
-              src="/logos/Paradise Pay_Logo.png"
-              alt="Paradise Pay Logo"
-              width={180}
-              height={60}
-              style={{ margin: '0 auto 16px' }}
-              priority
-            />
+            <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%', mb: 2 }}>
+              <Avatar 
+                sx={{ 
+                  bgcolor: 'primary.main', 
+                  width: 56, 
+                  height: 56,
+                  '& .MuiSvgIcon-root': {
+                    fontSize: '2rem',
+                    color: 'white'
+                  }
+                }}
+              >
+                <AccountBalanceWalletIcon fontSize="large" />
+              </Avatar>
+            </Box>
             <Typography component="h1" variant="h5" sx={{ fontWeight: 600, mb: 1 }}>
               Sign in to your account
             </Typography>
@@ -207,15 +213,7 @@ export default function LoginPage() {
             <Button
               fullWidth
               variant="outlined"
-              startIcon={
-                <Image
-                  src="/google-icon.svg"
-                  alt="Google"
-                  width={20}
-                  height={20}
-                  style={{ marginRight: 8 }}
-                />
-              }
+              startIcon={<GoogleIcon />}
               onClick={() => {
                 toast.info('Google login will be implemented soon', {
                   position: 'top-center',

@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
 import {
   Container,
   Box,
@@ -15,8 +14,9 @@ import {
   IconButton,
   Link as MuiLink,
   FormHelperText,
+  Avatar,
 } from '@mui/material';
-import { Visibility, VisibilityOff } from '@mui/icons-material';
+import { Visibility, VisibilityOff, AccountBalanceWallet as AccountBalanceWalletIcon } from '@mui/icons-material';
 import { useAuth } from '@/context/AuthProvider';
 import { authService } from '@/lib/api/auth';
 import { toast } from 'react-toastify';
@@ -166,14 +166,21 @@ export default function SignupPage() {
           }}
         >
           <Box sx={{ mb: 4, textAlign: 'center', width: '100%' }}>
-            <Image
-              src="/logos/Paradise Pay_Logo.png"
-              alt="Paradise Pay"
-              width={180}
-              height={60}
-              style={{ margin: '0 auto 16px' }}
-              priority
-            />
+            <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%', mb: 2 }}>
+              <Avatar 
+                sx={{ 
+                  bgcolor: 'primary.main', 
+                  width: 56, 
+                  height: 56,
+                  '& .MuiSvgIcon-root': {
+                    fontSize: '2rem',
+                    color: 'white'
+                  }
+                }}
+              >
+                <AccountBalanceWalletIcon fontSize="large" />
+              </Avatar>
+            </Box>
             <Typography component="h1" variant="h5" sx={{ fontWeight: 600, mb: 1 }}>
               Create Your Account
             </Typography>
