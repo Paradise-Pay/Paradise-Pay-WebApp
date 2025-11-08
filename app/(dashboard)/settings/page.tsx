@@ -1,15 +1,69 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import styles from './settings.module.css';
-import { User as DomainUser, UserRole, SecuritySettings } from '@/types/domain/user';
-import { useAuth } from '@/context/AuthProvider';
-import { ID } from '@/types/common';
-import type { SelectChangeEvent } from '@mui/material/Select';
-import { getUserProfile, updateUserProfile, uploadUserAvatar } from '@/lib/api';
-import { UserProfile, ProfileUpdateRequest } from '@/types/dashboard';
+import { SelectChangeEvent } from '@mui/material/Select';
 import { 
-  Box, 
+  type User as DomainUser,
+  type UserPreferences as DomainUserPreferences,
+  type NotificationSettings as DomainNotificationSettings,
+  type SecuritySettings as DomainSecuritySettings,
+  type ActivityLog as DomainActivityLog,
+  type UserRole
+} from '@/types/domain/user';
+
+import { useAuth } from '@/context/AuthProvider';
+import { getUserProfile, updateUserProfile, uploadUserAvatar } from '@/lib/api';
+import { ProfileUpdateRequest, SecurityActivity, UserSecurity } from '@/types/dashboard';
+
+type ID = string | number;
+
+// Local type for form data
+interface FormSecuritySettings {
+  twoFactorAuth: boolean;
+  loginAlerts: boolean;
+  deviceManagement: boolean;
+  recentActivity: DomainActivityLog[]; // Will be mapped to SecurityActivity[]
+}
+
+// Local ActivityLog type that matches what we expect in the UI
+interface UIActivityLog {
+  id: string;
+  action: string;
+  device?: string;
+  location?: string;
+  timestamp?: string;
+  successful?: boolean;
+  ipAddress?: string;
+  userAgent?: string;
+  status?: string;
+  createdAt?: string;
+}
+
+interface SecuritySettings {
+  twoFactorAuth: boolean;
+  loginAlerts: boolean;
+  deviceManagement: boolean;
+  recentActivity: DomainActivityLog[];
+}
+// Helper function to map DomainActivityLog to SecurityActivity
+const mapActivityLogToSecurityActivity = (log: DomainActivityLog): SecurityActivity => {
+  // Convert ID to string if it's a number
+  const id = typeof log.id === 'number' ? log.id.toString() : log.id;
+  
+  // Type assertion to access potential properties
+  const logAny = log as any;
+  
+  return {
+    id,
+    action: log.action,
+    device: logAny.device || log.userAgent || 'Unknown device',
+    location: logAny.location || logAny.ipAddress || 'Unknown location',
+    timestamp: logAny.timestamp || logAny.createdAt || new Date().toISOString(),
+    successful: logAny.successful ?? (logAny.status === 'success')
+  };
+};
+import { 
+  Box,
   Typography, 
   Card, 
   CardContent, 
@@ -30,15 +84,15 @@ import {
   IconButton,
   useTheme,
   useMediaQuery,
-  Chip,
   List,
   ListItem,
-  ListItemIcon,
   ListItemText,
+  ListItemButton,
+  ListItemIcon,
+  ListItemAvatar,
   InputAdornment,
   Skeleton,
-  ListItemButton,
-  ListItemAvatar
+  Chip
 } from '@mui/material';
 import { Grid } from '@mui/material/Unstable_Grid2';
 import { 
@@ -48,21 +102,25 @@ import {
   Lock as LockIcon,
   Notifications as NotificationsIcon,
   Security as SecurityIcon,
-  Delete as DeleteIcon,
   Save as SaveIcon,
   Edit as EditIcon,
   CameraAlt as CameraAltIcon,
-  ChevronRight as ChevronRightIcon,
   VpnKey as VpnKeyIcon,
-  Download as DownloadIcon,
   Devices as DevicesIcon,
   History as HistoryIcon,
-  Language as LanguageIcon,
-  Check as CheckIcon,
-  Close as CloseIcon
+  Delete as DeleteIcon,
+  ChevronRight as ChevronRightIcon,
+  Download as DownloadIcon,
+  Language as LanguageIcon
 } from '@mui/icons-material';
 
 // Define the additional fields that will be stored in the user's metadata
+interface SnackbarState {
+  open: boolean;
+  message: string;
+  severity?: 'success' | 'error' | 'info' | 'warning';
+}
+
 interface UserMetadata {
   bio?: string;
   location?: string;
@@ -166,33 +224,42 @@ const defaultUser: DomainUser = {
 export default function ProfileSettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { user, updateProfile } = useAuth();
   const [activeTab, setActiveTab] = useState(0);
   const [profile, setProfile] = useState<DomainUser>(defaultUser);
   const [formData, setFormData] = useState<ProfileFormData>({});
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string>('');
-  type SnackbarState = {
-    open: boolean;
-    message: string;
-    severity: 'success' | 'error' | 'info' | 'warning';
-  };
-
+  const [isEditing, setIsEditing] = useState(false);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [snackbar, setSnackbar] = useState<SnackbarState>({
     open: false,
-    message: '',
-    severity: 'success',
+    message: ''
   });
-  const [isEditing, setIsEditing] = useState(false);
-  const [error, setError] = useState<string>('');
-  const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  
+  const handleCloseSnackbar = () => {
+    setSnackbar(prev => ({ ...prev, open: false }));
+  };
 
+  const showError = (message: string) => {
+    setSnackbar({
+      open: true,
+      message,
+    });
+  };
+
+  const handleError = (err: unknown) => {
+    const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+    showError(errorMessage);
+    console.error(err);
+  };
   const fetchProfile = useCallback(async () => {
     try {
-      setError('');
       setLoading(true);
+      setError(null);
       
       // Fetch user profile from API
       const response = await getUserProfile();
@@ -243,7 +310,6 @@ export default function ProfileSettingsPage() {
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
-      setError('Failed to load profile data. Using mock data for development.');
       
       // Fallback to mock data for development
       if (user) {
@@ -282,11 +348,6 @@ export default function ProfileSettingsPage() {
         setProfile(userData);
       }
       
-      setSnackbar({
-        open: true,
-        message: 'Failed to load profile. Using cached data.',
-        severity: 'warning',
-      });
       setLoading(false);
     }
   }, [user]);
@@ -356,11 +417,6 @@ export default function ProfileSettingsPage() {
   const handleSaveProfile = async () => {
     // Validate form before saving
     if (!validateForm()) {
-      setSnackbar({
-        open: true,
-        message: 'Please fix the validation errors before saving',
-        severity: 'error',
-      });
       return;
     }
 
@@ -382,26 +438,41 @@ export default function ProfileSettingsPage() {
         }
       }
       
-      // Helper function to map ActivityLog to SecurityActivity
-      const mapActivityLogToSecurityActivity = (log: any): any => {
-        return {
-          id: log.id,
-          action: log.action,
-          device: log.userAgent || 'Unknown device',
-          location: log.location || 'Unknown location',
-          timestamp: log.createdAt || new Date().toISOString(),
-          successful: log.status === 'success'
-        };
+      // Define interfaces for activity log types
+      interface ActivityLog {
+        id: string;
+        action: string;
+        device: string;
+        location: string;
+        timestamp: string;
+        successful: boolean;
+        userAgent?: string;
+        ipAddress?: string;
+        status: 'success' | 'failed';
+        createdAt: string;
+      }
+
+      // Type guard to check if an object is a valid SecurityActivity
+      const isSecurityActivity = (obj: any): obj is SecurityActivity => {
+        return (
+          obj &&
+          typeof obj.id === 'string' &&
+          typeof obj.action === 'string' &&
+          typeof obj.device === 'string' &&
+          typeof obj.location === 'string' &&
+          typeof obj.timestamp === 'string' &&
+          typeof obj.successful === 'boolean'
+        );
       };
 
       // Get security data with mapped recentActivity
       const securityData = formData.security || profile.security;
-      const mappedSecurity = securityData?.recentActivity
-        ? {
-            ...securityData,
-            recentActivity: securityData.recentActivity.map(mapActivityLogToSecurityActivity)
-          }
-        : securityData;
+      const mappedSecurity: UserSecurity = {
+        twoFactorAuth: securityData?.twoFactorAuth ?? false,
+        loginAlerts: securityData?.loginAlerts ?? false,
+        deviceManagement: securityData?.deviceManagement ?? false,
+        recentActivity: securityData?.recentActivity?.map(mapActivityLogToSecurityActivity) || []
+      };
 
       // Prepare the update data
       const updateData: ProfileUpdateRequest = {
@@ -486,39 +557,15 @@ export default function ProfileSettingsPage() {
         if (updateProfile) {
           await updateProfile(updatedProfile);
         }
-        
-        // Show success message
-        setSnackbar({
-          open: true,
-          message: 'Profile updated successfully',
-          severity: 'success',
-        });
-        
-        setIsEditing(false); // Exit edit mode
       } else {
         throw new Error(response.message || 'Failed to update profile');
       }
       
     } catch (error) {
       console.error('Error saving profile:', error);
-      setSnackbar({
-        open: true,
-        message: error instanceof Error ? error.message : 'Failed to update profile. Please try again.',
-        severity: 'error',
-      });
     } finally {
       setSaving(false);
     }
-  };
-
-  const handleCloseSnackbar = () => {
-    setSnackbar(prev => ({ ...prev, open: false }));
-  };
-
-  // Form validation functions
-  const validateEmail = (email: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
   };
 
   const validatePhone = (phone: string): boolean => {
@@ -722,7 +769,7 @@ export default function ProfileSettingsPage() {
                         accept="image/*"
                         id="avatar-upload"
                         type="file"
-                        className={styles.hiddenInput}
+                        className="hidden"
                         onChange={handleAvatarChange}
                         aria-label="Upload profile picture"
                         title="Choose a profile picture to upload"

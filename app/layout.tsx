@@ -17,9 +17,9 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
-type RootLayoutProps = {
+interface RootLayoutProps {
   children: React.ReactNode;
-};
+}
 
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
@@ -27,7 +27,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <body className={`${inter.className} font-sans`}>
         <AuthProvider>
           <Provider>
-            <CssBaseline enableColorScheme />
+            <CssBaseline enableColorScheme={true} />
             <Header />
             <main>
               {children}
@@ -38,6 +38,12 @@ export default function RootLayout({ children }: RootLayoutProps) {
               pauseOnFocusLoss
               draggable
               pauseOnHover
+              closeOnClick
+              theme="colored"
+              autoClose={5000}
+              hideProgressBar={false}
+              newestOnTop={false}
+              rtl={false}
             />
           </Provider>
         </AuthProvider>

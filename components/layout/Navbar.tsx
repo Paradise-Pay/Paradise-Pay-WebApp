@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Theme } from '@mui/material/styles';
-import { AppBar, Toolbar, Button, Box, Container, IconButton, Menu, MenuItem, Typography, useTheme, useMediaQuery } from '@mui/material';
+import { AppBar, Toolbar, Button, Box, Container, IconButton, Menu, MenuItem, Typography } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import { useAuth } from '@/context/AuthProvider';
@@ -15,8 +15,6 @@ const Navbar = () => {
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = useState<null | HTMLElement>(null);
   const { user, logout } = useAuth();
   const pathname = usePathname();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const isMenuOpen = Boolean(anchorEl);
   const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
