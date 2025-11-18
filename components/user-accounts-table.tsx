@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { ColorPaletteProp } from "@mui/joy/styles";
+import styles from "./user-accounts-table.module.css";
 import Avatar from "@mui/joy/Avatar";
 import Box from "@mui/joy/Box";
 import Button from "@mui/joy/Button";
@@ -337,9 +338,7 @@ export default function UserTable() {
         >
           <thead>
             <tr>
-              <th
-                style={{ width: 48, textAlign: "center", padding: "12px 6px" }}
-              >
+              <th className={styles.thCheckboxHeader}>
                 <Checkbox
                   size="sm"
                   indeterminate={
@@ -359,7 +358,7 @@ export default function UserTable() {
                   sx={{ verticalAlign: "text-bottom" }}
                 />
               </th>
-              <th style={{ width: 120, padding: "12px 6px" }}>
+              <th className={styles.thWidth120}>
                 <Link
                   underline="none"
                   color="primary"
@@ -383,17 +382,17 @@ export default function UserTable() {
                   Username
                 </Link>
               </th>
-              <th style={{ width: 140, padding: "12px 6px" }}>Date Joined</th>
-              <th style={{ width: 140, padding: "12px 6px" }}>Status</th>
-              <th style={{ width: 240, padding: "12px 6px" }}>User</th>
+              <th className={`${styles.tableHeaderCell} ${styles.thWidth140}`}>Date Joined</th>
+              <th className={`${styles.tableHeaderCell} ${styles.thWidth140}`}>Status</th>
+              <th className={`${styles.tableHeaderCell} ${styles.thWidth240}`}>User</th>
               {/* eslint-disable-next-line jsx-a11y/control-has-associated-label */}
-              <th style={{ width: 140, padding: "12px 6px" }}> </th>
+              <th className={`${styles.tableHeaderCell} ${styles.thWidth140}`}> </th>
             </tr>
           </thead>
           <tbody>
             {[...rows].sort(getComparator(order, "id")).map((row) => (
               <tr key={row.id}>
-                <td style={{ textAlign: "center", width: 120 }}>
+                <td className={styles.checkboxCell}>
                   <Checkbox
                     size="sm"
                     checked={selected.includes(row.id)}

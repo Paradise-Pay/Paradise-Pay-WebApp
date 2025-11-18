@@ -23,8 +23,11 @@ import {
 } from "@chakra-ui/react";
 import { Search, Menu, Sun, Moon } from "lucide-react";
 import Link from "next/link";
+import { usePathname, useRouter } from 'next/navigation';
 
 export default function Header() {
+  const router = useRouter();
+  const pathname = usePathname();
   const [activeLink, setActiveLink] = useState("Home");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
@@ -42,7 +45,12 @@ export default function Header() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
   
-  const links = ["Home", "Discover Events", "Bundles", "Pricing", "Contact"];
+  const links = [
+    { name: "Discover Events", path: "/discover" },
+    { name: "Bundles", path: "/bundles" },
+    { name: "Pricing", path: "/pricing" },
+    { name: "Contact", path: "/contact" }
+  ];
   const logoPath = "/logos/Paradise Pay_Logo.png";
 
   const toggleTheme = () => {
@@ -56,31 +64,43 @@ export default function Header() {
         <Flex h={{ base: "16", md: "20" }} align="center" justify="space-between" w="full">
           {/* Logo */}
           <Flex align="center" flexShrink={0}>
-            <Image
-              src={logoPath}
-              alt="Paradise Pay"
-              height={{ base: "36px", md: "44px" }}
-              width={{ base: "120px", md: "154px" }}
-              objectFit="contain"
-            />
+            <Box 
+              as="button"
+              onClick={() => router.push('/')}
+              _hover={{ opacity: 0.8 }}
+            >
+              <Image
+                src={logoPath}
+                alt="Paradise Pay"
+                height={{ base: "36px", md: "44px" }}
+                width={{ base: "120px", md: "154px" }}
+                objectFit="contain"
+              />
+            </Box>
           </Flex>
 
           {/* Desktop Navigation Links */}
           {isMounted && !isMobile && (
             <HStack gap={8} flex="1" justify="center">
-              {links.map((link) => (
-                <Text
-                  key={link}
-                  color={activeLink === link ? "#278BF7" : "#1A1A1A"}
-                  fontWeight={activeLink === link ? 600 : 500}
-                  fontSize="17px"
-                  cursor="pointer"
-                  _hover={{ color: "#278BF7" }}
-                  onClick={() => setActiveLink(link)}
-                >
-                  {link}
-                </Text>
-              ))}
+              {links.map((link) => {
+                const isActive = pathname === link.path;
+                return (
+                  <Text
+                    key={link.path}
+                    color={isActive ? "#278BF7" : "#1A1A1A"}
+                    fontWeight={isActive ? 600 : 500}
+                    fontSize="17px"
+                    cursor="pointer"
+                    _hover={{ color: "#278BF7" }}
+                    onClick={() => {
+                      setActiveLink(link.name);
+                      router.push(link.path);
+                    }}
+                  >
+                    {link.name}
+                  </Text>
+                );
+              })}
             </HStack>
           )}
 
@@ -166,9 +186,9 @@ export default function Header() {
           <VStack gap={2} align="stretch">
             {links.map((link) => (
               <Text
-                key={link}
-                color={activeLink === link ? "#278BF7" : "#1A1A1A"}
-                fontWeight={activeLink === link ? 600 : 500}
+                key={link.name}
+                color={activeLink === link.name ? "#278BF7" : "#1A1A1A"}
+                fontWeight={activeLink === link.name ? 600 : 500}
                 fontSize="18px"
                 cursor="pointer"
                 py={3}
@@ -176,11 +196,11 @@ export default function Header() {
                 borderRadius="md"
                 _hover={{ bg: "gray.50" }}
                 onClick={() => {
-                  setActiveLink(link);
+                  setActiveLink(link.name);
                   setIsMobileMenuOpen(false);
                 }}
               >
-                {link}
+                {link.name}
               </Text>
             ))}
             

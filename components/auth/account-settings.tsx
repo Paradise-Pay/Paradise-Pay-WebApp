@@ -32,23 +32,37 @@ import EmailRoundedIcon from "@mui/icons-material/EmailRounded";
 import AccessTimeFilledRoundedIcon from "@mui/icons-material/AccessTimeFilledRounded";
 import EditRoundedIcon from "@mui/icons-material/EditRounded";
 import CreditCardRoundedIcon from "@mui/icons-material/CreditCardRounded";
-import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
+// SettingsRoundedIcon was removed as it's not being used
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import SmartphoneRoundedIcon from "@mui/icons-material/SmartphoneRounded";
 import CountrySelector from "@/components/country-selector";
+import Image from 'next/image';
+
+interface PaymentMethod {
+  id: number;
+  type: 'card' | 'mobile';
+  provider: string;
+  lastFour?: string;
+  expiry?: string;
+  isPrimary: boolean;
+  name: string;
+  phone?: string;
+  cardNumber?: string;
+  expiryDate?: string;
+}
 
 export default function MyProfile() {
   const [isEditingAccount, setIsEditingAccount] = React.useState(false);
   const [isEditingPayment, setIsEditingPayment] = React.useState(false);
   const [isEditingPreferences, setIsEditingPreferences] = React.useState(false);
   const [addPaymentModalOpen, setAddPaymentModalOpen] = React.useState(false);
-  const [paymentMethodType, setPaymentMethodType] = React.useState("card");
+  const [paymentMethodType, setPaymentMethodType] = React.useState<'card' | 'mobile'>('card');
 
   // Payment methods state
-  const [paymentMethods, setPaymentMethods] = React.useState([
+  const [paymentMethods, setPaymentMethods] = React.useState<PaymentMethod[]>([
     {
       id: 1,
-      type: "card",
+      type: "card" as const,
       provider: "Visa",
       lastFour: "1234",
       expiry: "12/2025",
@@ -57,7 +71,7 @@ export default function MyProfile() {
     },
     {
       id: 2,
-      type: "card",
+      type: "card" as const,
       provider: "Mastercard",
       lastFour: "5678",
       expiry: "08/2024",
@@ -66,7 +80,7 @@ export default function MyProfile() {
     },
     {
       id: 3,
-      type: "mobile",
+      type: "mobile" as const,
       provider: "MTN Mobile Money",
       phone: "+233 24 123 4567",
       isPrimary: false,
@@ -76,7 +90,7 @@ export default function MyProfile() {
 
   // New payment method state
   const [newPaymentMethod, setNewPaymentMethod] = React.useState({
-    type: "card",
+    type: "card" as 'card' | 'mobile',
     cardNumber: "",
     expiry: "",
     cvv: "",
@@ -87,8 +101,8 @@ export default function MyProfile() {
 
   const handleAddPaymentMethod = () => {
     if (paymentMethodType === "card") {
-      const newMethod = {
-        id: Date.now(),
+      const newMethod: PaymentMethod = {
+        id: Math.floor(Math.random() * 1000000) + 1000000,
         type: "card",
         provider: newPaymentMethod.cardNumber.startsWith("4")
           ? "Visa"
@@ -97,18 +111,23 @@ export default function MyProfile() {
         expiry: newPaymentMethod.expiry,
         isPrimary: false,
         name: newPaymentMethod.name,
+        cardNumber: newPaymentMethod.cardNumber,
+        expiryDate: newPaymentMethod.expiry,
       };
-      setPaymentMethods((prev) => [...prev, newMethod]);
+      setPaymentMethods(prev => [...prev, newMethod]);
     } else {
-      const newMethod = {
-        id: Date.now(),
+      const newMethod: PaymentMethod = {
+        id: Math.floor(Math.random() * 1000000) + 1000000,
         type: "mobile",
         provider: `${newPaymentMethod.provider} Mobile Money`,
         phone: newPaymentMethod.phone,
         isPrimary: false,
         name: newPaymentMethod.name,
+        // Ensure all required fields are included
+        lastFour: '',
+        expiry: '',
       };
-      setPaymentMethods((prev) => [...prev, newMethod]);
+      setPaymentMethods(prev => [...prev, newMethod]);
     }
 
     // Reset form
@@ -125,26 +144,28 @@ export default function MyProfile() {
   };
 
   const handleDeletePaymentMethod = (id: number) => {
-    setPaymentMethods((prev) => prev.filter((method) => method.id !== id));
-  };
-
-  const handleSetPrimary = (id: number) => {
-    setPaymentMethods((prev) =>
-      prev.map((method) => ({
-        ...method,
-        isPrimary: method.id === id,
-      }))
+    setPaymentMethods((prev: PaymentMethod[]) => 
+      prev.filter((method) => method.id !== id)
     );
   };
 
-  const renderPaymentMethodIcon = (type: string, provider: string) => {
+  const handleSetPrimary = (id: number) => {
+    setPaymentMethods((prev: PaymentMethod[]) =>
+      prev.map((method) => ({
+        ...method,
+        isPrimary: method.id === id,
+      })) as PaymentMethod[]
+    );
+  };
+
+  const renderPaymentMethodIcon = (type: string) => {
     if (type === "mobile") {
       return <SmartphoneRoundedIcon color="primary" />;
     }
     return <CreditCardRoundedIcon color="primary" />;
   };
 
-  const renderPaymentMethod = (method: any) => (
+  const renderPaymentMethod = (method: PaymentMethod) => (
     <Box
       key={method.id}
       sx={{
@@ -159,7 +180,7 @@ export default function MyProfile() {
       }}
     >
       <Box sx={{ display: "flex", alignItems: "center", gap: 2, flexGrow: 1 }}>
-        {renderPaymentMethodIcon(method.type, method.provider)}
+        {renderPaymentMethodIcon(method.type)}
         <Box sx={{ flexGrow: 1 }}>
           <Typography level="title-sm">
             {method.type === "card"
@@ -220,7 +241,7 @@ export default function MyProfile() {
           <Breadcrumbs
             size="sm"
             aria-label="breadcrumbs"
-            separator={<ChevronRightRoundedIcon fontSize="sm" />}
+            separator={<ChevronRightRoundedIcon fontSize="small" />}
             sx={{ pl: 0 }}
           >
             <Link
@@ -293,14 +314,16 @@ export default function MyProfile() {
             <Stack direction="column" spacing={1}>
               <AspectRatio
                 ratio="1"
-                maxHeight={200}
-                sx={{ flex: 1, minWidth: 120, borderRadius: "100%" }}
+                maxHeight={108}
+                sx={{ flex: 1, minWidth: 108, borderRadius: "100%" }}
               >
-                <img
-                  src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=286"
-                  srcSet="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=286&dpr=2 2x"
-                  loading="lazy"
-                  alt=""
+                <Image
+                  src="/placeholder-avatar.jpg"
+                  alt="Profile"
+                  width={120}
+                  height={120}
+                  style={{ objectFit: 'cover' }}
+                  priority
                 />
               </AspectRatio>
               {isEditingAccount && (
@@ -380,7 +403,9 @@ export default function MyProfile() {
                 </FormControl>
               </Stack>
               <div>
-                <CountrySelector editable={isEditingAccount} />
+                <FormControl disabled={!isEditingAccount}>
+                  <CountrySelector />
+                </FormControl>
               </div>
               <div>
                 <FormControl sx={{ display: { sm: "contents" } }}>
@@ -419,11 +444,13 @@ export default function MyProfile() {
                   maxHeight={108}
                   sx={{ flex: 1, minWidth: 108, borderRadius: "100%" }}
                 >
-                  <img
-                    src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=286"
-                    srcSet="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=286&dpr=2 2x"
-                    loading="lazy"
-                    alt=""
+                  <Image
+                    src="/placeholder-avatar.jpg"
+                    alt="Profile"
+                    width={120}
+                    height={120}
+                    style={{ objectFit: 'cover' }}
+                    priority
                   />
                 </AspectRatio>
                 {isEditingAccount && (
@@ -517,7 +544,9 @@ export default function MyProfile() {
               </FormControl>
             </div>
             <div>
-              <CountrySelector editable={isEditingAccount} />
+              <FormControl disabled={!isEditingAccount}>
+                <CountrySelector />
+              </FormControl>
             </div>
             <div>
               <FormControl sx={{ display: { sm: "contents" } }}>
@@ -791,7 +820,7 @@ export default function MyProfile() {
                 <Select
                   value={paymentMethodType}
                   onChange={(e, newValue) =>
-                    setPaymentMethodType(newValue as string)
+                    setPaymentMethodType(newValue as 'card' | 'mobile')
                   }
                 >
                   <Option value="card">Credit/Debit Card</Option>

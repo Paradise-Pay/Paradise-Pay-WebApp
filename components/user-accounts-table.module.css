@@ -1,0 +1,27 @@
+.tableHeaderCell {
+  padding: 12px 6px;
+}
+
+.thWidth140 {
+  width: 140px;
+}
+
+.thWidth240 {
+  width: 240px;
+}
+
+.checkboxCell {
+  text-align: center;
+  width: 120px;
+}
+
+.thCheckboxHeader {
+  width: 48px;
+  text-align: center;
+  padding: 12px 6px;
+}
+
+.thWidth120 {
+  width: 120px;
+  padding: 12px 6px;
+}

@@ -1,6 +1,11 @@
 @import "tailwindcss";
 
+/* Toast Notification Styles */
 :root {
+  --toastify-toast-width: 320px;
+  --toastify-toast-bd-radius: 8px;
+  
+  /* Original root variables */
   --background: #ffffff;
   --foreground: #171717;
 }
