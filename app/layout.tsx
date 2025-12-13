@@ -1,7 +1,6 @@
 "use client";
 
-import React from 'react';
-import { Inter } from "next/font/google";
+import { Inter } from 'next/font/google';
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthProvider";
 import { ToastContainer } from 'react-toastify';
@@ -11,29 +10,36 @@ import { Provider } from "@/components/ui/provider";
 import Header from "@/components/layouts/header";
 import Footer from "@/components/layout/Footer";
 
+// Load Google Fonts Inter with all necessary weights
 const inter = Inter({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-inter",
+  subsets: ['latin'],
+  display: 'swap',
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-inter',
+  fallback: ['system-ui', 'sans-serif'],
 });
 
-interface RootLayoutProps {
+export default function RootLayout({
+  children,
+}: {
   children: React.ReactNode;
-}
-
-export default function RootLayout({ children }: RootLayoutProps) {
+}) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.className} font-sans`}>
+    <html lang="en" className={inter.variable} suppressHydrationWarning>
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+      </head>
+      <body className="font-sans">
         <AuthProvider>
           <Provider>
             <CssBaseline enableColorScheme={true} />
-            <Header />
-            <main>
-              {children}
-            </main>
-            <Footer />
-            <ToastContainer 
+            <div className="min-h-screen flex flex-col">
+              <Header />
+              <main className="flex-grow">{children}</main>
+              <Footer />
+            </div>
+            <ToastContainer
               position="bottom-right"
               pauseOnFocusLoss
               draggable
@@ -41,9 +47,6 @@ export default function RootLayout({ children }: RootLayoutProps) {
               closeOnClick
               theme="colored"
               autoClose={5000}
-              hideProgressBar={false}
-              newestOnTop={false}
-              rtl={false}
             />
           </Provider>
         </AuthProvider>

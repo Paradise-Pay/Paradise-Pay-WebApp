@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { 
   Box, 
   Card, 
@@ -8,10 +8,9 @@ import {
   Typography, 
   Button, 
   Skeleton,
-  Alert
+  Alert,
+  Grid
 } from '@mui/material';
-import { SxProps, Theme } from '@mui/material/styles';
-import { Unstable_Grid2 as Grid } from '@mui/material/Unstable_Grid2'; // Import the new Grid v2
 import { useAuth } from '@/context/AuthProvider';
 import { 
   Event as EventIcon, 
@@ -20,17 +19,9 @@ import {
 } from '@mui/icons-material';
 import Link from 'next/link';
 import { getDashboardStats, getUserActivity } from '@/lib/api';
-import { DashboardStats, Activity } from '@/types/dashboard';
+import type { DashboardStats, Activity } from '@/types/dashboard';
 
-// Extend the User type to include all user properties
-interface UserWithName {
-  id: string;
-  name?: string;
-  email: string;
-  emailVerified?: boolean;
-  phone?: string;
-  avatar?: string;
-}
+// User type is imported from the auth context
 
 interface StatCardProps {
   title: string;
@@ -38,64 +29,65 @@ interface StatCardProps {
   icon: React.ElementType;
   color?: 'primary' | 'secondary' | 'success' | 'error' | 'info' | 'warning';
   href: string;
-  sx?: SxProps<Theme>;
 }
 
 export default function DashboardPage() {
-  const { user } = useAuth() as { user: UserWithName };
+  const { user } = useAuth();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        // Fetch dashboard stats
-        const statsResponse = await getDashboardStats();
-        if (statsResponse.success && statsResponse.data) {
-          setStats(statsResponse.data);
-        } else {
-          throw new Error(statsResponse.message || 'Failed to fetch dashboard stats');
-        }
-        
-        // Fetch recent activities
-        const activityResponse = await getUserActivity(5); // Get last 5 activities
-        if (activityResponse.success && activityResponse.data) {
-          setActivities(activityResponse.data);
-        }
-        
-      } catch (err) {
-        console.error('Error fetching dashboard data:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load dashboard data');
-        
-        // Fallback to mock data for development
+  const fetchDashboardData = useCallback(async () => {
+    if (!user) return;
+    
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Fetch dashboard stats
+      const statsResponse = await getDashboardStats();
+      if (statsResponse.success && statsResponse.data) {
+        setStats(statsResponse.data);
+      } else {
+        throw new Error(statsResponse.message || 'Failed to fetch dashboard stats');
+      }
+      
+      // Fetch recent activities
+      const activityResponse = await getUserActivity(5);
+      if (activityResponse.success && activityResponse.data) {
+        setActivities(activityResponse.data);
+      }
+      
+    } catch (err) {
+      console.error('Error fetching dashboard data:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load dashboard data';
+      setError(errorMessage);
+      
+      // Fallback to mock data for development
+      if (process.env.NODE_ENV === 'development') {
         setStats({
           upcomingEvents: 3,
           activeTickets: 5,
           walletBalance: 1250.75,
         });
-      } finally {
-        setLoading(false);
       }
-    };
-
-    if (user) {
-      fetchDashboardData();
+    } finally {
+      setLoading(false);
     }
   }, [user]);
 
-  const StatCard: React.FC<StatCardProps> = ({ 
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData]);
+
+  const StatCard = ({ 
     title, 
     value, 
     icon: Icon,
     color = 'primary',
-    href,
-    sx = {}
-  }) => (
+    href
+  }: StatCardProps) => (
     <Card 
       sx={{ 
         height: '100%',
@@ -140,15 +132,15 @@ export default function DashboardPage() {
   return (
     <Box>
       <Typography variant="h4" component="h1" gutterBottom>
-        Welcome back, {user?.name || user?.email?.split('@')[0] || 'User'}!
+        Welcome back, {user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : user?.email?.split('@')[0] || 'User'}!
       </Typography>
       <Typography color="text.secondary" paragraph>
-        Here's what's happening with your account today.
+        Here&apos;s what&apos;s happening with your account today.
       </Typography>
 
       <Box sx={{ mt: 2, mb: 4 }}>
-        <Grid container spacing={3}>
-          <Grid xs={12} sm={6} md={4}>
+        <Grid container spacing={4}>
+          <Grid sx={{ width: { xs: '100%', sm: 'calc(50% - 16px)', md: 'calc(33.333% - 22px)' } }}>
             <StatCard 
               title="Upcoming Events" 
               value={loading ? '...' : stats?.upcomingEvents?.toString() || '0'} 
@@ -157,7 +149,7 @@ export default function DashboardPage() {
               href="/dashboard/events"
             />
           </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+          <Grid sx={{ width: { xs: '100%', sm: 'calc(50% - 16px)', md: 'calc(33.333% - 22px)' } }}>
             <StatCard 
               title="Active Tickets" 
               value={loading ? '...' : stats?.activeTickets?.toString() || '0'} 
@@ -166,7 +158,7 @@ export default function DashboardPage() {
               href="/dashboard/tickets"
             />
           </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+          <Grid sx={{ width: { xs: '100%', sm: 'calc(50% - 16px)', md: 'calc(33.333% - 22px)' } }}>
             <StatCard 
               title="Wallet Balance" 
               value={loading ? '...' : `$${stats?.walletBalance?.toFixed(2) || '0.00'}`} 
@@ -231,7 +223,7 @@ export default function DashboardPage() {
       </Typography>
       <Box sx={{ mb: 4 }}>
         <Grid container spacing={2}>
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Grid item xs={12} sm={6} md={3}>
             <Button 
               variant="outlined" 
               fullWidth 
@@ -242,7 +234,7 @@ export default function DashboardPage() {
               Browse Events
             </Button>
           </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Grid item xs={12} sm={6} md={3}>
             <Button 
               variant="outlined" 
               fullWidth 
@@ -253,7 +245,7 @@ export default function DashboardPage() {
               Create Event
             </Button>
           </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Grid item xs={12} sm={6} md={3}>
             <Button 
               variant="outlined" 
               fullWidth 
@@ -264,7 +256,7 @@ export default function DashboardPage() {
               Add Funds
             </Button>
           </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Grid item xs={12} sm={6} md={3}>
             <Button 
               variant="outlined" 
               fullWidth 

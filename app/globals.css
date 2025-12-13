@@ -1,37 +1,72 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-/* Toast Notification Styles */
+/* Base styles with Google Fonts */
 :root {
+  /* Color scheme */
+  --background: #ffffff;
+  --foreground: #171717;
+  --primary: #2f89ff;
+  --secondary: #ffc03a;
+  --muted: #f5f5f5;
+  --muted-foreground: #737373;
+  --border: #e5e5e5;
+  --input: #e5e5e5;
+  --ring: #2f89ff;
+  --radius: 0.5rem;
+  
+  /* Toast styles */
   --toastify-toast-width: 320px;
   --toastify-toast-bd-radius: 8px;
   
-  /* Original root variables */
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Font family */
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-inter);
+/* Dark mode */
+[data-theme='dark'] {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --muted: #262626;
+  --muted-foreground: #a3a3a3;
+  --border: #262626;
+  --input: #262626;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* Base styles */
+@layer base {
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    line-height: 1.6;
+  }
+  
+  /* Apply font family to all elements */
+  * {
+    @apply border-border;
+    font-family: inherit;
+  }
+  
+  /* Headings */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+  }
+  
+  /* Links */
+  a {
+    @apply text-primary hover:underline;
+  }
+  
+  /* Buttons */
+  button {
+    @apply focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  font-weight: 400;
-  line-height: 1.6;
-}
-
-/* Custom typography classes */
+/* Custom typography classes (using Tailwind where possible is recommended, but these are fine) */
 .heading-hero {
   font-size: 3.5rem; /* 56px */
   font-weight: 700;

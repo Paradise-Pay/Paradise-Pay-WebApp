@@ -8,7 +8,6 @@ import {
   Card, 
   CardContent, 
   CardMedia,
-  Grid,
   Button, 
   Chip, 
   Skeleton,
@@ -22,7 +21,8 @@ import {
   ListItemText,
   useTheme,
   useMediaQuery,
-  Stack
+  Stack,
+  Grid
 } from '@mui/material';
 import { 
   Event as EventIcon, 
@@ -39,6 +39,7 @@ import {
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { useAuth } from '@/context/AuthProvider';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
 
 interface Event {
   id: string;
@@ -363,6 +364,7 @@ export default function MyEventsPage() {
   ];
 
   return (
+    <ProtectedRoute roles={["organizer", "admin"]}>
     <Box>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3} flexWrap="wrap" gap={2}>
         <Typography variant="h4" component="h1">
@@ -452,5 +454,6 @@ export default function MyEventsPage() {
         </Box>
       )}
     </Box>
+    </ProtectedRoute>
   );
 }

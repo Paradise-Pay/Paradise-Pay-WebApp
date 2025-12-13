@@ -94,7 +94,7 @@ import {
   Skeleton,
   Chip
 } from '@mui/material';
-import { Grid } from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid'; // Using stable MUI Grid
 import { 
   Person as PersonIcon,
   Email as EmailIcon,
