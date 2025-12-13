@@ -65,7 +65,6 @@ export default function Header() {
           <Flex align="center" flexShrink={0}>
             <Box 
               as="button"
-              cursor="pointer"
               onClick={() => router.push('/')}
               _hover={{ opacity: 0.8 }}
             >
@@ -124,7 +123,7 @@ export default function Header() {
                 <Link href="/auth/login">
                   <Button
                     bg="#FDCB35"
-                    color="black"
+                    color="white"
                     px={6}
                     py={2}
                     borderRadius="24px"
