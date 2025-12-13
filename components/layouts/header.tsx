@@ -48,8 +48,7 @@ export default function Header() {
   const links = [
     { name: "Discover Events", path: "/discover" },
     { name: "Bundles", path: "/bundles" },
-    { name: "Pricing", path: "/pricing" },
-    { name: "Contact", path: "/contact" }
+    { name: "Pricing", path: "/pricing" }
   ];
   const logoPath = "/logos/Paradise Pay_Logo.png";
 
