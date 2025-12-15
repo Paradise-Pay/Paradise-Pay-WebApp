@@ -2,10 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { 
-  AccountBalanceWallet, 
-  CreditCard, 
-  AccountBalance, 
-  Payment,
+  AccountBalanceWallet,
   Delete as DeleteIcon,
   ArrowDownward as ArrowDownwardIcon,
   ArrowUpward as ArrowUpwardIcon,
@@ -19,7 +16,6 @@ import {
   Button,
   Menu,
   MenuItem, 
-  Grid, 
   Skeleton,
   Tabs,
   Tab,
@@ -45,7 +41,7 @@ import {
   AccountBalanceWallet as WalletIcon,
   Add as AddIcon,
   ArrowUpward as SendIcon,
-  ArrowDownward as ReceiveIcon,
+  
   SwapHoriz as TransferIcon,
   Receipt as ReceiptIcon,
   MoreVert as MoreVertIcon,
@@ -55,6 +51,7 @@ import {
   History as HistoryIcon
 } from '@mui/icons-material';
 import { useAuth } from '@/context/AuthProvider';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
 
 interface Transaction {
   id: string;
@@ -437,6 +434,7 @@ export default function WalletPage() {
   };
 
   return (
+    <ProtectedRoute roles={["user", "organizer", "admin"]}>
     <Box>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3} flexWrap="wrap" gap={2}>
         <Typography variant="h4" component="h1">
@@ -669,5 +667,6 @@ export default function WalletPage() {
         </Card>
       )}
     </Box>
+    </ProtectedRoute>
   );
 }

@@ -2,7 +2,7 @@
 
 import { Box, Container, Grid, Link as MuiLink, Typography, Divider, IconButton } from '@mui/material';
 import Link from 'next/link';
-import { Facebook, Twitter, Instagram, YouTube } from '@mui/icons-material';
+import { Facebook, Instagram, YouTube } from '@mui/icons-material';
 import { SiTiktok, SiX } from 'react-icons/si';
 import { useEffect, useState } from 'react';
 
@@ -54,11 +54,11 @@ const Footer = () => {
             </Box>
           </Grid>
           
-          <Grid size={{ xs: 6, sm: 3, md: 2 }}>
+          <Grid item xs={6} sm={3} md={2}>
             <Typography variant="subtitle1" color="text.primary" gutterBottom sx={{ fontFamily: 'inherit', fontWeight: 600 }}>
               Company
             </Typography>
-            <MuiLink component={Link} href="/about" color="inherit" display="block" mb={1}>
+            <MuiLink component={Link} href="/about-us" color="inherit" display="block" mb={1}>
               About Us
             </MuiLink>
             <MuiLink component={Link} href="/careers" color="inherit" display="block" mb={1}>
@@ -72,7 +72,7 @@ const Footer = () => {
             </MuiLink>
           </Grid>
           
-          <Grid size={{ xs: 6, sm: 3, md: 2 }}>
+          <Grid item xs={6} sm={3} md={2}>
             <Typography variant="subtitle1" color="text.primary" gutterBottom sx={{ fontFamily: 'inherit', fontWeight: 600 }}>
               Support
             </Typography>

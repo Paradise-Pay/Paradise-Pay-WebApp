@@ -1,5 +1,4 @@
 import { ApiResponse } from "@/types/api";
-import { User } from "@/types/auth";
 import { DashboardStats, UserProfile, ProfileUpdateRequest, Activity } from "@/types/dashboard";
 
 // API configuration
@@ -7,7 +6,7 @@ const API_BASE_URL = "https://paradise-pay-webapp-production.up.railway.app/api/
 const API_URL = process.env.NEXT_PUBLIC_API_URL || API_BASE_URL;
 
 interface FetchOptions extends RequestInit {
-  body?: any;
+  body?: unknown;
 }
 
 /**
@@ -20,14 +19,17 @@ const apiFetch = async <T>(
   const { body, ...rest } = options;
   const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
 
+  const isForm = typeof FormData !== "undefined" && body instanceof FormData;
+  const headers: Record<string, string> = {
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(options.headers as Record<string, string> | undefined),
+  };
+  if (!isForm) headers["Content-Type"] = "application/json";
+
   const res = await fetch(`${API_URL}${endpoint}`, {
     credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(options.headers || {}),
-    },
-    body: body ? JSON.stringify(body) : undefined,
+    headers,
+    body: isForm ? (body as FormData) : body ? JSON.stringify(body as Record<string, unknown>) : undefined,
     ...rest,
   });
 

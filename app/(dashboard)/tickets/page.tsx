@@ -12,14 +12,14 @@ import {
   Skeleton,
   Tabs,
   Tab,
-  Divider,
   IconButton,
   Menu,
   MenuItem,
   ListItemIcon,
   ListItemText,
   useTheme,
-  useMediaQuery
+  useMediaQuery,
+  Grid
 } from '@mui/material';
 import Grid from '@mui/material/Grid';
 import { 
@@ -35,6 +35,7 @@ import {
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { useAuth } from '@/context/AuthProvider';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
 
 interface Ticket {
   id: string;
@@ -200,7 +201,7 @@ const TicketCard = ({ ticket }: { ticket: Ticket }) => {
             </MenuItem>
           </Menu>
 
-          <Grid container spacing={2} sx={{ mt: 1 }}>
+          <Grid container spacing={2} sx={{ mt: 0 }}>
             <Grid item xs={12} sm={6}>
               <Box display="flex" alignItems="center" mb={1}>
                 <CalendarIcon color="action" fontSize="small" sx={{ mr: 1 }} />
@@ -297,6 +298,7 @@ export default function MyTicketsPage() {
   const tabLabels = ['Upcoming', 'Past', 'Cancelled'];
 
   return (
+    <ProtectedRoute roles={["user", "organizer", "admin"]}>
     <Box>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h4" component="h1">
@@ -376,5 +378,6 @@ export default function MyTicketsPage() {
         </Box>
       )}
     </Box>
+    </ProtectedRoute>
   );
 }

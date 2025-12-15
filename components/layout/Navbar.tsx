@@ -104,11 +104,11 @@ const Navbar = () => {
       <MenuItem component={Link} href="/events" onClick={handleMobileMenuClose}>
         Events
       </MenuItem>
+      <MenuItem component={Link} href="/about-us" onClick={handleMobileMenuClose}>
+        About Us
+      </MenuItem>
       <MenuItem component={Link} href="/pricing" onClick={handleMobileMenuClose}>
         Pricing
-      </MenuItem>
-      <MenuItem component={Link} href="/about" onClick={handleMobileMenuClose}>
-        About
       </MenuItem>
       <MenuItem component={Link} href="/contact" onClick={handleMobileMenuClose}>
         Contact
@@ -143,10 +143,18 @@ const Navbar = () => {
             <Button 
               component={Link} 
               href="/events" 
-              color={pathname === '/events' ? 'primary' : 'inherit'}
+              color={pathname?.startsWith('/events') ? 'primary' : 'inherit'}
               sx={{ mx: 1.5 }}
             >
               Events
+            </Button>
+            <Button 
+              component={Link} 
+              href="/about-us" 
+              color={pathname?.startsWith('/about') ? 'primary' : 'inherit'}
+              sx={{ mx: 1.5 }}
+            >
+              About Us
             </Button>
             <Button 
               component={Link} 
@@ -155,14 +163,6 @@ const Navbar = () => {
               sx={{ mx: 1.5 }}
             >
               Pricing
-            </Button>
-            <Button 
-              component={Link} 
-              href="/about" 
-              color={pathname === '/about' ? 'primary' : 'inherit'}
-              sx={{ mx: 1.5 }}
-            >
-              About
             </Button>
             <Button 
               component={Link} 

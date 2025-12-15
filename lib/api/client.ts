@@ -1,6 +1,6 @@
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://paradise-pay-webapp-production.up.railway.app/api/v1';
 
 class ApiClient {
   private client: AxiosInstance;
@@ -17,7 +17,7 @@ class ApiClient {
 
     this.client.interceptors.request.use(
       (config) => {
-        const token = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
+        const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
@@ -41,7 +41,7 @@ class ApiClient {
 
   public async post<T>(
     url: string,
-    data?: any,
+    data?: unknown,
     config?: AxiosRequestConfig
   ): Promise<T> {
     const response = await this.client.post<T>(url, data, config);
@@ -50,7 +50,7 @@ class ApiClient {
 
   public async put<T>(
     url: string,
-    data?: any,
+    data?: unknown,
     config?: AxiosRequestConfig
   ): Promise<T> {
     const response = await this.client.put<T>(url, data, config);
