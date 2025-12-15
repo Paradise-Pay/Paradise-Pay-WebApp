@@ -21,6 +21,7 @@ import {
   useMediaQuery,
   Grid
 } from '@mui/material';
+import Grid from '@mui/material/Grid';
 import { 
   ConfirmationNumber as TicketIcon, 
   Event as EventIcon, 

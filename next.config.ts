@@ -8,29 +8,8 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true
   },
-
-  // Image optimization
-  images: {
-    remotePatterns: [
-      {
-        protocol: 'http',
-        hostname: 'localhost',
-        port: '',
-        pathname: '/**',
-      },
-    ],
-  },
-
-  // Transpile required packages
-  transpilePackages: [
-    '@mui/material',
-    '@emotion/react',
-    '@emotion/styled'
-  ],
-
-  // Experimental features
   experimental: {
-    optimizeCss: true
+    optimizePackageImports: ["@mui/material", "@mui/icons-material"]
   }
 };
 
