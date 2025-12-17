@@ -37,7 +37,8 @@
 /* Base styles */
 @layer base {
   body {
-    @apply bg-background text-foreground;
+    background-color: var(--background);
+    color: var(--foreground);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -46,7 +47,7 @@
   
   /* Apply font family to all elements */
   * {
-    @apply border-border;
+    border-color: var(--border);
     font-family: inherit;
   }
   
