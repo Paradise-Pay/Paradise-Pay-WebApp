@@ -1,5 +1,3 @@
-import { User } from '../../domain/user';
-
 export interface LoginRequest {
   email: string;
   password: string;
@@ -7,12 +5,11 @@ export interface LoginRequest {
 }
 
 export interface RegisterRequest {
-  firstName: string;
-  lastName: string;
+  name: string;
   email: string;
   password: string;
   phone?: string;
-  acceptTerms: boolean;
+  nickname?: string;
 }
 
 export interface ForgotPasswordRequest {

@@ -19,16 +19,13 @@ export interface TicketType {
 }
 
 export interface TicketPurchaseData {
-  eventId: string;
-  ticketTypeId: string;
+  event_id: string;
+  ticket_type_id: string;
   quantity: number;
-  paymentMethod: 'card' | 'bank_transfer' | 'crypto';
-  paymentDetails: {
-    cardNumber?: string;
-    expiryDate?: string;
-    cvv?: string;
-    // Add other payment method specific fields as needed
-  };
+  attendee_details: Array<{
+    name: string;
+    email: string;
+  }>;
 }
 
 export interface Booking {
@@ -74,8 +71,8 @@ export const ticketsService = {
   },
 
   // Confirm payment and activate tickets
-  confirmBooking: async (bookingId: string, paymentReference: string): Promise<Booking> => {
-    return apiClient.post(API_ENDPOINTS.TICKETS.CONFIRM_BOOKING(bookingId), { paymentReference });
+  confirmBooking: async (bookingId: string): Promise<Booking> => {
+    return apiClient.post(API_ENDPOINTS.TICKETS.CONFIRM_BOOKING(bookingId));
   },
 
   // Cancel booking and refund tickets
