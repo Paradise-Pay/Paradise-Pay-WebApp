@@ -1,13 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { 
-  Box, 
-  Typography, 
-  Card, 
-  CardContent, 
-  CardMedia, 
-  Button, 
+import {
+  Box,
+  Typography,
+  Card,
+  CardContent,
+  CardMedia,
+  Button,
   Chip,
   Skeleton,
   Tabs,
@@ -21,7 +21,6 @@ import {
   useMediaQuery,
   Grid
 } from '@mui/material';
-import Grid from '@mui/material/Grid';
 import { 
   ConfirmationNumber as TicketIcon, 
   Event as EventIcon, 
@@ -202,7 +201,7 @@ const TicketCard = ({ ticket }: { ticket: Ticket }) => {
           </Menu>
 
           <Grid container spacing={2} sx={{ mt: 0 }}>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <Box display="flex" alignItems="center" mb={1}>
                 <CalendarIcon color="action" fontSize="small" sx={{ mr: 1 }} />
                 <Typography variant="body2" color="text.secondary">
@@ -216,7 +215,7 @@ const TicketCard = ({ ticket }: { ticket: Ticket }) => {
                 </Typography>
               </Box>
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <Typography variant="body2" color="text.secondary" gutterBottom>
                 <strong>Ticket Type:</strong> {ticket.ticketType}
               </Typography>

@@ -140,28 +140,28 @@ export default function DashboardPage() {
 
       <Box sx={{ mt: 2, mb: 4 }}>
         <Grid container spacing={4}>
-          <Grid sx={{ width: { xs: '100%', sm: 'calc(50% - 16px)', md: 'calc(33.333% - 22px)' } }}>
-            <StatCard 
-              title="Upcoming Events" 
-              value={loading ? '...' : stats?.upcomingEvents?.toString() || '0'} 
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+            <StatCard
+              title="Upcoming Events"
+              value={loading ? '...' : stats?.upcomingEvents?.toString() || '0'}
               icon={EventIcon}
               color="primary"
               href="/dashboard/events"
             />
           </Grid>
-          <Grid sx={{ width: { xs: '100%', sm: 'calc(50% - 16px)', md: 'calc(33.333% - 22px)' } }}>
-            <StatCard 
-              title="Active Tickets" 
-              value={loading ? '...' : stats?.activeTickets?.toString() || '0'} 
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+            <StatCard
+              title="Active Tickets"
+              value={loading ? '...' : stats?.activeTickets?.toString() || '0'}
               icon={TicketIcon}
               color="secondary"
               href="/dashboard/tickets"
             />
           </Grid>
-          <Grid sx={{ width: { xs: '100%', sm: 'calc(50% - 16px)', md: 'calc(33.333% - 22px)' } }}>
-            <StatCard 
-              title="Wallet Balance" 
-              value={loading ? '...' : `$${stats?.walletBalance?.toFixed(2) || '0.00'}`} 
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+            <StatCard
+              title="Wallet Balance"
+              value={loading ? '...' : `$${stats?.walletBalance?.toFixed(2) || '0.00'}`}
               icon={WalletIcon}
               color="success"
               href="/dashboard/wallet"
@@ -223,44 +223,44 @@ export default function DashboardPage() {
       </Typography>
       <Box sx={{ mb: 4 }}>
         <Grid container spacing={2}>
-          <Grid item xs={12} sm={6} md={3}>
-            <Button 
-              variant="outlined" 
-              fullWidth 
-              component={Link} 
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Button
+              variant="outlined"
+              fullWidth
+              component={Link}
               href="/events"
               sx={{ py: 2 }}
             >
               Browse Events
             </Button>
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <Button 
-              variant="outlined" 
-              fullWidth 
-              component={Link} 
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Button
+              variant="outlined"
+              fullWidth
+              component={Link}
               href="/dashboard/events/create"
               sx={{ py: 2 }}
             >
               Create Event
             </Button>
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <Button 
-              variant="outlined" 
-              fullWidth 
-              component={Link} 
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Button
+              variant="outlined"
+              fullWidth
+              component={Link}
               href="/dashboard/wallet/deposit"
               sx={{ py: 2 }}
             >
               Add Funds
             </Button>
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <Button 
-              variant="outlined" 
-              fullWidth 
-              component={Link} 
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Button
+              variant="outlined"
+              fullWidth
+              component={Link}
               href="/support"
               sx={{ py: 2 }}
             >

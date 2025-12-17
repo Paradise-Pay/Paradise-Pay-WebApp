@@ -412,7 +412,7 @@ const ContactPage = () => {
               ) : (
                 <Box component="form" onSubmit={handleSubmit} noValidate>
                   <Grid container spacing={3}>
-                    <Grid item xs={12} sm={6}>
+                    <Grid size={{ xs: 12, sm: 6 }}>
                       <TextField
                         fullWidth
                         label="Your Name"
@@ -449,7 +449,7 @@ const ContactPage = () => {
                         }}
                       />
                     </Grid>
-                    <Grid item xs={12} sm={12}>
+                    <Grid size={{ xs: 12, sm: 12 }}>
                       <TextField
                         fullWidth
                         label="Email Address"
@@ -484,7 +484,7 @@ const ContactPage = () => {
                         }}
                       />
                     </Grid>
-                    <Grid item xs={12}>
+                    <Grid size={{ xs: 12 }}>
                       <TextField
                         fullWidth
                         label="Subject"
@@ -515,7 +515,7 @@ const ContactPage = () => {
                         }}
                       />
                     </Grid>
-                    <Grid item xs={12}>
+                    <Grid size={{ xs: 12 }}>
                       <TextField
                         fullWidth
                         label="Message"
@@ -551,7 +551,7 @@ const ContactPage = () => {
                         }}
                       />
                     </Grid>
-                    <Grid item xs={12}>
+                    <Grid size={{ xs: 12 }}>
                       <Button
                         type="submit"
                         variant="contained"

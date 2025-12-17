@@ -2,13 +2,10 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { SelectChangeEvent } from '@mui/material/Select';
-import { 
+import {
   type User as DomainUser,
-  type UserPreferences as DomainUserPreferences,
-  type NotificationSettings as DomainNotificationSettings,
-  type SecuritySettings as DomainSecuritySettings,
-  type ActivityLog as DomainActivityLog,
-  type UserRole
+  type UserRole,
+  type ActivityLog
 } from '@/types/domain/user';
 
 import { useAuth } from '@/context/AuthProvider';
@@ -17,49 +14,15 @@ import { ProfileUpdateRequest, SecurityActivity, UserSecurity } from '@/types/da
 
 type ID = string | number;
 
-// Local type for form data
-interface FormSecuritySettings {
-  twoFactorAuth: boolean;
-  loginAlerts: boolean;
-  deviceManagement: boolean;
-  recentActivity: DomainActivityLog[]; // Will be mapped to SecurityActivity[]
-}
-
-// Local ActivityLog type that matches what we expect in the UI
-interface UIActivityLog {
-  id: string;
-  action: string;
-  device?: string;
-  location?: string;
-  timestamp?: string;
-  successful?: boolean;
-  ipAddress?: string;
-  userAgent?: string;
-  status?: string;
-  createdAt?: string;
-}
-
-interface SecuritySettings {
-  twoFactorAuth: boolean;
-  loginAlerts: boolean;
-  deviceManagement: boolean;
-  recentActivity: DomainActivityLog[];
-}
-// Helper function to map DomainActivityLog to SecurityActivity
-const mapActivityLogToSecurityActivity = (log: DomainActivityLog): SecurityActivity => {
-  // Convert ID to string if it's a number
-  const id = typeof log.id === 'number' ? log.id.toString() : log.id;
-  
-  // Type assertion to access potential properties
-  const logAny = log as any;
-  
+// Helper function to map activity log to SecurityActivity
+const mapActivityLogToSecurityActivity = (log: { id: ID; action?: string; ipAddress?: string; userAgent?: string; location?: string; status?: string; timestamp?: string; successful?: boolean }): SecurityActivity => {
   return {
-    id,
-    action: log.action,
-    device: logAny.device || log.userAgent || 'Unknown device',
-    location: logAny.location || logAny.ipAddress || 'Unknown location',
-    timestamp: logAny.timestamp || logAny.createdAt || new Date().toISOString(),
-    successful: logAny.successful ?? (logAny.status === 'success')
+    id: String(log.id),
+    action: log.action || 'unknown',
+    device: log.userAgent || 'Unknown device',
+    location: log.location || 'Unknown location',
+    timestamp: log.timestamp || new Date().toISOString(),
+    successful: log.successful ?? (log.status === 'success')
   };
 };
 import { 
@@ -82,14 +45,10 @@ import {
   Alert, 
   Snackbar,
   IconButton,
-  useTheme,
-  useMediaQuery,
   List,
-  ListItem,
   ListItemText,
   ListItemButton,
   ListItemIcon,
-  ListItemAvatar,
   InputAdornment,
   Skeleton,
   Chip
@@ -121,25 +80,7 @@ interface SnackbarState {
   severity?: 'success' | 'error' | 'info' | 'warning';
 }
 
-interface UserMetadata {
-  bio?: string;
-  location?: string;
-  timezone?: string;
-  notifications?: {
-    email: boolean;
-    push: boolean;
-    sms: boolean;
-  };
-  security?: {
-    twoFactorAuth: boolean;
-    loginAlerts: boolean;
-  };
-  preferences?: {
-    theme: 'light' | 'dark' | 'system';
-    language: string;
-    currency: string;
-  };
-}
+
 
 // Define the form data type based on DomainUser
 type ProfileFormData = Partial<Omit<DomainUser, 'id' | 'role' | 'createdAt' | 'updatedAt'>> & {
@@ -216,7 +157,7 @@ const defaultUser: DomainUser = {
     loginAlerts: true,
     deviceManagement: false,
     recentActivity: [],
-  } as SecuritySettings,
+  },
   createdAt: '2024-01-01T00:00:00.000Z',
   updatedAt: '2024-01-01T00:00:00.000Z',
 };
@@ -237,25 +178,11 @@ export default function ProfileSettingsPage() {
     open: false,
     message: ''
   });
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  
   const handleCloseSnackbar = () => {
     setSnackbar(prev => ({ ...prev, open: false }));
   };
 
-  const showError = (message: string) => {
-    setSnackbar({
-      open: true,
-      message,
-    });
-  };
 
-  const handleError = (err: unknown) => {
-    const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
-    showError(errorMessage);
-    console.error(err);
-  };
   const fetchProfile = useCallback(async () => {
     try {
       setLoading(true);
@@ -285,18 +212,18 @@ export default function ProfileSettingsPage() {
           notifications: profileData.notifications,
           security: profileData.security ? {
             ...profileData.security,
-            recentActivity: profileData.security.recentActivity?.map((activity: any) => ({
+            recentActivity: (profileData.security.recentActivity || []).map((activity: Partial<ActivityLog>) => ({
               id: activity.id || '',
-              action: activity.action || 'login',
-              ipAddress: activity.ipAddress || '',
-              userAgent: activity.userAgent || '',
-              location: activity.location || 'Unknown',
-              status: (activity.status === 'success' || activity.status === 'failed') 
-                ? activity.status 
-                : 'unknown',
+              action: String(activity.action || 'login'),
+              ipAddress: String(activity.ipAddress || ''),
+              userAgent: String(activity.userAgent || ''),
+              location: String(activity.location || 'Unknown'),
+              status: activity.status === 'success' ? 'success' as const : 'failed' as const,
+              timestamp: activity.createdAt || new Date().toISOString(),
+              successful: activity.status === 'success',
               createdAt: activity.createdAt || new Date().toISOString(),
-              updatedAt: activity.updatedAt || new Date().toISOString(),
-            })) || [],
+              updatedAt: activity.updatedAt || new Date().toISOString()
+            }))
           } : defaultUser.security,
           createdAt: profileData.createdAt,
           updatedAt: profileData.updatedAt,
@@ -438,32 +365,7 @@ export default function ProfileSettingsPage() {
         }
       }
       
-      // Define interfaces for activity log types
-      interface ActivityLog {
-        id: string;
-        action: string;
-        device: string;
-        location: string;
-        timestamp: string;
-        successful: boolean;
-        userAgent?: string;
-        ipAddress?: string;
-        status: 'success' | 'failed';
-        createdAt: string;
-      }
 
-      // Type guard to check if an object is a valid SecurityActivity
-      const isSecurityActivity = (obj: any): obj is SecurityActivity => {
-        return (
-          obj &&
-          typeof obj.id === 'string' &&
-          typeof obj.action === 'string' &&
-          typeof obj.device === 'string' &&
-          typeof obj.location === 'string' &&
-          typeof obj.timestamp === 'string' &&
-          typeof obj.successful === 'boolean'
-        );
-      };
 
       // Get security data with mapped recentActivity
       const securityData = formData.security || profile.security;
@@ -606,7 +508,7 @@ export default function ProfileSettingsPage() {
   };
 
   const handleInputChangeWithValidation = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
+    const { name } = e.target;
     
     // Clear error for this field when user starts typing
     if (formErrors[name]) {
@@ -737,7 +639,7 @@ export default function ProfileSettingsPage() {
       {activeTab === 0 && (
         <Grid container spacing={3}>
           {/* Profile Picture Section */}
-          <Grid item xs={12} md={4} lg={3}>
+          <Grid size={{ xs: 12, md: 4, lg: 3 }}>
             <Card sx={{ height: '100%' }}>
               <CardContent sx={{ 
                 display: 'flex',
@@ -872,7 +774,7 @@ export default function ProfileSettingsPage() {
             </Card>
           </Grid>
           
-          <Grid item xs={12} md={8}>
+          <Grid size={{ xs: 12, md: 8 }}>
             <Card>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
@@ -883,7 +785,7 @@ export default function ProfileSettingsPage() {
                 </Typography>
                 
                 <Grid container spacing={3} sx={{ mt: 1 }}>
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField
                       fullWidth
                       label="First Name"
@@ -902,7 +804,7 @@ export default function ProfileSettingsPage() {
                       }}
                     />
                   </Grid>
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField
                       fullWidth
                       label="Email Address"
@@ -920,7 +822,7 @@ export default function ProfileSettingsPage() {
                       }}
                     />
                   </Grid>
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField
                       fullWidth
                       label="Phone Number"
@@ -940,7 +842,7 @@ export default function ProfileSettingsPage() {
                       }}
                     />
                   </Grid>
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <FormControl fullWidth disabled={!isEditing}>
                       <InputLabel id="timezone-label">Timezone</InputLabel>
                       <Select
@@ -959,7 +861,7 @@ export default function ProfileSettingsPage() {
                       </Select>
                     </FormControl>
                   </Grid>
-                  <Grid item xs={12}>
+                  <Grid size={{ xs: 12 }}>
                     <TextField
                       fullWidth
                       label="Location"
@@ -971,7 +873,7 @@ export default function ProfileSettingsPage() {
                       helperText={formErrors.location}
                     />
                   </Grid>
-                  <Grid item xs={12}>
+                  <Grid size={{ xs: 12 }}>
                     <TextField
                       fullWidth
                       label="Bio"
@@ -1000,7 +902,7 @@ export default function ProfileSettingsPage() {
                 </Typography>
                 
                 <Grid container spacing={3} sx={{ mt: 1 }}>
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <FormControl fullWidth>
                       <InputLabel id="language-label">Language</InputLabel>
                       <Select
@@ -1025,7 +927,7 @@ export default function ProfileSettingsPage() {
                       </Select>
                     </FormControl>
                   </Grid>
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <FormControl fullWidth>
                       <InputLabel id="currency-label">Currency</InputLabel>
                       <Select
@@ -1047,7 +949,7 @@ export default function ProfileSettingsPage() {
                       </Select>
                     </FormControl>
                   </Grid>
-                  <Grid item xs={12}>
+                  <Grid size={{ xs: 12 }}>
                     <FormControl fullWidth>
                       <InputLabel id="theme-label">Theme</InputLabel>
                       <Select
@@ -1146,7 +1048,7 @@ export default function ProfileSettingsPage() {
       
       {activeTab === 2 && (
         <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Card>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
@@ -1203,7 +1105,7 @@ export default function ProfileSettingsPage() {
             </Card>
           </Grid>
           
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Card>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
@@ -1287,7 +1189,7 @@ export default function ProfileSettingsPage() {
       
       {activeTab === 3 && (
         <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Card>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
@@ -1409,7 +1311,7 @@ export default function ProfileSettingsPage() {
             </Card>
           </Grid>
           
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Card sx={{ mb: 3 }}>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
