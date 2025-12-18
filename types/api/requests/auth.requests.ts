@@ -1,5 +1,3 @@
-import { User } from '../../domain/user';
-
 export interface LoginRequest {
   email: string;
   password: string;
