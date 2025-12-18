@@ -1,6 +1,6 @@
 import { Timestamps, ID } from '../common';
 
-export type UserRole = 'admin' | 'organizer' | 'user';
+export type UserRole = 'admin' | 'organizer' | 'attendee' | 'guest' | 'user' | 'manager';
 
 export interface User extends Timestamps {
   id: ID;
@@ -53,6 +53,4 @@ export interface ActivityLog extends Timestamps {
 }
 
 // For authentication context
-export interface AuthUser extends Pick<User, 'id' | 'email' | 'role' | 'firstName' | 'lastName' | 'avatar'> {
-  // Add any auth-specific fields here
-}
+export type AuthUser = Pick<User, 'id' | 'email' | 'role' | 'firstName' | 'lastName' | 'avatar'>;
