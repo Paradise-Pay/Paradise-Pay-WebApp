@@ -1,37 +1,15 @@
 import { apiClient } from '../client';
 import { API_ENDPOINTS } from '../config';
-
-export interface SignUpData {
-  email: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-  role?: 'user' | 'organizer';
-}
-
-export interface LoginData {
-  email: string;
-  password: string;
-}
-
-export interface AuthResponse {
-  accessToken: string;
-  refreshToken: string;
-  user: {
-    id: string;
-    email: string;
-    firstName: string;
-    lastName: string;
-    role: string;
-  };
-}
+import { RegisterRequest } from '../../../types/api/requests/auth.requests';
+import { AuthResponse } from '../../../types/api/responses/auth.responses';
+import { LoginRequest } from '../../../types/api/requests/auth.requests';
 
 export const authService = {
-  signUp: async (data: SignUpData): Promise<AuthResponse> => {
+  signUp: async (data: RegisterRequest): Promise<AuthResponse> => {
     return apiClient.post(API_ENDPOINTS.AUTH.SIGNUP, data);
   },
 
-  login: async (data: LoginData): Promise<AuthResponse> => {
+  login: async (data: LoginRequest): Promise<AuthResponse> => {
     return apiClient.post(API_ENDPOINTS.AUTH.LOGIN, data);
   },
 

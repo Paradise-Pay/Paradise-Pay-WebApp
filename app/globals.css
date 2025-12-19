@@ -37,7 +37,8 @@
 /* Base styles */
 @layer base {
   body {
-    @apply bg-background text-foreground;
+    background-color: var(--background);
+    color: var(--foreground);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -46,23 +47,30 @@
   
   /* Apply font family to all elements */
   * {
-    @apply border-border;
+    border-color: var(--border);
     font-family: inherit;
   }
   
   /* Headings */
   h1, h2, h3, h4, h5, h6 {
-    @apply font-semibold tracking-tight;
+    font-weight: 600;
+    letter-spacing: -0.025em;
   }
-  
+
   /* Links */
   a {
-    @apply text-primary hover:underline;
+    color: var(--primary);
   }
-  
+  a:hover {
+    text-decoration: underline;
+  }
+
   /* Buttons */
   button {
-    @apply focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2;
+    outline: none;
+  }
+  button:focus {
+    box-shadow: 0 0 0 2px var(--ring);
   }
 }
 

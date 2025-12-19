@@ -7,7 +7,7 @@ import { SiTiktok, SiX } from 'react-icons/si';
 import { useEffect, useState } from 'react';
 
 const Footer = () => {
-  const [currentYear, setCurrentYear] = useState<number>(new Date().getFullYear());
+  const [currentYear, setCurrentYear] = useState<number>(2024); // Default year
 
   useEffect(() => {
     setCurrentYear(new Date().getFullYear());
@@ -54,7 +54,7 @@ const Footer = () => {
             </Box>
           </Grid>
           
-          <Grid item xs={6} sm={3} md={2}>
+          <Grid size={{ xs: 6, sm: 3, md: 2 }}>
             <Typography variant="subtitle1" color="text.primary" gutterBottom sx={{ fontFamily: 'inherit', fontWeight: 600 }}>
               Company
             </Typography>
@@ -71,8 +71,8 @@ const Footer = () => {
               Press
             </MuiLink>
           </Grid>
-          
-          <Grid item xs={6} sm={3} md={2}>
+
+          <Grid size={{ xs: 6, sm: 3, md: 2 }}>
             <Typography variant="subtitle1" color="text.primary" gutterBottom sx={{ fontFamily: 'inherit', fontWeight: 600 }}>
               Support
             </Typography>

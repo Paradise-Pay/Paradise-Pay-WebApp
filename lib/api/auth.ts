@@ -29,23 +29,18 @@ interface VerifyEmailResponse {
 }
 
 interface LoginResponse {
-  token: string;
+  accessToken: string;
+  refreshToken: string;
   user: {
-    id: string;
+    user_id: string;
     email: string;
     name: string;
+    role: string;
   };
 }
 
 interface SignupResponse {
-  token: string;
-  user: {
-    id: string;
-    email: string;
-    name: string;
-  };
   message: string;
-  success: boolean;
 }
 
 export const authService = {

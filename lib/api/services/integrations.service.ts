@@ -39,15 +39,11 @@ export interface IntegrationCategory {
 }
 
 export interface IntegrationSearchParams {
-  query?: string;
-  category?: string;
-  startDate?: string;
-  endDate?: string;
-  location?: string;
-  radius?: number; // in miles or km
-  size?: number;
-  page?: number;
-  sort?: 'date,asc' | 'date,desc' | 'name,asc' | 'name,desc';
+  platform?: 'ticketmaster' | 'eventbrite';
+  keyword?: string;
+  city?: string;
+  date?: string;
+  limit?: number;
 }
 
 export const integrationsService = {
@@ -59,22 +55,18 @@ export const integrationsService = {
     size: number;
   }> => {
     const queryParams = new URLSearchParams();
-    
-    if (params.query) queryParams.append('query', params.query);
-    if (params.category) queryParams.append('category', params.category);
-    if (params.startDate) queryParams.append('startDate', params.startDate);
-    if (params.endDate) queryParams.append('endDate', params.endDate);
-    if (params.location) queryParams.append('location', params.location);
-    if (params.radius) queryParams.append('radius', params.radius.toString());
-    if (params.size) queryParams.append('size', params.size.toString());
-    if (params.page) queryParams.append('page', params.page.toString());
-    if (params.sort) queryParams.append('sort', params.sort);
+
+    if (params.platform) queryParams.append('platform', params.platform);
+    if (params.keyword) queryParams.append('keyword', params.keyword);
+    if (params.city) queryParams.append('city', params.city);
+    if (params.date) queryParams.append('date', params.date);
+    if (params.limit) queryParams.append('limit', params.limit.toString());
 
     return apiClient.get(`${API_ENDPOINTS.INTEGRATIONS.SEARCH}?${queryParams.toString()}`);
   },
 
   // Import event from third-party platform
-  importEvent: async (source: 'ticketmaster' | 'eventbrite', sourceId: string): Promise<{
+  importEvent: async (platform: 'ticketmaster' | 'eventbrite', event_id: string, category_id: string): Promise<{
     event: EventIntegration & {
       source: 'ticketmaster' | 'eventbrite';
       imported: boolean;
@@ -82,7 +74,7 @@ export const integrationsService = {
     };
     message: string;
   }> => {
-    return apiClient.post(API_ENDPOINTS.INTEGRATIONS.IMPORT, { source, sourceId });
+    return apiClient.post(API_ENDPOINTS.INTEGRATIONS.IMPORT, { platform, event_id, category_id });
   },
 
   // Get categories from third-party platforms

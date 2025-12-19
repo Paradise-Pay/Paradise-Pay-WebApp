@@ -64,8 +64,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string) => {
     try {
       const data = await authService.login({ email, password });
-      localStorage.setItem('authToken', data.token);
-      setUser(data.user);
+      localStorage.setItem('accessToken', data.accessToken);
+      localStorage.setItem('refreshToken', data.refreshToken);
+      setUser({
+        id: data.user.user_id,
+        name: data.user.name,
+        email: data.user.email,
+      });
       router.push('/dashboard');
     } catch (error) {
       console.error('Login failed:', error);
@@ -81,10 +86,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     nickname: string;
   }) => {
     try {
-      const data = await authService.signup(userData);
-      localStorage.setItem('authToken', data.token);
-      setUser(data.user);
-      router.push('/onboarding');
+      await authService.signup(userData);
+      // After signup, user needs to login
+      router.push('/auth/login');
     } catch (error) {
       console.error('Signup failed:', error);
       throw error;

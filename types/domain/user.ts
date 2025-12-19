@@ -2,7 +2,7 @@ import { Timestamps } from '../common';
 
 export type ID = string | number;
 
-export type UserRole = 'admin' | 'organizer' | 'user';
+export type UserRole = 'admin' | 'organizer' | 'attendee' | 'guest' | 'user' | 'manager';
 
 export interface User extends Timestamps {
   id: ID;

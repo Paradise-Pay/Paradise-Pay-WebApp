@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { SelectChangeEvent } from '@mui/material/Select';
-import { 
+import {
   type User as DomainUser,
   type UserRole,
   type ActivityLog,
@@ -688,7 +688,7 @@ export default function ProfileSettingsPage() {
       {activeTab === 0 && (
         <Grid container spacing={3}>
           {/* Profile Picture Section */}
-          <Grid item xs={12} md={4} lg={3}>
+          <Grid size={{ xs: 12, md: 4, lg: 3 }}>
             <Card sx={{ height: '100%' }}>
               <CardContent sx={{ 
                 display: 'flex',
@@ -823,7 +823,7 @@ export default function ProfileSettingsPage() {
             </Card>
           </Grid>
           
-          <Grid item xs={12} md={8}>
+          <Grid size={{ xs: 12, md: 8 }}>
             <Card>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
@@ -834,7 +834,7 @@ export default function ProfileSettingsPage() {
                 </Typography>
                 
                 <Grid container spacing={3} sx={{ mt: 1 }}>
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField
                       fullWidth
                       label="First Name"
@@ -853,7 +853,7 @@ export default function ProfileSettingsPage() {
                       }}
                     />
                   </Grid>
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField
                       fullWidth
                       label="Email Address"
@@ -871,7 +871,7 @@ export default function ProfileSettingsPage() {
                       }}
                     />
                   </Grid>
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField
                       fullWidth
                       label="Phone Number"
@@ -891,7 +891,7 @@ export default function ProfileSettingsPage() {
                       }}
                     />
                   </Grid>
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <FormControl fullWidth disabled={!isEditing}>
                       <InputLabel id="timezone-label">Timezone</InputLabel>
                       <Select
@@ -910,7 +910,7 @@ export default function ProfileSettingsPage() {
                       </Select>
                     </FormControl>
                   </Grid>
-                  <Grid item xs={12}>
+                  <Grid size={{ xs: 12 }}>
                     <TextField
                       fullWidth
                       label="Location"
@@ -922,7 +922,7 @@ export default function ProfileSettingsPage() {
                       helperText={formErrors.location}
                     />
                   </Grid>
-                  <Grid item xs={12}>
+                  <Grid size={{ xs: 12 }}>
                     <TextField
                       fullWidth
                       label="Bio"
@@ -951,7 +951,7 @@ export default function ProfileSettingsPage() {
                 </Typography>
                 
                 <Grid container spacing={3} sx={{ mt: 1 }}>
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <FormControl fullWidth>
                       <InputLabel id="language-label">Language</InputLabel>
                       <Select
@@ -976,7 +976,7 @@ export default function ProfileSettingsPage() {
                       </Select>
                     </FormControl>
                   </Grid>
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <FormControl fullWidth>
                       <InputLabel id="currency-label">Currency</InputLabel>
                       <Select
@@ -998,7 +998,7 @@ export default function ProfileSettingsPage() {
                       </Select>
                     </FormControl>
                   </Grid>
-                  <Grid item xs={12}>
+                  <Grid size={{ xs: 12 }}>
                     <FormControl fullWidth>
                       <InputLabel id="theme-label">Theme</InputLabel>
                       <Select
@@ -1097,7 +1097,7 @@ export default function ProfileSettingsPage() {
       
       {activeTab === 2 && (
         <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Card>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
@@ -1154,7 +1154,7 @@ export default function ProfileSettingsPage() {
             </Card>
           </Grid>
           
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Card>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
@@ -1238,7 +1238,7 @@ export default function ProfileSettingsPage() {
       
       {activeTab === 3 && (
         <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Card>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
