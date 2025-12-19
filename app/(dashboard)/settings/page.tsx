@@ -5,24 +5,27 @@ import { SelectChangeEvent } from '@mui/material/Select';
 import {
   type User as DomainUser,
   type UserRole,
-  type ActivityLog
+  type ActivityLog,
+  type ID,
+  type SecuritySettings
 } from '@/types/domain/user';
-
+import type { 
+  ProfileUpdateRequest,
+  UserSecurity 
+} from '@/types/dashboard';
 import { useAuth } from '@/context/AuthProvider';
 import { getUserProfile, updateUserProfile, uploadUserAvatar } from '@/lib/api';
-import { ProfileUpdateRequest, SecurityActivity, UserSecurity } from '@/types/dashboard';
 
-type ID = string | number;
 
-// Helper function to map activity log to SecurityActivity
-const mapActivityLogToSecurityActivity = (log: { id: ID; action?: string; ipAddress?: string; userAgent?: string; location?: string; status?: string; timestamp?: string; successful?: boolean }): SecurityActivity => {
+// Helper function to map ActivityLog to SecurityActivity
+const mapActivityLogToSecurityActivity = (log: ActivityLog) => {
   return {
-    id: String(log.id),
-    action: log.action || 'unknown',
+    id: String(log.id), // Ensure ID is always a string
+    action: log.action,
     device: log.userAgent || 'Unknown device',
-    location: log.location || 'Unknown location',
-    timestamp: log.timestamp || new Date().toISOString(),
-    successful: log.successful ?? (log.status === 'success')
+    location: log.location || log.ipAddress || 'Unknown location',
+    timestamp: log.createdAt instanceof Date ? log.createdAt.toISOString() : String(log.createdAt || new Date().toISOString()),
+    successful: log.status === 'success'
   };
 };
 import { 
@@ -53,7 +56,7 @@ import {
   Skeleton,
   Chip
 } from '@mui/material';
-import Grid from '@mui/material/Grid';
+import { Grid } from '@mui/material';
 import { 
   Person as PersonIcon,
   Email as EmailIcon,
@@ -80,7 +83,26 @@ interface SnackbarState {
   severity?: 'success' | 'error' | 'info' | 'warning';
 }
 
-
+// User metadata type that extends the base user data
+type UserMetadata = {
+  bio?: string;
+  location?: string;
+  timezone?: string;
+  notifications?: {
+    email: boolean;
+    push: boolean;
+    sms: boolean;
+  };
+  security?: {
+    twoFactorAuth: boolean;
+    loginAlerts: boolean;
+  };
+  preferences?: {
+    theme: 'light' | 'dark' | 'system';
+    language: string;
+    currency: string;
+  };
+}
 
 // Define the form data type based on DomainUser
 type ProfileFormData = Partial<Omit<DomainUser, 'id' | 'role' | 'createdAt' | 'updatedAt'>> & {
@@ -157,9 +179,9 @@ const defaultUser: DomainUser = {
     loginAlerts: true,
     deviceManagement: false,
     recentActivity: [],
-  },
-  createdAt: '2024-01-01T00:00:00.000Z',
-  updatedAt: '2024-01-01T00:00:00.000Z',
+  } as SecuritySettings,
+  createdAt: new Date('2024-01-01T00:00:00.000Z'),
+  updatedAt: new Date('2024-01-01T00:00:00.000Z'),
 };
 
 export default function ProfileSettingsPage() {
@@ -168,7 +190,28 @@ export default function ProfileSettingsPage() {
   const [error, setError] = useState<string | null>(null);
   const { user, updateProfile } = useAuth();
   const [activeTab, setActiveTab] = useState(0);
-  const [profile, setProfile] = useState<DomainUser>(defaultUser);
+  const [profile, setProfile] = useState<DomainUser & { metadata?: UserMetadata }>({
+    ...defaultUser,
+    metadata: {
+      bio: '',
+      location: '',
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      notifications: {
+        email: true,
+        push: true,
+        sms: false
+      },
+      security: {
+        twoFactorAuth: false,
+        loginAlerts: true
+      },
+      preferences: {
+        theme: 'system',
+        language: 'en',
+        currency: 'USD'
+      }
+    }
+  });
   const [formData, setFormData] = useState<ProfileFormData>({});
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string>('');
@@ -182,7 +225,18 @@ export default function ProfileSettingsPage() {
     setSnackbar(prev => ({ ...prev, open: false }));
   };
 
+  const showError = useCallback((message: string) => {
+    setSnackbar({
+      open: true,
+      message,
+    });
+  }, []);
 
+  const handleError = useCallback((err: unknown) => {
+    const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+    showError(errorMessage);
+    console.error(err);
+  }, [showError]);
   const fetchProfile = useCallback(async () => {
     try {
       setLoading(true);
@@ -212,18 +266,9 @@ export default function ProfileSettingsPage() {
           notifications: profileData.notifications,
           security: profileData.security ? {
             ...profileData.security,
-            recentActivity: (profileData.security.recentActivity || []).map((activity: Partial<ActivityLog>) => ({
-              id: activity.id || '',
-              action: String(activity.action || 'login'),
-              ipAddress: String(activity.ipAddress || ''),
-              userAgent: String(activity.userAgent || ''),
-              location: String(activity.location || 'Unknown'),
-              status: activity.status === 'success' ? 'success' as const : 'failed' as const,
-              timestamp: activity.createdAt || new Date().toISOString(),
-              successful: activity.status === 'success',
-              createdAt: activity.createdAt || new Date().toISOString(),
-              updatedAt: activity.updatedAt || new Date().toISOString()
-            }))
+            recentActivity: profileData.security.recentActivity?.map(activity => 
+              mapActivityLogToSecurityActivity(activity as unknown as ActivityLog)
+            ) || [],
           } : defaultUser.security,
           createdAt: profileData.createdAt,
           updatedAt: profileData.updatedAt,
@@ -236,7 +281,7 @@ export default function ProfileSettingsPage() {
         throw new Error(response.message || 'Failed to fetch profile');
       }
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      handleError(error);
       
       // Fallback to mock data for development
       if (user) {
@@ -277,7 +322,7 @@ export default function ProfileSettingsPage() {
       
       setLoading(false);
     }
-  }, [user]);
+  }, [user, handleError]);
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
@@ -365,15 +410,19 @@ export default function ProfileSettingsPage() {
         }
       }
       
-
+      // Activity log types are defined elsewhere
 
       // Get security data with mapped recentActivity
-      const securityData = formData.security || profile.security;
+      const securityData = formData.security || profile.security || {};
       const mappedSecurity: UserSecurity = {
         twoFactorAuth: securityData?.twoFactorAuth ?? false,
         loginAlerts: securityData?.loginAlerts ?? false,
         deviceManagement: securityData?.deviceManagement ?? false,
-        recentActivity: securityData?.recentActivity?.map(mapActivityLogToSecurityActivity) || []
+        recentActivity: Array.isArray(securityData?.recentActivity) 
+          ? securityData.recentActivity.map(activity => 
+              mapActivityLogToSecurityActivity(activity as unknown as ActivityLog)
+            )
+          : []
       };
 
       // Prepare the update data
@@ -1311,8 +1360,8 @@ export default function ProfileSettingsPage() {
             </Card>
           </Grid>
           
-          <Grid size={{ xs: 12, md: 6 }}>
-            <Card sx={{ mb: 3 }}>
+          <Grid xs={12} md={6}>
+            <Card sx={{ mt: 3 }}>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
                   Change Password

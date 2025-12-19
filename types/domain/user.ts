@@ -1,4 +1,6 @@
-import { Timestamps, ID } from '../common';
+import { Timestamps } from '../common';
+
+export type ID = string | number;
 
 export type UserRole = 'admin' | 'organizer' | 'attendee' | 'guest' | 'user' | 'manager';
 
@@ -40,16 +42,25 @@ export interface SecuritySettings {
   twoFactorAuth: boolean;
   loginAlerts: boolean;
   deviceManagement: boolean;
-  recentActivity: ActivityLog[];
+  recentActivity: Array<{
+    id: string | number;
+    action: string;
+    device: string;
+    location: string;
+    timestamp: string;
+    successful: boolean;
+  }>;
 }
 
-export interface ActivityLog extends Timestamps {
+export interface ActivityLog {
   id: ID;
   action: string;
   ipAddress: string;
   userAgent: string;
   location: string;
   status: 'success' | 'failed';
+  createdAt: string | Date;
+  updatedAt: string | Date;
 }
 
 // For authentication context

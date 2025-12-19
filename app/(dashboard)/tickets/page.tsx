@@ -21,7 +21,7 @@ import {
   useMediaQuery,
   Grid
 } from '@mui/material';
-import { 
+import {
   ConfirmationNumber as TicketIcon, 
   Event as EventIcon, 
   MoreVert as MoreVertIcon,
