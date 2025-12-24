@@ -2,7 +2,7 @@ import { ApiResponse } from "@/types/api";
 import { DashboardStats, UserProfile, ProfileUpdateRequest, Activity } from "@/types/dashboard";
 
 // API configuration
-const API_BASE_URL = "https://paradise-pay-webapp-production.up.railway.app/api/v1";
+const API_BASE_URL = "http://localhost:4000/api/v1";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || API_BASE_URL;
 
 interface FetchOptions extends RequestInit {
@@ -158,3 +158,7 @@ export const getUserActivity = async (limit: number = 10) => {
     method: "GET",
   });
 };
+export function setToken(accessToken: any) {
+  throw new Error("Function not implemented.");
+}
+
