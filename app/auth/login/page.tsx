@@ -24,8 +24,8 @@ export default function LoginPage() {
   });
 
   const { login } = useAuth();
-  const router = useRouter();
   const searchParams = useSearchParams();
+  const redirect = searchParams.get('redirect') || '/dashboard';
 
   // Check for success messages in URL parameters
   useEffect(() => {
