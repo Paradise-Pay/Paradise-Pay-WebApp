@@ -24,9 +24,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setLoading(true);
     try {
       const res = await api.login(email, password);
-      if (res.data?.user) {
-        setUser(res.data.user);
-        localStorage.setItem("user", JSON.stringify(res.data.user));
+      if (res.user) {
+        setUser(res.user);
+        localStorage.setItem("user", JSON.stringify(res.user));
       } else {
         throw new Error(res.message || "Login failed");
       }

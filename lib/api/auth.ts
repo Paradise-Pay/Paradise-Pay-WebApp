@@ -28,6 +28,11 @@ interface VerifyEmailResponse {
   success: boolean;
 }
 
+interface RefreshTokenResponse {
+  accessToken: string;
+  refreshToken: string;
+}
+
 interface LoginResponse {
   accessToken: string;
   refreshToken: string;
@@ -60,6 +65,10 @@ export const authService = {
     return apiClient.post<ForgotPasswordResponse>('/auth/forgot-password', { email });
   },
 
+  async resetPasswordRequest(email: string): Promise<ForgotPasswordResponse> {
+    return apiClient.post<ForgotPasswordResponse>('/auth/reset-password-request', { email });
+  },
+
   async resetPassword(token: string, newPassword: string): Promise<ResetPasswordResponse> {
     return apiClient.post<ResetPasswordResponse>('/auth/reset-password', {
       token,
@@ -69,5 +78,9 @@ export const authService = {
 
   async verifyEmail(token: string): Promise<VerifyEmailResponse> {
     return apiClient.get<VerifyEmailResponse>(`/auth/verify-email?token=${token}`);
+  },
+
+  async refreshToken(refreshToken: string): Promise<RefreshTokenResponse> {
+    return apiClient.post<RefreshTokenResponse>('/auth/refresh-token', { refreshToken });
   },
 };

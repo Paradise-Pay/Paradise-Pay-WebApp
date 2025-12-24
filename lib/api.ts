@@ -59,14 +59,27 @@ export const login = async (email: string, password: string) => {
   if (!res.ok) throw new Error("Login failed");
   const data = await res.json();
 
+  // Transform user object to match AuthUser type
+  const transformedUser = data.user ? {
+    id: data.user.user_id || data.user.id,
+    email: data.user.email,
+    role: data.user.role,
+    firstName: data.user.name?.split(' ')[0] || data.user.firstName || '',
+    lastName: data.user.name?.split(' ').slice(1).join(' ') || data.user.lastName || '',
+    avatar: data.user.avatar
+  } : null;
+
   // Store authentication data
   if (typeof window !== "undefined") {
     localStorage.setItem("accessToken", data.accessToken);
     localStorage.setItem("refreshToken", data.refreshToken);
-    localStorage.setItem("user", JSON.stringify(data.user));
+    localStorage.setItem("user", JSON.stringify(transformedUser));
   }
 
-  return data;
+  return {
+    ...data,
+    user: transformedUser
+  };
 };
 
 /**
@@ -95,15 +108,72 @@ export const signup = async (userData: {
 };
 
 /**
- * User logout: Clear stored authentication data
+ * User logout: Clear stored authentication data and call backend
  */
-export const logout = () => {
+export const logout = async () => {
+  try {
+    // Call backend logout endpoint
+    await fetch(`${API_URL}/auth/logout`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+  } catch (error) {
+    console.error("Logout API call failed:", error);
+    // Continue with local cleanup even if API call fails
+  }
+  
+  // Clear local storage
   if (typeof window !== "undefined") {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("user");
   }
-  return Promise.resolve({ success: true, message: "Logged out" });
+  
+  return { success: true, message: "Logged out" };
+};
+
+/**
+ * Refresh access token using refresh token
+ */
+export const refreshToken = async (refreshToken: string) => {
+  const res = await fetch(`${API_URL}/auth/refresh-token`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ refreshToken }),
+  });
+
+  if (!res.ok) throw new Error("Failed to refresh token");
+  const data = await res.json();
+
+  // Store new tokens
+  if (typeof window !== "undefined") {
+    localStorage.setItem("accessToken", data.accessToken);
+    localStorage.setItem("refreshToken", data.refreshToken);
+  }
+
+  return data;
+};
+
+/**
+ * Request password reset (alternative to forgotPassword)
+ */
+export const resetPasswordRequest = async (email: string) => {
+  const res = await fetch(`${API_URL}/auth/reset-password-request`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.message || "Failed to request password reset");
+  }
+  
+  const data = await res.json();
+  return data;
 };
 
 /**
