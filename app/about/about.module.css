@@ -1,10 +1,4 @@
-:root {
-  --pp-primary: #2f89ff; /* brand blue */
-  --pp-primary-600: #3b82f6;
-  --pp-secondary: #ffc03a; /* brand yellow */
-  --pp-bg: #fafafa;
-  --pp-text: #0b1220;
-}
+
 
 .page {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;

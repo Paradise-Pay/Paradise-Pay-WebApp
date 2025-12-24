@@ -15,6 +15,12 @@
   --input: #e5e5e5;
   --ring: #2f89ff;
   --radius: 0.5rem;
+
+  --pp-primary: #2f89ff; /* brand blue */
+  --pp-primary-600: #3b82f6;
+  --pp-secondary: #ffc03a; /* brand yellow */
+  --pp-bg: #fafafa;
+  --pp-text: #0b1220;
   
   /* Toast styles */
   --toastify-toast-width: 320px;
