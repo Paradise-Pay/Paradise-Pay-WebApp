@@ -5,7 +5,7 @@ import { DashboardStats, UserProfile, ProfileUpdateRequest, Activity } from "@/t
 const API_BASE_URL = "https://paradise-pay-backend-production-e0db.up.railway.app/api/v1";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || API_BASE_URL;
 
-interface FetchOptions extends RequestInit {
+interface FetchOptions extends Omit<RequestInit, 'body'> {
   body?: unknown;
 }
 
@@ -161,4 +161,3 @@ export const getUserActivity = async (limit: number = 10) => {
 export function setToken(accessToken: any) {
   throw new Error("Function not implemented.");
 }
-

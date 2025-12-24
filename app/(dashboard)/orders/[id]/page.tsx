@@ -222,7 +222,7 @@ export default function OrderDetailPage() {
                 {order.billingAddress.firstName} {order.billingAddress.lastName}
               </Typography>
               <Typography variant="body2" color="textSecondary">
-                {order.billingAddress.address}
+                {order.billingAddress.addressLine1}
               </Typography>
               <Typography variant="body2" color="textSecondary">
                 {order.billingAddress.city}, {order.billingAddress.state}{' '}

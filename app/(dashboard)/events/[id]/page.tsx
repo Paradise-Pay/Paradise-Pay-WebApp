@@ -18,16 +18,19 @@ import {
   Paper,
   Stack,
 } from '@mui/material';
-import {
-  Calendar,
-  LocationOn,
-  Person,
-  AttachMoney,
-  Share as ShareIcon,
-} from '@mui/icons-material';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import PersonIcon from '@mui/icons-material/Person';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import ShareIcon from '@mui/icons-material/Share';
+
 import { Event } from '@/types/domain/event';
 import Link from 'next/link';
 import { formatDistanceToNow, format } from 'date-fns';
+import { Calendar } from 'lucide-react';
+import { LocationOn } from '@mui/icons-material';
+import { Person } from '@mui/icons-material';
+import { AttachMoney } from '@mui/icons-material';
 
 interface EventDetailResponse {
   success: boolean;

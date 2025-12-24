@@ -102,7 +102,7 @@ export default function SignupPage() {
     
     try {
       // Call the signup API directly
-      const response = await authService.signup({
+      await authService.signup({
         name: formData.name,
         email: formData.email,
         password: formData.password,
@@ -111,9 +111,7 @@ export default function SignupPage() {
       });
 
       // Log the user in after successful signup
-      if (response.user) {
-        await login(formData.email, formData.password);
-      }
+      await login(formData.email, formData.password);
       
       toast.success('Account created successfully! Please check your email to verify your account.', {
         position: 'top-center',

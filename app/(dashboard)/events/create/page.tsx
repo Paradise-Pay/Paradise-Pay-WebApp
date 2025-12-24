@@ -42,7 +42,7 @@ const eventSchema = yup.object({
   postalCode: yup.string().required('Postal code is required'),
   capacity: yup.number().required('Capacity is required').positive(),
   price: yup.number().required('Price is required').min(0),
-  isFree: yup.boolean(),
+  isFree: yup.boolean().required(),
   category: yup.string().required('Category is required'),
 });
 

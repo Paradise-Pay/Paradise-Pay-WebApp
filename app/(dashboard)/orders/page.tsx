@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { SetStateAction, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Box,
@@ -25,12 +25,16 @@ import {
   MenuItem,
   InputAdornment,
 } from '@mui/material';
-import {
-  Search as SearchIcon,
-  CheckCircle as CheckCircleIcon,
-  Clock as ClockIcon,
-  XCircle as XCircleIcon,
-} from '@mui/icons-material';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import PersonIcon from '@mui/icons-material/Person';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import ShareIcon from '@mui/icons-material/Share';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import ScheduleIcon from '@mui/icons-material/Schedule';
+import CancelIcon from '@mui/icons-material/Cancel';
+import SearchIcon from '@mui/icons-material/Search';
+
 import { Order } from '@/types/domain/order';
 import { format } from 'date-fns';
 
@@ -112,7 +116,7 @@ export default function OrdersPage() {
               lastName: 'Doe',
               email: 'john@example.com',
               phone: '+1234567890',
-              address: '123 Main St',
+              addressLine1: '123 Main St',
               city: 'NYC',
               state: 'NY',
               country: 'USA',
@@ -145,9 +149,9 @@ export default function OrdersPage() {
       case 'completed':
         return <CheckCircleIcon sx={{ color: 'success.main' }} />;
       case 'pending':
-        return <ClockIcon sx={{ color: 'warning.main' }} />;
+        return <ScheduleIcon sx={{ color: 'warning.main' }} />;
       case 'cancelled':
-        return <XCircleIcon sx={{ color: 'error.main' }} />;
+        return <CancelIcon sx={{ color: 'error.main' }} />;
       default:
         return null;
     }
@@ -189,7 +193,7 @@ export default function OrdersPage() {
             variant="outlined"
             size="small"
             value={searchTerm}
-            onChange={(e) => {
+            onChange={(e: { target: { value: SetStateAction<string>; }; }) => {
               setSearchTerm(e.target.value);
               setPage(0);
             }}
@@ -208,7 +212,7 @@ export default function OrdersPage() {
             size="small"
             label="Status"
             value={statusFilter}
-            onChange={(e) => {
+            onChange={(e: { target: { value: SetStateAction<string>; }; }) => {
               setStatusFilter(e.target.value);
               setPage(0);
             }}

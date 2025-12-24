@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button, TextField, Typography, Box, Container, Paper, Link as MuiLink, InputAdornment, IconButton } from '@mui/material';
@@ -11,7 +11,7 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { authService } from '@/lib/api/auth';
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -114,7 +114,7 @@ export default function ResetPasswordPage() {
               id="password"
               autoComplete="new-password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
@@ -140,7 +140,7 @@ export default function ResetPasswordPage() {
               type={showPassword ? 'text' : 'password'}
               id="confirmPassword"
               value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setConfirmPassword(e.target.value)}
               sx={{ mb: 3 }}
             />
 
@@ -163,5 +163,28 @@ export default function ResetPasswordPage() {
         </Paper>
       </Box>
     </Container>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={
+      <Container component="main" maxWidth="xs">
+        <Box
+          sx={{
+            marginTop: 8,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: '60vh',
+          }}
+        >
+          <Typography>Loading...</Typography>
+        </Box>
+      </Container>
+    }>
+      <ResetPasswordContent />
+    </Suspense>
   );
 }
