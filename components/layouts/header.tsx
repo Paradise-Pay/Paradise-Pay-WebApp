@@ -24,6 +24,7 @@ import {
 import { Search, Menu, Sun, Moon } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from 'next/navigation';
+import { Dashboard } from "@mui/icons-material";
 
 export default function Header() {
   const router = useRouter();
@@ -49,6 +50,7 @@ export default function Header() {
     { name: "Discover Events", path: "/discover" },
     { name: "Bundles", path: "/bundles" },
     { name: "Pricing", path: "/pricing" }
+    //{ name: "Dashboard", path: "/dashboard" },
   ];
   const logoPath = "/logos/Paradise Pay_Logo.png";
 
