@@ -230,7 +230,7 @@ const TicketCard = ({ ticket }: { ticket: Ticket }) => {
         </CardContent>
         <Box sx={{ display: 'flex', p: 2, pt: 0, justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant="h6" color="primary">
-            ${ticket.price.toFixed(2)}
+            GH₵{ticket.price.toFixed(2)}
           </Typography>
           <Box>
             <Button 
@@ -297,7 +297,6 @@ export default function MyTicketsPage() {
   const tabLabels = ['Upcoming', 'Past', 'Cancelled'];
 
   return (
-    <ProtectedRoute roles={["user", "organizer", "admin"]}>
     <Box>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h4" component="h1">
@@ -377,6 +376,5 @@ export default function MyTicketsPage() {
         </Box>
       )}
     </Box>
-    </ProtectedRoute>
   );
 }

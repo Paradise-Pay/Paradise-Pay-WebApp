@@ -223,7 +223,7 @@ const EventCard = ({ event, isMobile }: { event: Event, isMobile: boolean }) => 
                   <Box display="flex" alignItems="center">
                     <MonetizationOnIcon color="action" fontSize="small" sx={{ mr: 1 }} />
                     <Typography variant="body2" color="text.secondary">
-                      ${event.price.toFixed(2)} per ticket
+                      GH₵{event.price.toFixed(2)} per ticket
                     </Typography>
                   </Box>
                 </Grid>
@@ -364,7 +364,6 @@ export default function MyEventsPage() {
   ];
 
   return (
-    <ProtectedRoute roles={["organizer", "admin"]}>
     <Box>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3} flexWrap="wrap" gap={2}>
         <Typography variant="h4" component="h1">
@@ -454,6 +453,5 @@ export default function MyEventsPage() {
         </Box>
       )}
     </Box>
-    </ProtectedRoute>
   );
 }
