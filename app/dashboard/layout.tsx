@@ -120,7 +120,7 @@ export const getMenuByRole = (userRole: string) => {
   return menuItems.filter(item => item.allowedRoles.includes(userRole));
 };
 
-const currentUserRole = ROLES.CUSTOMER; 
+const currentUserRole = ROLES.SUPER_ADMIN; 
 const visibleMenuItems = getMenuByRole(currentUserRole);
 
 export default function DashboardLayout({
