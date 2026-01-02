@@ -20,6 +20,7 @@ import {
   Image,
   IconButton,
   VStack,
+  Skeleton,
 } from "@chakra-ui/react";
 import { Search, Menu, Sun, Moon } from "lucide-react";
 import Link from "next/link";
@@ -46,12 +47,15 @@ export default function Header() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
   
+  const user = true;
+  const isLoading = false;
+
   const links = [
     { name: "Discover Events", path: "/discover" },
     { name: "Bundles", path: "/bundles" },
     { name: "Pricing", path: "/pricing" }
-    //{ name: "Dashboard", path: "/dashboard" },
   ];
+  
   const logoPath = "/logos/Paradise Pay_Logo.png";
 
   const toggleTheme = () => {
@@ -60,15 +64,28 @@ export default function Header() {
   };
 
   return (
-    <Box bg="white" shadow="sm" position="sticky" top={0} zIndex={1000} py={2} px={{ base: 4, md: 6 }}>
+    <Box
+      bg="white"
+      shadow="sm"
+      position="sticky"
+      top={0}
+      zIndex={1000}
+      py={2}
+      px={{ base: 4, md: 6 }}
+    >
       <Container maxW="7xl">
-        <Flex h={{ base: "16", md: "20" }} align="center" justify="space-between" w="full">
+        <Flex
+          h={{ base: "16", md: "20" }}
+          align="center"
+          justify="space-between"
+          w="full"
+        >
           {/* Logo */}
           <Flex align="center" flexShrink={0}>
-            <Box 
+            <Box
               as="button"
               cursor={"pointer"}
-              onClick={() => router.push('/')}
+              onClick={() => router.push("/")}
               _hover={{ opacity: 0.8 }}
             >
               <Image
@@ -123,21 +140,28 @@ export default function Header() {
             {isMounted && !isMobile && (
               <>
                 {/* Sign up/Login Button */}
-                <Link href="/auth/login">
-                  <Button
-                    bg="#FDCB35"
-                    color="black"
-                    px={6}
-                    py={2}
-                    borderRadius="24px"
-                    fontWeight={600}
-                    fontSize="14px"
-                    _hover={{ bg: "#E6B834" }}
-                    size="sm"
-                  >
-                    Sign up/Login
-                  </Button>
-                </Link>
+                {isLoading ? (
+                  // 1. Loading State
+                  <Skeleton height="40px" width="140px" borderRadius="24px" />
+                ) : (
+                  // 2. Button State (User or Guest)
+                  // Note: I updated the Link href to be dynamic too!
+                  <Link href={user ? "/dashboard" : "/auth/login"}>
+                    <Button
+                      bg="#FDCB35"
+                      color="black"
+                      px={6}
+                      py={2}
+                      borderRadius="24px"
+                      fontWeight={600}
+                      fontSize="14px"
+                      _hover={{ bg: "#E6B834" }}
+                      size="sm"
+                    >
+                      {user ? "Dashboard" : "Sign up/Login"}
+                    </Button>
+                  </Link>
+                )}
 
                 {/* Theme Switcher */}
                 <IconButton
@@ -199,17 +223,20 @@ export default function Header() {
                 _hover={{ bg: "gray.50" }}
                 onClick={() => {
                   setActiveLink(link.name);
-                  setIsMobileMenuOpen(false);
+                  setIsMobileMenuOpen(!isMobileMenuOpen);
                 }}
               >
                 {link.name}
               </Text>
             ))}
-            
+
             {/* Mobile Action Buttons */}
             <Box pt={4} borderTop="1px solid" borderColor="gray.200">
               <VStack gap={3} align="stretch">
-                <Link href="/auth/login" onClick={() => setIsMobileMenuOpen(false)}>
+                <Link
+                  href="/auth/login"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
                   <Button
                     bg="#FDCB35"
                     color="white"
@@ -223,7 +250,7 @@ export default function Header() {
                     Sign up/Login
                   </Button>
                 </Link>
-                
+
                 <Flex justify="center">
                   <IconButton
                     aria-label="Toggle theme"

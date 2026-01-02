@@ -48,6 +48,7 @@ import {
   Payment as PaymentIcon,
   AccountBalance as BankIcon,
   CreditCard as CreditCardIcon,
+  PhoneAndroid as PhoneIcon,
   History as HistoryIcon
 } from '@mui/icons-material';
 import { useAuth } from '@/context/AuthProvider';
@@ -65,7 +66,7 @@ interface Transaction {
 
 interface PaymentMethod {
   id: string;
-  type: 'bank' | 'card' | 'paypal' | 'crypto';
+  type: 'bank' | 'momo' | 'card' | 'paypal' | 'crypto';
   last4?: string;
   bankName?: string;
   cardType?: string;
@@ -133,12 +134,19 @@ const mockPaymentMethods: PaymentMethod[] = [
   {
     id: 'pm_2',
     type: 'bank',
-    bankName: 'Chase Bank',
+    bankName: 'GTBank',
     last4: '7890',
     isDefault: false
   },
   {
     id: 'pm_3',
+    type: 'momo',
+    bankName: 'MTN Mobile Money',
+    last4: '1234',
+    isDefault: false
+  },
+  {
+    id: 'pm_4',
     type: 'paypal',
     isDefault: false
   }
@@ -160,7 +168,7 @@ const WalletCard = ({ balance, loading }: { balance: number; loading: boolean })
               <Skeleton variant="text" width={150} height={60} />
             ) : (
               <Typography variant="h3" component="div" sx={{ fontWeight: 'bold' }}>
-                ${balance.toFixed(2)}
+                GH₵{balance.toFixed(2)}
               </Typography>
             )}
             <Box mt={2} display="flex" gap={2} flexWrap="wrap">
@@ -247,6 +255,8 @@ const PaymentMethodItem = ({ method, onSetDefault }: { method: PaymentMethod; on
         return <CreditCardIcon />;
       case 'bank':
         return <BankIcon />;
+      case 'momo':
+        return <PhoneIcon />;  
       case 'paypal':
         return <PaymentIcon />;
       case 'crypto':
@@ -261,6 +271,8 @@ const PaymentMethodItem = ({ method, onSetDefault }: { method: PaymentMethod; on
       case 'card':
         return `${method.cardType} •••• ${method.last4}`;
       case 'bank':
+        return `${method.bankName} •••• ${method.last4}`;
+      case 'momo':
         return `${method.bankName} •••• ${method.last4}`;
       case 'paypal':
         return 'PayPal';
@@ -434,7 +446,6 @@ export default function WalletPage() {
   };
 
   return (
-    <ProtectedRoute roles={["user", "organizer", "admin"]}>
     <Box>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3} flexWrap="wrap" gap={2}>
         <Typography variant="h4" component="h1">
@@ -590,7 +601,7 @@ export default function WalletPage() {
                             color={getTransactionColor(transaction.amount)}
                             fontWeight="medium"
                           >
-                            {transaction.amount >= 0 ? '+' : ''}{transaction.amount.toFixed(2)}
+                            GH₵{transaction.amount >= 0 ? '+' : ''}{transaction.amount.toFixed(2)}
                           </Typography>
                         </TableCell>
                         <TableCell>
@@ -667,6 +678,5 @@ export default function WalletPage() {
         </Card>
       )}
     </Box>
-    </ProtectedRoute>
   );
 }

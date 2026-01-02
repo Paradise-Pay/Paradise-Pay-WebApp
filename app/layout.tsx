@@ -6,8 +6,8 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { CssBaseline } from '@mui/material';
 import { Provider } from "@/components/ui/provider";
-import Header from "@/components/layouts/header";
-import Footer from "@/components/layout/Footer";
+import HeaderWrapper from './HeaderWrapper';
+import FooterWrapper from './FooterWrapper';
 
 // Load Google Fonts Inter with all necessary weights
 const inter = Inter({
@@ -34,9 +34,9 @@ export default function RootLayout({
           <Provider>
             <CssBaseline enableColorScheme={true} />
             <div className="min-h-screen flex flex-col">
-              <Header />
+              <HeaderWrapper />
               <main className="flex-grow">{children}</main>
-              <Footer />
+              <FooterWrapper />
             </div>
             <ToastContainer
               position="bottom-right"
