@@ -32,7 +32,7 @@ export default function FeatureTableSection() {
         <Box overflowX="auto">
           <Table.Root variant="outline" size="lg" interactive={false}>
             <Table.Header>
-              <Table.Row borderBottom="1px solid" borderColor="gray.700">
+              <Table.Row bg={"black"} borderBottom="1px solid" borderColor="gray.700">
                 <Table.ColumnHeader 
                   color="white" 
                   fontSize="2xl" 

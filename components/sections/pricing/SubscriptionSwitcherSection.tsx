@@ -49,7 +49,7 @@ export const AnimatedToggle = ({ isAnnual, onToggle }: ToggleProps) => {
         color={isAnnual ? '#2B78FA' : 'white'}
         transition="color 0.3s"
       >
-        <Text fontWeight="bold" fontSize="lg">Annual Pricing</Text>
+        <Text fontWeight="bold" fontSize="lg">Annual</Text>
         <Text fontSize="xs">Save 15%</Text>
       </Flex>
 
@@ -62,7 +62,7 @@ export const AnimatedToggle = ({ isAnnual, onToggle }: ToggleProps) => {
         color={!isAnnual ? '#2B78FA' : 'white'}
         transition="color 0.3s"
       >
-         <Text fontWeight="bold" fontSize="lg">Monthly Pricing</Text>
+         <Text fontWeight="bold" fontSize="lg">Monthly</Text>
       </Flex>
     </Flex>
   );

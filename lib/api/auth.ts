@@ -54,7 +54,9 @@ export const authService = {
   },
 
   async login(credentials: LoginData): Promise<LoginResponse> {
-    return apiClient.post<LoginResponse>('/auth/login', credentials);
+    const response = await apiClient.post<{ success: boolean; data: LoginResponse }>('/auth/login', credentials);
+    // Backend wraps response in { success, data }, so unwrap it
+    return response.data || response;
   },
 
   async logout(): Promise<void> {

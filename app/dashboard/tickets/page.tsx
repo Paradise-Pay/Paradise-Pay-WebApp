@@ -33,7 +33,7 @@ import {
   FilterList as FilterListIcon
 } from '@mui/icons-material';
 import { format } from 'date-fns';
-import { useAuth } from '@/context/AuthProvider';
+import { useAuth } from '@/context/AuthContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 
 interface Ticket {

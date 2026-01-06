@@ -102,7 +102,7 @@ export default function FeaturedEventBanner() {
                 as="h2"
                 className="heading-hero"
                 textAlign={"center"}
-                color="#6797FA"
+                color="black"
                 fontSize="3xl"
                 fontWeight="bold"
               >

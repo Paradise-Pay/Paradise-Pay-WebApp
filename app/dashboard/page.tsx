@@ -11,7 +11,7 @@ import {
   Alert,
   Grid
 } from '@mui/material';
-import { useAuth } from '@/context/AuthProvider';
+import { useAuth } from '@/context/AuthContext';
 import { 
   Event as EventIcon, 
   ConfirmationNumber as TicketIcon, 
@@ -20,6 +20,7 @@ import {
 import Link from 'next/link';
 import { getDashboardStats, getUserActivity } from '@/lib/api';
 import type { DashboardStats, Activity } from '@/types/dashboard';
+import ParadiseCardSwitcher from '@/components/sections/dashboard/ParadiseCard';
 
 // User type is imported from the auth context
 
@@ -132,50 +133,75 @@ export default function DashboardPage() {
   return (
     <Box>
       <Typography variant="h4" component="h1" gutterBottom>
-        Welcome back, {user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : user?.email?.split('@')[0] || 'User'}!
+        Welcome, {user?.name || user?.email?.split("@")[0] || "User"}!
       </Typography>
       <Typography color="text.secondary" paragraph>
         Here&apos;s what&apos;s happening with your account today.
       </Typography>
 
-      <Box sx={{ mt: 2, mb: 4 }}>
-        <Grid container spacing={4}>
-          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-            <StatCard
-              title="Upcoming Events"
-              value={loading ? '...' : stats?.upcomingEvents?.toString() || '0'}
-              icon={EventIcon}
-              color="primary"
-              href="/dashboard/events"
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-            <StatCard
-              title="Active Tickets"
-              value={loading ? '...' : stats?.activeTickets?.toString() || '0'}
-              icon={TicketIcon}
-              color="secondary"
-              href="/dashboard/tickets"
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-            <StatCard
-              title="Wallet Balance"
-              value={loading ? '...' : `$${stats?.walletBalance?.toFixed(2) || '0.00'}`}
-              icon={WalletIcon}
-              color="success"
-              href="/dashboard/wallet"
-            />
+      <Grid container spacing={4} sx={{ mt: 2, mb: 4 }}>
+        {/* LEFT COLUMN: Paradise Card Switcher */}
+        <Grid
+          size={{ xs: 12, md: 7, lg: 8 }}
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center"
+          }}
+        >
+          <ParadiseCardSwitcher
+            cardHolderName={user?.name || user?.email?.split("@")[0] || "User"}
+            expiryDate="07/29"
+            qrData="https://paradisepay.com/u/eugene"
+          />
+        </Grid>
+
+        {/* RIGHT COLUMN: Stacked Stat Cards */}
+        <Grid size={{ xs: 12, md: 5, lg: 4 }}>
+          <Grid container spacing={2}>
+            {/* Stat Card 1 */}
+            <Grid size={{ xs: 12 }}>
+              <StatCard
+                title="Upcoming Events"
+                value={
+                  loading ? "..." : stats?.upcomingEvents?.toString() || "0"
+                }
+                icon={EventIcon}
+                color="primary"
+                href="/dashboard/events"
+              />
+            </Grid>
+
+            {/* Stat Card 2 */}
+            <Grid size={{ xs: 12 }}>
+              <StatCard
+                title="Active Tickets"
+                value={
+                  loading ? "..." : stats?.activeTickets?.toString() || "0"
+                }
+                icon={TicketIcon}
+                color="secondary"
+                href="/dashboard/tickets"
+              />
+            </Grid>
+
+            {/* Stat Card 3 */}
+            <Grid size={{ xs: 12 }}>
+              <StatCard
+                title="Wallet Balance"
+                value={
+                  loading
+                    ? "..."
+                    : `GH₵${stats?.walletBalance?.toFixed(2) || "0.00"}`
+                }
+                icon={WalletIcon}
+                color="success"
+                href="/dashboard/wallet"
+              />
+            </Grid>
           </Grid>
         </Grid>
-      </Box>
-
-      {/* Error Alert */}
-      {error && (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {error}
-        </Alert>
-      )}
+      </Grid>
 
       {/* Recent Activity Section */}
       <Card sx={{ mb: 4 }}>
@@ -185,14 +211,35 @@ export default function DashboardPage() {
           </Typography>
           {loading ? (
             <Box>
-              <Skeleton variant="rectangular" height={80} sx={{ mb: 2, borderRadius: 1 }} />
-              <Skeleton variant="rectangular" height={80} sx={{ mb: 2, borderRadius: 1 }} />
-              <Skeleton variant="rectangular" height={80} sx={{ borderRadius: 1 }} />
+              <Skeleton
+                variant="rectangular"
+                height={80}
+                sx={{ mb: 2, borderRadius: 1 }}
+              />
+              <Skeleton
+                variant="rectangular"
+                height={80}
+                sx={{ mb: 2, borderRadius: 1 }}
+              />
+              <Skeleton
+                variant="rectangular"
+                height={80}
+                sx={{ borderRadius: 1 }}
+              />
             </Box>
           ) : activities.length > 0 ? (
             <Box>
               {activities.map((activity) => (
-                <Box key={activity.id} sx={{ mb: 2, p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
+                <Box
+                  key={activity.id}
+                  sx={{
+                    mb: 2,
+                    p: 2,
+                    border: "1px solid",
+                    borderColor: "divider",
+                    borderRadius: 1,
+                  }}
+                >
                   <Box display="flex" alignItems="center" mb={1}>
                     <Typography variant="subtitle2" sx={{ flexGrow: 1 }}>
                       {activity.title}

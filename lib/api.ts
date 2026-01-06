@@ -1,3 +1,39 @@
+import type { Event } from "@/types/domain/event";
+
+/**
+ * Get featured events for homepage
+ */
+export const getFeaturedEvents = async () => {
+  return apiFetch<Event[]>("/events/featured", {
+    method: "GET",
+  });
+};
+
+/**
+ * Search events (optionally by query, category, etc)
+ */
+export const searchEvents = async (params: Record<string, any> = {}) => {
+  const query = new URLSearchParams(params).toString();
+  return apiFetch<Event[]>(`/events/search${query ? `?${query}` : ""}`, {
+    method: "GET",
+  });
+};
+
+/**
+ * Get all event categories
+ */
+export const getEventCategories = async () => {
+  return apiFetch<string[]>("/events/categories", {
+    method: "GET",
+  });
+};
+
+/**
+ * Get event by ID
+ */
+export const getEventById = async (eventId: string | number) => {
+  return apiFetch<Event>(`/events/${eventId}`);
+};
 import { ApiResponse } from "@/types/api";
 import { DashboardStats, UserProfile, ProfileUpdateRequest, Activity } from "@/types/dashboard";
 
@@ -57,17 +93,23 @@ export const login = async (email: string, password: string) => {
   });
 
   if (!res.ok) throw new Error("Login failed");
-  const data = await res.json();
+  const response = await res.json();
+
+  // Handle backend response structure: { success, data: { user, accessToken, refreshToken } }
+  const data = response.data || response;
+  const user = data.user;
+
+  if (!user) throw new Error("No user data in response");
 
   // Transform user object to match AuthUser type
-  const transformedUser = data.user ? {
-    id: data.user.user_id || data.user.id,
-    email: data.user.email,
-    role: data.user.role,
-    firstName: data.user.name?.split(' ')[0] || data.user.firstName || '',
-    lastName: data.user.name?.split(' ').slice(1).join(' ') || data.user.lastName || '',
-    avatar: data.user.avatar
-  } : null;
+  const transformedUser = {
+    id: user.user_id || user.id,
+    email: user.email,
+    role: user.role,
+    firstName: user.name?.split(' ')[0] || user.firstName || '',
+    lastName: user.name?.split(' ').slice(1).join(' ') || user.lastName || '',
+    avatar: user.avatar
+  };
 
   // Store authentication data
   if (typeof window !== "undefined") {
@@ -77,8 +119,10 @@ export const login = async (email: string, password: string) => {
   }
 
   return {
-    ...data,
-    user: transformedUser
+    success: true,
+    user: transformedUser,
+    accessToken: data.accessToken,
+    refreshToken: data.refreshToken
   };
 };
 

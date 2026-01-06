@@ -7,7 +7,7 @@ import { Theme } from '@mui/material/styles';
 import { AppBar, Toolbar, Button, Box, Container, IconButton, Menu, MenuItem, Typography } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import AccountCircle from '@mui/icons-material/AccountCircle';
-import { useAuth } from '@/context/AuthProvider';
+import { useAuth } from '@/context/AuthContext';
 import Image from 'next/image';
 
 const Navbar = () => {

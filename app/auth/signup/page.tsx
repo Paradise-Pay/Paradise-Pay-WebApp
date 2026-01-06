@@ -17,7 +17,7 @@ import {
   Avatar,
 } from '@mui/material';
 import { Visibility, VisibilityOff, AccountBalanceWallet as AccountBalanceWalletIcon } from '@mui/icons-material';
-import { useAuth } from '@/context/AuthProvider';
+import { useAuth } from '@/context/AuthContext';
 import { authService } from '@/lib/api/auth';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -220,6 +220,23 @@ export default function SignupPage() {
               onChange={handleInputChange}
               error={!!errors.email}
               helperText={errors.email}
+              variant="outlined"
+              size="small"
+              sx={{ mb: 2 }}
+            />
+
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              id="phone"
+              label="Phone Number"
+              name="phone"
+              autoComplete="tel"
+              value={formData.phone}
+              onChange={handleInputChange}
+              error={!!errors.phone}
+              helperText={errors.phone}
               variant="outlined"
               size="small"
               sx={{ mb: 2 }}
