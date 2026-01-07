@@ -20,7 +20,7 @@ export const API_ENDPOINTS = {
       REMOVE: (eventId: string) => `/events/${eventId}/favorites`,
       LIST: '/events/favorites/list',
     },
-    ORGANIZER: '/events/organizer/events',
+    ORGANIZER: '/events/organizer',
     ANALYTICS: (eventId: string) => `/events/${eventId}/analytics`,
     CREATE: '/events',
     UPDATE: (eventId: string) => `/events/${eventId}`,

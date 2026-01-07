@@ -16,6 +16,7 @@ import {
 import { Search } from "lucide-react";
 //import { toast } from "react-toastify";
 import { searchEvents } from "@/lib/api";
+import { useRouter } from "next/navigation";
 
 // 1. Define the shape of data coming FROM the backend
 interface BackendEvent {
@@ -53,6 +54,8 @@ export default function DiscoverSection() {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState<string | null>(null);
+
+  const router = useRouter();
 
   const fetchEvents = async (params: Record<string, any> = {}) => {
     setLoading(true);
@@ -187,6 +190,7 @@ export default function DiscoverSection() {
               top="50%"
               transform="translateY(-50%)"
               bg="#FDCB35"
+              color="black"
               borderRadius="12px"
               onClick={handleSearch}
               _hover={{ bg: "#E6B834" }}
@@ -245,6 +249,7 @@ export default function DiscoverSection() {
                   <GridItem key={event.id}>
                     <Box
                       bg="#222222"
+                      cursor={"pointer"}
                       borderRadius="16px"
                       overflow="hidden"
                       shadow="xl"
@@ -252,6 +257,7 @@ export default function DiscoverSection() {
                       position="relative"
                       transition="all 0.3s"
                       _hover={{ transform: "translateY(-8px)", shadow: "2xl" }}
+                      onClick={() => router.push(`/events/${event.id}`)}
                     >
                       <Box
                         h="60%"
@@ -292,8 +298,9 @@ export default function DiscoverSection() {
                             fontSize="16px"
                             py={3}
                             _hover={{ bg: "#E6B834" }}
+                            onClick={() => router.push(`/events/${event.id}`)}
                           >
-                            Add To Cart
+                            View Event
                           </Button>
                         </VStack>
                       </Box>

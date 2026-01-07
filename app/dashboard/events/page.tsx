@@ -39,6 +39,7 @@ import {
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { useAuth } from '@/context/AuthContext';
+import { apiClient } from '@/lib/api/client';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 
 interface Event {
@@ -151,7 +152,7 @@ const EventCard = ({ event, isMobile }: { event: Event, isMobile: boolean }) => 
   };
 
   const handleView = () => {
-    router.push(`/events/${event.id}`);
+    router.push(`/dashboard/events/${event.id}`);
     handleClose();
   };
 
@@ -294,7 +295,7 @@ const EventCard = ({ event, isMobile }: { event: Event, isMobile: boolean }) => 
               variant="outlined" 
               size="small"
               startIcon={<VisibilityIcon />}
-              onClick={() => router.push(`/events/${event.id}`)}
+              onClick={() => router.push(`/dashboard/events/${event.id}`)}
             >
               View
             </Button>
@@ -321,27 +322,55 @@ export default function MyEventsPage() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
+  
+  const userRole = (user as any)?.role || "User";
+
+  const handleCreateEvent = () => {
+    if (userRole === 'Organizer' || userRole === 'Admin') {
+      window.location.href = '/dashboard/events/create';
+    } else {
+      alert('You do not have permission to create events. Please contact support.');
+    }
+  };
+
   useEffect(() => {
-    // Simulate API call to fetch events
-    const fetchEvents = async () => {
+    const fetchOrganizerEvents = async () => {
+      if (!user) return;
+
       try {
-        // In a real app, you would fetch this from your API
-        // const response = await fetch(`/api/organizers/${user?.id}/events`);
-        // const data = await response.json();
-        
-        // Mock data for demonstration
-        setTimeout(() => {
-          setEvents(mockEvents);
-          setLoading(false);
-        }, 1000);
+        setLoading(true);
+
+        const response = await apiClient.get<any>('/events/organizer');
+
+        const eventsList = Array.isArray(response) ? response : (response.data || []);
+
+        const mappedEvents: Event[] = eventsList.map((item: any) => ({
+            id: item.event_id || item.id,
+            title: item.title,
+            description: item.description || '',
+            startDate: item.event_date || item.startDate,
+            endDate: item.event_end_date || item.endDate || item.event_date,
+            location: item.venue_name || item.location || 'Online',
+            imageUrl: item.event_image_url || item.imageUrl || '/assets/images/placeholder.jpg',
+            status: (item.status || 'published').toLowerCase(),
+            capacity: item.max_attendees || item.capacity || 0,
+            ticketsSold: item.tickets_sold || 0,
+            price: parseFloat(item.ticket_price || item.price || 0),
+            category: item.category_id || 'General', 
+            organizer: item.organizer_id,
+            createdAt: item.created_at || new Date().toISOString()
+        }));
+
+        setEvents(mappedEvents);
       } catch (error) {
         console.error('Error fetching events:', error);
+      } finally {
         setLoading(false);
       }
     };
 
-    fetchEvents();
-  }, [user?.id]);
+    fetchOrganizerEvents();
+  }, [user]);
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
@@ -379,7 +408,7 @@ export default function MyEventsPage() {
           <Button 
             variant="contained" 
             startIcon={<AddIcon />}
-            onClick={() => window.location.href = '/dashboard/events/create'}
+            onClick={() => handleCreateEvent()}
           >
             Create Event
           </Button>

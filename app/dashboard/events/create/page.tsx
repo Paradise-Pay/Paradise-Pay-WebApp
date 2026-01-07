@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Container,
   Paper,
@@ -21,36 +21,49 @@ import {
   FormControlLabel,
   Alert,
   CircularProgress,
-} from '@mui/material';
-import { useForm, Controller } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
-import { toast } from 'react-toastify';
-import { Event } from '@/types/domain/event';
+} from "@mui/material";
+import { useForm, Controller } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
+import { toast } from "react-toastify";
+import { Event } from "@/types/domain/event";
 
 const eventSchema = yup.object({
-  title: yup.string().required('Event title is required').min(3),
-  description: yup.string().required('Description is required').min(20),
-  shortDescription: yup.string().required('Short description is required').min(10),
-  type: yup.string().required('Event type is required'),
-  startDate: yup.date().required('Start date is required'),
-  endDate: yup.date().required('End date is required'),
-  address: yup.string().required('Address is required'),
-  city: yup.string().required('City is required'),
-  state: yup.string().required('State is required'),
-  country: yup.string().required('Country is required'),
-  postalCode: yup.string().required('Postal code is required'),
-  capacity: yup.number().required('Capacity is required').positive(),
-  price: yup.number().required('Price is required').min(0),
+  title: yup.string().required("Event title is required").min(3),
+  venueName: yup.string().required("Venue name is required"),
+  imageUrl: yup.string().url("Must be a valid URL").required("Event image is required"),
+  description: yup.string().required("Description is required").min(20),
+  shortDescription: yup
+    .string()
+    .required("Short description is required")
+    .min(10),
+  type: yup.string().required("Event type is required"),
+  startDate: yup.date().required("Start date is required"),
+  endDate: yup.date().required("End date is required"),
+  address: yup.string().required("Address is required"),
+  city: yup.string().required("City is required"),
+  state: yup.string().required("State is required"),
+  country: yup.string().required("Country is required"),
+  postalCode: yup.string().required("Postal code is required"),
+  capacity: yup.number().required("Capacity is required").positive(),
+  price: yup.number().required("Price is required").min(0),
   isFree: yup.boolean().required(),
-  category: yup.string().required('Category is required'),
+  category: yup.string().required("Category is required"),
 });
 
 type EventFormData = yup.InferType<typeof eventSchema>;
 
-const STEPS = ['Basic Info', 'Location', 'Pricing', 'Review'];
-const EVENT_TYPES = ['concert', 'conference', 'workshop', 'meetup', 'other'];
-const CATEGORIES = ['Music', 'Technology', 'Business', 'Sports', 'Art', 'Food', 'Other'];
+const STEPS = ["Basic Info", "Location", "Pricing", "Review"];
+const EVENT_TYPES = ["concert", "conference", "workshop", "meetup", "other"];
+const CATEGORIES = [
+  "cat-1",
+  "Technology",
+  "Business",
+  "Sports",
+  "Art",
+  "Food",
+  "Other",
+];
 
 export default function CreateEventPage() {
   const router = useRouter();
@@ -70,7 +83,7 @@ export default function CreateEventPage() {
     },
   });
 
-  const isFree = watch('isFree');
+  const isFree = watch("isFree");
 
   const handleNext = () => {
     setActiveStep((prev) => prev + 1);
@@ -83,14 +96,14 @@ export default function CreateEventPage() {
   const onSubmit = async (data: EventFormData) => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('accessToken');
+      const token = localStorage.getItem("accessToken");
 
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/events`,
         {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
           body: JSON.stringify(data),
@@ -98,15 +111,15 @@ export default function CreateEventPage() {
       );
 
       if (!response.ok) {
-        throw new Error('Failed to create event');
+        throw new Error("Failed to create event");
       }
 
       const result = await response.json();
-      toast.success('Event created successfully!');
+      toast.success("Event created successfully!");
       router.push(`/dashboard/events/${result.data.id}`);
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : 'Failed to create event'
+        error instanceof Error ? error.message : "Failed to create event"
       );
     } finally {
       setLoading(false);
@@ -177,9 +190,26 @@ export default function CreateEventPage() {
                 )}
               />
 
+              <Controller
+                name="imageUrl"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label="Cover Image URL"
+                    placeholder="https://example.com/image.jpg"
+                    fullWidth
+                    error={!!errors.imageUrl}
+                    helperText={
+                      errors.imageUrl?.message ||
+                      "Paste a link to your event poster"
+                    }
+                  />
+                )}
+              />
+
               <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
-                  <Controller
+                <Controller
                     name="type"
                     control={control}
                     render={({ field }) => (
@@ -199,10 +229,8 @@ export default function CreateEventPage() {
                       </TextField>
                     )}
                   />
-                </Grid>
 
-                <Grid item xs={12} sm={6}>
-                  <Controller
+                <Controller
                     name="category"
                     control={control}
                     render={({ field }) => (
@@ -222,7 +250,6 @@ export default function CreateEventPage() {
                       </TextField>
                     )}
                   />
-                </Grid>
               </Grid>
 
               <Grid container spacing={2}>
@@ -267,6 +294,20 @@ export default function CreateEventPage() {
 
           {activeStep === 1 && (
             <Stack spacing={3}>
+              <Controller
+                name="venueName"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label="Venue Name (e.g. National Theatre)"
+                    fullWidth
+                    error={!!errors.venueName}
+                    helperText={errors.venueName?.message}
+                  />
+                )}
+              />
+
               <Controller
                 name="address"
                 control={control}
@@ -373,12 +414,7 @@ export default function CreateEventPage() {
                 control={control}
                 render={({ field }) => (
                   <FormControlLabel
-                    control={
-                      <Switch
-                        {...field}
-                        checked={field.value}
-                      />
-                    }
+                    control={<Switch {...field} checked={field.value} />}
                     label="Free Event"
                   />
                 )}
@@ -394,7 +430,7 @@ export default function CreateEventPage() {
                       type="number"
                       label="Price"
                       fullWidth
-                      inputProps={{ step: '0.01' }}
+                      inputProps={{ step: "0.01" }}
                       error={!!errors.price}
                       helperText={errors.price?.message}
                     />
@@ -410,16 +446,14 @@ export default function CreateEventPage() {
                 Please review your event details before creating.
               </Alert>
               <Typography variant="body2" color="textSecondary">
-                Once created, you can edit event details but some information may require approval.
+                Once created, you can edit event details but some information
+                may require approval.
               </Typography>
             </Stack>
           )}
 
-          <Box sx={{ display: 'flex', gap: 2, mt: 4 }}>
-            <Button
-              disabled={activeStep === 0 || loading}
-              onClick={handleBack}
-            >
+          <Box sx={{ display: "flex", gap: 2, mt: 4 }}>
+            <Button disabled={activeStep === 0 || loading} onClick={handleBack}>
               Back
             </Button>
 
@@ -429,16 +463,16 @@ export default function CreateEventPage() {
                 color="primary"
                 type="submit"
                 disabled={loading}
-                sx={{ ml: 'auto' }}
+                sx={{ ml: "auto" }}
               >
-                {loading ? <CircularProgress size={24} /> : 'Create Event'}
+                {loading ? <CircularProgress size={24} /> : "Create Event"}
               </Button>
             ) : (
               <Button
                 variant="contained"
                 color="primary"
                 onClick={handleNext}
-                sx={{ ml: 'auto' }}
+                sx={{ ml: "auto" }}
               >
                 Next
               </Button>
