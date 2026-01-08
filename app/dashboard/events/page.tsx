@@ -39,8 +39,11 @@ import {
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { useAuth } from '@/context/AuthContext';
-import { apiClient } from '@/lib/api/client';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { toast } from 'react-toastify';
+
+import { getOrganizerEvents, deleteEvent } from '@/lib/api';
+import type { OrganizerEventResponse } from '@/types/domain/event';
 
 interface Event {
   id: string;
@@ -59,74 +62,8 @@ interface Event {
   createdAt: string;
 }
 
-const mockEvents: Event[] = [
-  {
-    id: 'e1',
-    title: 'Summer Music Festival 2023',
-    description: 'The biggest music festival of the year featuring top artists from around the world.',
-    startDate: '2023-07-15T19:00:00',
-    endDate: '2023-07-17T23:00:00',
-    location: 'Central Park, New York',
-    imageUrl: '/assets/images/event-1.jpg',
-    status: 'published',
-    capacity: 10000,
-    ticketsSold: 7500,
-    price: 99.99,
-    category: 'Music',
-    organizer: 'Paradise Events',
-    createdAt: '2023-01-15T10:00:00'
-  },
-  {
-    id: 'e2',
-    title: 'Tech Conference 2023',
-    description: 'Annual technology conference with industry leaders and workshops.',
-    startDate: '2023-06-30T09:00:00',
-    endDate: '2023-07-02T18:00:00',
-    location: 'Convention Center, San Francisco',
-    imageUrl: '/assets/images/event-2.jpg',
-    status: 'published',
-    capacity: 5000,
-    ticketsSold: 4200,
-    price: 499.99,
-    category: 'Technology',
-    organizer: 'Tech Summit Inc.',
-    createdAt: '2022-11-20T14:30:00'
-  },
-  {
-    id: 'e3',
-    title: 'Art Exhibition: Modern Masters',
-    description: 'Exhibition featuring works by contemporary artists.',
-    startDate: '2023-05-10T10:00:00',
-    endDate: '2023-06-10T18:00:00',
-    location: 'Modern Art Museum, NYC',
-    imageUrl: '/assets/images/event-1.jpg',
-    status: 'completed',
-    capacity: 2000,
-    ticketsSold: 1850,
-    price: 25.00,
-    category: 'Art',
-    organizer: 'Art Collective',
-    createdAt: '2023-03-01T09:15:00'
-  },
-  {
-    id: 'e4',
-    title: 'Food & Wine Tasting',
-    description: 'An evening of fine dining and wine pairing with expert sommeliers.',
-    startDate: '2023-08-20T18:30:00',
-    endDate: '2023-08-20T22:00:00',
-    location: 'Grand Hotel, Chicago',
-    imageUrl: '/assets/images/event-2.jpg',
-    status: 'draft',
-    capacity: 200,
-    ticketsSold: 0,
-    price: 150.00,
-    category: 'Food & Drink',
-    organizer: 'Gourmet Experiences',
-    createdAt: '2023-04-10T16:45:00'
-  }
-];
-
-const EventCard = ({ event, isMobile }: { event: Event, isMobile: boolean }) => {
+// Pass refresh function to card to handle deletion updates
+const EventCard = ({ event, isMobile, onRefresh }: { event: Event, isMobile: boolean, onRefresh: () => void }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const router = useRouter();
   const open = Boolean(anchorEl);
@@ -145,9 +82,17 @@ const EventCard = ({ event, isMobile }: { event: Event, isMobile: boolean }) => 
     handleClose();
   };
 
-  const handleDelete = () => {
-    // Implement delete functionality
-    console.log('Delete event:', event.id);
+  // ✅ UPDATE: Implement Delete
+  const handleDelete = async () => {
+    if(confirm("Are you sure you want to delete this event? This cannot be undone.")) {
+      try {
+        await deleteEvent(event.id);
+        toast.success("Event deleted successfully");
+        onRefresh(); // Refresh the list
+      } catch (error) {
+        toast.error("Failed to delete event");
+      }
+    }
     handleClose();
   };
 
@@ -163,7 +108,7 @@ const EventCard = ({ event, isMobile }: { event: Event, isMobile: boolean }) => 
     completed: 'info'
   } as const;
 
-  const progress = Math.min(Math.round((event.ticketsSold / event.capacity) * 100), 100);
+  const progress = event.capacity > 0 ? Math.min(Math.round((event.ticketsSold / event.capacity) * 100), 100) : 0;
 
   return (
     <Card sx={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', mb: 3 }}>
@@ -204,7 +149,10 @@ const EventCard = ({ event, isMobile }: { event: Event, isMobile: boolean }) => 
                   <Box display="flex" alignItems="center" mb={1}>
                     <CalendarIcon color="action" fontSize="small" sx={{ mr: 1 }} />
                     <Typography variant="body2" color="text.secondary">
-                      {format(new Date(event.startDate), 'MMM d, yyyy')} • {format(new Date(event.startDate), 'h:mm a')}
+                      {/* Safety check for dates */}
+                      {event.startDate && !isNaN(new Date(event.startDate).getTime()) 
+                        ? `${format(new Date(event.startDate), 'MMM d, yyyy')} • ${format(new Date(event.startDate), 'h:mm a')}`
+                        : 'Date not set'}
                     </Typography>
                   </Box>
                   <Box display="flex" alignItems="center" mb={1}>
@@ -247,32 +195,20 @@ const EventCard = ({ event, isMobile }: { event: Event, isMobile: boolean }) => 
             anchorEl={anchorEl}
             open={open}
             onClose={handleClose}
-            anchorOrigin={{
-              vertical: 'bottom',
-              horizontal: 'right',
-            }}
-            transformOrigin={{
-              vertical: 'top',
-              horizontal: 'right',
-            }}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            transformOrigin={{ vertical: 'top', horizontal: 'right' }}
           >
             <MenuItem onClick={handleView}>
-              <ListItemIcon>
-                <VisibilityIcon fontSize="small" />
-              </ListItemIcon>
+              <ListItemIcon><VisibilityIcon fontSize="small" /></ListItemIcon>
               <ListItemText>View Event</ListItemText>
             </MenuItem>
             <MenuItem onClick={handleEdit}>
-              <ListItemIcon>
-                <EditIcon fontSize="small" />
-              </ListItemIcon>
+              <ListItemIcon><EditIcon fontSize="small" /></ListItemIcon>
               <ListItemText>Edit</ListItemText>
             </MenuItem>
             <Divider />
             <MenuItem onClick={handleDelete} sx={{ color: theme.palette.error.main }}>
-              <ListItemIcon sx={{ color: 'inherit' }}>
-                <DeleteIcon fontSize="small" />
-              </ListItemIcon>
+              <ListItemIcon sx={{ color: 'inherit' }}><DeleteIcon fontSize="small" /></ListItemIcon>
               <ListItemText>Delete</ListItemText>
             </MenuItem>
           </Menu>
@@ -287,7 +223,7 @@ const EventCard = ({ event, isMobile }: { event: Event, isMobile: boolean }) => 
         }}>
           <Box>
             <Typography variant="caption" color="text.secondary">
-              Created: {format(new Date(event.createdAt), 'MMM d, yyyy')}
+              Created: {event.createdAt ? format(new Date(event.createdAt), 'MMM d, yyyy') : 'N/A'}
             </Typography>
           </Box>
           <Stack direction="row" spacing={1}>
@@ -321,7 +257,6 @@ export default function MyEventsPage() {
   const { user } = useAuth();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-
   
   const userRole = (user as any)?.role || "User";
 
@@ -329,46 +264,47 @@ export default function MyEventsPage() {
     if (userRole === 'Organizer' || userRole === 'Admin') {
       window.location.href = '/dashboard/events/create';
     } else {
-      alert('You do not have permission to create events. Please contact support.');
+      alert('You do not have permission to create events.');
+    }
+  };
+
+  const fetchOrganizerEvents = async () => {
+    if (!user) return;
+
+    try {
+      setLoading(true);
+
+      const response = await getOrganizerEvents();
+
+      const eventsList = Array.isArray(response) ? response : (response as any).data || [];
+
+      const mappedEvents: Event[] = eventsList.map((item: OrganizerEventResponse) => ({
+          id: item.event_id,
+          title: item.title,
+          description: item.description || '',
+          startDate: item.event_date,
+          endDate: item.event_end_date,
+          location: item.venue_name || 'Online',
+          imageUrl: item.event_image_url || '/assets/images/placeholder.jpg',
+          status: (item.status || 'published').toLowerCase() as any,
+          capacity: item.max_attendees || 0,
+          ticketsSold: item.tickets_sold || 0,
+          price: parseFloat(String(item.ticket_price || 0)),
+          category: item.category_id || 'General', 
+          organizer: item.organizer_id || '',
+          createdAt: item.created_at || new Date().toISOString()
+      }));
+
+      setEvents(mappedEvents);
+    } catch (error) {
+      console.error('Error fetching events:', error);
+      toast.error("Failed to load events");
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    const fetchOrganizerEvents = async () => {
-      if (!user) return;
-
-      try {
-        setLoading(true);
-
-        const response = await apiClient.get<any>('/events/organizer');
-
-        const eventsList = Array.isArray(response) ? response : (response.data || []);
-
-        const mappedEvents: Event[] = eventsList.map((item: any) => ({
-            id: item.event_id || item.id,
-            title: item.title,
-            description: item.description || '',
-            startDate: item.event_date || item.startDate,
-            endDate: item.event_end_date || item.endDate || item.event_date,
-            location: item.venue_name || item.location || 'Online',
-            imageUrl: item.event_image_url || item.imageUrl || '/assets/images/placeholder.jpg',
-            status: (item.status || 'published').toLowerCase(),
-            capacity: item.max_attendees || item.capacity || 0,
-            ticketsSold: item.tickets_sold || 0,
-            price: parseFloat(item.ticket_price || item.price || 0),
-            category: item.category_id || 'General', 
-            organizer: item.organizer_id,
-            createdAt: item.created_at || new Date().toISOString()
-        }));
-
-        setEvents(mappedEvents);
-      } catch (error) {
-        console.error('Error fetching events:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchOrganizerEvents();
   }, [user]);
 
@@ -449,7 +385,12 @@ export default function MyEventsPage() {
       ) : filteredEvents.length > 0 ? (
         <Box>
           {filteredEvents.map((event) => (
-            <EventCard key={event.id} event={event} isMobile={isMobile} />
+            <EventCard 
+              key={event.id} 
+              event={event} 
+              isMobile={isMobile} 
+              onRefresh={fetchOrganizerEvents} // Pass refresh handler
+            />
           ))}
         </Box>
       ) : (

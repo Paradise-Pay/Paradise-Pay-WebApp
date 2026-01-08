@@ -1,39 +1,5 @@
-import type { Event } from "@/types/domain/event";
-
-/**
- * Get featured events for homepage
- */
-export const getFeaturedEvents = async () => {
-  return apiFetch<Event[]>("/events/featured", {
-    method: "GET",
-  });
-};
-
-/**
- * Search events (optionally by query, category, etc)
- */
-export const searchEvents = async (params: Record<string, any> = {}) => {
-  const query = new URLSearchParams(params).toString();
-  return apiFetch<Event[]>(`/events/search${query ? `?${query}` : ""}`, {
-    method: "GET",
-  });
-};
-
-/**
- * Get all event categories
- */
-export const getEventCategories = async () => {
-  return apiFetch<string[]>("/events/categories", {
-    method: "GET",
-  });
-};
-
-/**
- * Get event by ID
- */
-export const getEventById = async (eventId: string | number) => {
-  return apiFetch<Event>(`/events/${eventId}`);
-};
+import type { Event, OrganizerEventResponse, EventCategoryResponse, EventDetailResponse } from "@/types/domain/event";
+import type { TicketTypePayload, TicketTypeResponse, PurchasePayload, UserTicketResponse } from "@/types/domain/ticket";
 import { ApiResponse } from "@/types/api";
 import { DashboardStats, UserProfile, ProfileUpdateRequest, Activity } from "@/types/dashboard";
 
@@ -220,6 +186,87 @@ export const resetPasswordRequest = async (email: string) => {
   return data;
 };
 
+
+/**
+ * Get featured events for homepage
+ */
+export const getFeaturedEvents = async () => {
+  return apiFetch<Event[]>("/events/featured", {
+    method: "GET",
+  });
+};
+
+/**
+ * Create a new event
+ * Endpoint: POST /events
+ */
+export const createEvent = async (eventData: any) => {
+  return apiFetch('/events', {
+    method: 'POST',
+    body: eventData,
+  });
+};
+
+/**
+ * Search events (optionally by query, category, etc)
+ */
+export const searchEvents = async (params: Record<string, any> = {}) => {
+  const query = new URLSearchParams(params).toString();
+  return apiFetch<Event[]>(`/events/search${query ? `?${query}` : ""}`, {
+    method: "GET",
+  });
+};
+
+/**
+ * Get all event categories
+ * Endpoint: GET /events/categories
+ */
+export const getEventCategories = async () => {
+  return apiFetch<EventCategoryResponse[]>("/events/categories", {
+    method: "GET",
+  });
+};
+
+/**
+ * Get single event details by ID
+ * Endpoint: GET /events/{id}
+ */
+export const getEventById = async (eventId: string) => {
+  return apiFetch<EventDetailResponse>(`/events/${eventId}`, {
+    method: "GET",
+  });
+};
+
+/**
+ * Update an existing event
+ */
+export const updateEvent = async (eventId: string, eventData: any) => {
+  return apiFetch<any>(`/events/${eventId}`, {
+    method: "PUT",
+    body: eventData,
+  });
+};
+
+/**
+ * Fetch events created by the logged-in organizer
+ * Endpoint: GET /events/organizer
+ */
+export const getOrganizerEvents = async () => {
+  return apiFetch<OrganizerEventResponse[]>('/events/organizer', {
+    method: 'GET',
+  });
+};
+
+/**
+ * Delete an event
+ * Endpoint: DELETE /events/{id}
+ */
+export const deleteEvent = async (eventId: string) => {
+  return apiFetch(`/events/${eventId}`, {
+    method: 'DELETE',
+  });
+};
+
 /**
  * Dashboard stats: Get user's dashboard statistics
  */
@@ -275,3 +322,46 @@ export const getUserActivity = async (limit: number = 10) => {
 export function setToken(accessToken: any) {
   throw new Error("Function not implemented.");
 }
+
+/**
+ * TICKETS: Get ticket types for a specific event
+ */
+
+// Create a new ticket type for an event
+export const createTicketType = async (eventId: string, data: TicketTypePayload) => {
+  return apiFetch(`/events/${eventId}/ticket-types`, {
+    method: "POST",
+    body: data,
+  });
+};
+
+/**
+ * Fetch ticket types for a specific event
+ * Endpoint: GET /events/{event_id}/ticket-types
+ */
+export const getTicketTypes = async (eventId: string) => {
+  return apiFetch<TicketTypeResponse[]>(`/events/${eventId}/ticket-types`, {
+    method: "GET",
+  });
+};
+
+/**
+ * Purchase tickets
+ * Endpoint: POST /bookings 
+ */
+export const purchaseTickets = async (data: PurchasePayload) => {
+  return apiFetch(`/tickets/purchase`, { 
+    method: "POST",
+    body: data,
+  });
+};
+
+/**
+ * Fetch the current user's tickets
+ * Endpoint: GET /api/v1/tickets/user
+ */
+export const getUserTickets = async () => {
+  return apiFetch<UserTicketResponse[]>('/tickets/user', {
+    method: 'GET',
+  });
+};
