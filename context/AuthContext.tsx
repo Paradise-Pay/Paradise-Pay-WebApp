@@ -8,10 +8,10 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  role: string;
   emailVerified?: boolean;
   phone?: string;
   avatar?: string;
-  // Add other user properties as needed
 }
 
 interface AuthContextType {
@@ -40,37 +40,49 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const router = useRouter();
 
   useEffect(() => {
-    // Check if user is logged in
-    const checkAuth = async () => {
+    const initAuth = async () => {
       try {
-        // Replace with your actual token validation endpoint
-        const token = localStorage.getItem('authToken');
-        if (token) {
-          // Validate token and fetch user data
-          // const userData = await authService.getUser();
-          // setUser(userData);
+        const token = localStorage.getItem('accessToken'); 
+        const storedUser = localStorage.getItem('user');   
+        
+        if (token && storedUser) {
+          // Restore user from local storage immediately to prevent flicker
+          setUser(JSON.parse(storedUser));
+        } else if (token) {
+           // const profile = await authService.getUserProfile();
+           // setUser(profile);
         }
       } catch (error) {
-        console.error('Auth check failed:', error);
-        localStorage.removeItem('authToken');
+        console.error('Auth restoration failed:', error);
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('user');
       } finally {
         setLoading(false);
       }
     };
 
-    checkAuth();
+    initAuth();
   }, []);
 
   const login = async (email: string, password: string) => {
     try {
       const data = await authService.login({ email, password });
+      
+      // Store tokens
       localStorage.setItem('accessToken', data.accessToken);
       localStorage.setItem('refreshToken', data.refreshToken);
-      setUser({
-        id: data.user.user_id,
+      
+      const userObj: User = {
+        id: data.user.user_id, 
         name: data.user.name,
         email: data.user.email,
-      });
+        role: data.user.role || 'User', // Default to 'User' if missing
+      };
+
+      localStorage.setItem('user', JSON.stringify(userObj)); // Persist user data
+      setUser(userObj);
+      
       router.push('/dashboard');
     } catch (error) {
       console.error('Login failed:', error);
@@ -87,7 +99,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }) => {
     try {
       await authService.signup(userData);
-      // After signup, user needs to login
       router.push('/auth/login');
     } catch (error) {
       console.error('Signup failed:', error);
@@ -101,7 +112,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
-      localStorage.removeItem('authToken');
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('user');
       setUser(null);
       router.push('/auth/login');
     }
@@ -138,9 +151,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateProfile = async (userData: Partial<User>) => {
     try {
-      // In a real app, you would call your API to update the user profile
-      // const updatedUser = await authService.updateProfile(userData);
-      setUser(prev => (prev ? { ...prev, ...userData } : null));
+      setUser(prev => {
+        if (!prev) return null;
+        const updated = { ...prev, ...userData };
+        // Update local storage so the change persists on refresh
+        localStorage.setItem('user', JSON.stringify(updated));
+        return updated;
+      });
       return Promise.resolve();
     } catch (error) {
       console.error('Profile update failed:', error);

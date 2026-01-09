@@ -1,15 +1,31 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
-import { Box, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography, AppBar, IconButton, Avatar, Menu, MenuItem, Divider } from '@mui/material';
-import { ThemeToggle } from '@/components/ThemeToggle';
-import { Theme } from '@mui/material/styles';
-import Tooltip from '@mui/material/Tooltip';
-import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import { useAuth } from '@/context/AuthProvider';
-import Image from 'next/image';
-import Link from 'next/link';
+import { useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import {
+  Box,
+  Drawer,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Toolbar,
+  Typography,
+  AppBar,
+  IconButton,
+  Avatar,
+  Menu,
+  MenuItem,
+  Divider,
+} from "@mui/material";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { Theme } from "@mui/material/styles";
+import Tooltip from "@mui/material/Tooltip";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import { useAuth } from "@/context/AuthContext";
+import Image from "next/image";
+import Link from "next/link";
 import {
   Home as HomeIcon,
   ConfirmationNumber as TicketIcon,
@@ -24,104 +40,114 @@ import {
   AddBusiness as MarketIcon,
   BarChart as ReportsIcon,
   SupportAgent as SupportIcon,
-  AdminPanelSettings as AdminIcon
-} from '@mui/icons-material';
+  AdminPanelSettings as AdminIcon,
+  Person as PersonIcon,
+  ShoppingCart as ShoppingCartIcon,
+  Assignment as AssignmentIcon,
+} from "@mui/icons-material";
 
 export const ROLES = {
-  SUPER_ADMIN: 'Super Admin',
-  EVENT_MANAGER: 'Event Manager',
-  FINANCE_ADMIN: 'Finance/Admin',
-  SUPPORT_AGENT: 'Support Agent',
-  CUSTOMER: 'Customer',
+  ADMIN: "Admin",
+  ORGANIZER: "Organizer",
+  USER: "User",
 };
 
 const menuItems = [
-  { 
-    text: 'Admin', 
-    icon: <AdminIcon />, 
-    path: '/dashboard/admin-dash',
-    allowedRoles: [ROLES.SUPER_ADMIN] 
+  {
+    text: "Admin Panel",
+    icon: <AdminIcon />,
+    path: "/dashboard/admin-dash",
+    allowedRoles: [ROLES.ADMIN],
   },
-  { 
-    text: 'Dashboard', 
-    icon: <HomeIcon />, 
-    path: '/dashboard',
-    allowedRoles: [ROLES.SUPER_ADMIN, ROLES.EVENT_MANAGER, ROLES.FINANCE_ADMIN, ROLES.SUPPORT_AGENT, ROLES.CUSTOMER] 
+  {
+    text: "Dashboard",
+    icon: <HomeIcon />,
+    path: "/dashboard",
+    allowedRoles: [ROLES.ADMIN, ROLES.ORGANIZER, ROLES.USER],
   },
-  { 
-    text: 'Finances', 
-    icon: <MoneyIcon />, 
-    path: '/dashboard/finances',
-    allowedRoles: [ROLES.SUPER_ADMIN, ROLES.FINANCE_ADMIN] 
+  {
+    text: "Finances",
+    icon: <MoneyIcon />,
+    path: "/dashboard/finances",
+    allowedRoles: [ROLES.ADMIN],
   },
-  { 
-    text: 'Manage Events', 
-    icon: <EventIcon />, 
-    path: '/dashboard/manage-events',
-    allowedRoles: [ROLES.SUPER_ADMIN] 
+  {
+    text: "Manage Events",
+    icon: <EventIcon />,
+    path: "/dashboard/manage-events",
+    allowedRoles: [ROLES.ADMIN],
   },
-  { 
-    text: 'Manage Users', 
-    icon: <UserIcon />, 
-    path: '/dashboard/manage-users',
-    allowedRoles: [ROLES.SUPER_ADMIN] 
+  {
+    text: "Manage Tickets & Bundles",
+    icon: <TicketIcon />,
+    path: "/dashboard/manage-tickets-bundles",
+    allowedRoles: [ROLES.ADMIN],
   },
-  { 
-    text: 'Marketing', 
-    icon: <MarketIcon />, 
-    path: '/dashboard/marketing',
-    allowedRoles: [ROLES.SUPER_ADMIN] 
+  {
+    text: "Manage Users",
+    icon: <UserIcon />,
+    path: "/dashboard/manage-users",
+    allowedRoles: [ROLES.ADMIN],
   },
-  { 
-    text: 'My Events', 
-    icon: <EventIcon />, 
-    path: '/dashboard/events',
-    allowedRoles: [ROLES.SUPER_ADMIN, ROLES.EVENT_MANAGER] 
+  {
+    text: "Marketing",
+    icon: <MarketIcon />,
+    path: "/dashboard/marketing",
+    allowedRoles: [ROLES.ADMIN],
   },
-  { 
-    text: 'My Tickets', 
-    icon: <TicketIcon />, 
-    path: '/dashboard/tickets',
-    allowedRoles: [ROLES.SUPER_ADMIN, ROLES.EVENT_MANAGER, ROLES.FINANCE_ADMIN, ROLES.SUPPORT_AGENT, ROLES.CUSTOMER] 
+  {
+    text: "My Events",
+    icon: <EventIcon />,
+    path: "/dashboard/events",
+    allowedRoles: [ROLES.ADMIN, ROLES.ORGANIZER],
   },
-  { 
-    text: 'Reports', 
-    icon: <ReportsIcon />, 
-    path: '/dashboard/reports',
-    allowedRoles: [ROLES.SUPER_ADMIN, ROLES.FINANCE_ADMIN] 
+  {
+    text: "My Tickets",
+    icon: <TicketIcon />,
+    path: "/dashboard/tickets",
+    allowedRoles: [ROLES.ADMIN, ROLES.ORGANIZER, ROLES.USER],
   },
-  { 
-    text: 'Settings', 
-    icon: <SettingsIcon />, 
-    path: '/dashboard/settings',
-     allowedRoles: [ROLES.SUPER_ADMIN, ROLES.EVENT_MANAGER, ROLES.FINANCE_ADMIN, ROLES.SUPPORT_AGENT, ROLES.CUSTOMER]
+  {
+    text: "Orders",
+    icon: <ShoppingCartIcon />,
+    path: "/dashboard/orders",
+    allowedRoles: [ROLES.ADMIN, ROLES.ORGANIZER],
   },
-  { 
-    text: 'Support', 
-    icon: <SupportIcon />, 
-    path: '/dashboard/support',
-    allowedRoles: [ROLES.SUPER_ADMIN, ROLES.SUPPORT_AGENT] 
+  {
+    text: "Reports",
+    icon: <ReportsIcon />,
+    path: "/dashboard/reports",
+    allowedRoles: [ROLES.ADMIN],
   },
-  { 
-    text: 'Ticket & Bundle Control', 
-    icon: <TicketIcon />, 
-    path: '/dashboard/manage-tickets-bundles',
-    allowedRoles: [ROLES.SUPER_ADMIN] 
+  {
+    text: "Settings",
+    icon: <SettingsIcon />,
+    path: "/dashboard/settings",
+    allowedRoles: [ROLES.ADMIN, ROLES.ORGANIZER, ROLES.USER],
   },
-  { 
-    text: 'Wallet', 
-    icon: <WalletIcon />, 
-    path: '/dashboard/wallet',
-    allowedRoles: [ROLES.SUPER_ADMIN, ROLES.EVENT_MANAGER, ROLES.FINANCE_ADMIN, ROLES.SUPPORT_AGENT, ROLES.CUSTOMER] 
+  {
+    text: "Support",
+    icon: <SupportIcon />,
+    path: "/dashboard/support",
+    allowedRoles: [ROLES.ADMIN],
+  },
+  {
+    text: "Test API",
+    icon: <AssignmentIcon />,
+    path: "/dashboard/test-api",
+    allowedRoles: [ROLES.ADMIN],
+  },
+  {
+    text: "Wallet",
+    icon: <WalletIcon />,
+    path: "/dashboard/wallet",
+    allowedRoles: [ROLES.ADMIN, ROLES.ORGANIZER, ROLES.USER],
   },
 ];
 
 export const getMenuByRole = (userRole: string) => {
-  return menuItems.filter(item => item.allowedRoles.includes(userRole));
+  return menuItems.filter((item) => item.allowedRoles.includes(userRole));
 };
-
-const currentUserRole = ROLES.SUPER_ADMIN; 
-const visibleMenuItems = getMenuByRole(currentUserRole);
 
 export default function DashboardLayout({
   children,
@@ -134,6 +160,10 @@ export default function DashboardLayout({
   const router = useRouter();
   const pathname = usePathname();
 
+  // Get menu items based on user's role from auth context
+  const userRole = (user as any)?.role || ROLES.ORGANIZER;
+  const visibleMenuItems = getMenuByRole(userRole);
+
   const DRAWER_WIDTH = 240;
   const COLLAPSED_DRAWER_WIDTH = 65;
 
@@ -143,7 +173,9 @@ export default function DashboardLayout({
     setIsCollapsed(!isCollapsed);
   };
 
-  const currentDrawerWidth = isCollapsed ? COLLAPSED_DRAWER_WIDTH : DRAWER_WIDTH;
+  const currentDrawerWidth = isCollapsed
+    ? COLLAPSED_DRAWER_WIDTH
+    : DRAWER_WIDTH;
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -160,9 +192,9 @@ export default function DashboardLayout({
   const handleLogout = async () => {
     try {
       await logout();
-      router.push('/auth/login');
+      router.push("/auth/login");
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error("Logout error:", error);
     }
   };
 
@@ -178,7 +210,7 @@ export default function DashboardLayout({
       >
         {/* Hide Logo when collapsed to prevent overflow */}
         {!isCollapsed && (
-          <Box 
+          <Box
             as="button"
             cursor={"pointer"}
             sx={{ display: "flex", alignItems: "center" }}
@@ -283,7 +315,7 @@ export default function DashboardLayout({
               aria-haspopup="true"
             >
               <Avatar sx={{ width: 32, height: 32 }}>
-                {user?.firstName?.[0]?.toUpperCase() || "U"}
+                {user?.name?.[0]?.toUpperCase() || "U"}
               </Avatar>
             </IconButton>
           </Box>
@@ -394,7 +426,7 @@ export default function DashboardLayout({
         transformOrigin={{ horizontal: "right", vertical: "top" }}
         anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
       >
-        <MenuItem onClick={() => router.push("/dashboard/profile")}>
+        <MenuItem onClick={() => router.push("/dashboard/settings")}>
           <Avatar /> Profile
         </MenuItem>
         <Divider />

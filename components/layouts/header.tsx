@@ -25,7 +25,8 @@ import {
 import { Search, Menu, Sun, Moon } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from 'next/navigation';
-import { Dashboard } from "@mui/icons-material";
+//import { Dashboard } from "@mui/icons-material";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Header() {
   const router = useRouter();
@@ -35,6 +36,9 @@ export default function Header() {
   const [isMounted, setIsMounted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  
+  // Get authenticated user from context
+  const { user } = useAuth();
   
   // Handle hydration and responsive behavior
   useEffect(() => {
@@ -46,9 +50,6 @@ export default function Header() {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
-  
-  const user = true;
-  const isLoading = false;
 
   const links = [
     { name: "Discover Events", path: "/discover" },
@@ -140,28 +141,21 @@ export default function Header() {
             {isMounted && !isMobile && (
               <>
                 {/* Sign up/Login Button */}
-                {isLoading ? (
-                  // 1. Loading State
-                  <Skeleton height="40px" width="140px" borderRadius="24px" />
-                ) : (
-                  // 2. Button State (User or Guest)
-                  // Note: I updated the Link href to be dynamic too!
-                  <Link href={user ? "/dashboard" : "/auth/login"}>
-                    <Button
-                      bg="#FDCB35"
-                      color="black"
-                      px={6}
-                      py={2}
-                      borderRadius="24px"
-                      fontWeight={600}
-                      fontSize="14px"
-                      _hover={{ bg: "#E6B834" }}
-                      size="sm"
-                    >
-                      {user ? "Dashboard" : "Sign up/Login"}
-                    </Button>
-                  </Link>
-                )}
+                <Link href={user ? "/dashboard" : "/auth/login"}>
+                  <Button
+                    bg="#FDCB35"
+                    color="black"
+                    px={6}
+                    py={2}
+                    borderRadius="24px"
+                    fontWeight={600}
+                    fontSize="14px"
+                    _hover={{ bg: "#E6B834" }}
+                    size="sm"
+                  >
+                    {user ? "Dashboard" : "Sign up/Login"}
+                  </Button>
+                </Link>
 
                 {/* Theme Switcher */}
                 <IconButton

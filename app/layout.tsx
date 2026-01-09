@@ -1,7 +1,7 @@
 
 import { Inter } from 'next/font/google';
 import "./globals.css";
-import { AuthProvider } from "@/context/AuthProvider";
+import { AuthProvider } from "@/context/AuthContext";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { CssBaseline } from '@mui/material';
@@ -30,8 +30,8 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.ico" sizes="any" />
       </head>
       <body className="font-sans">
-        <AuthProvider>
-          <Provider>
+        <Provider>
+          <AuthProvider>
             <CssBaseline enableColorScheme={true} />
             <div className="min-h-screen flex flex-col">
               <HeaderWrapper />
@@ -47,8 +47,8 @@ export default function RootLayout({
               theme="colored"
               autoClose={5000}
             />
-          </Provider>
-        </AuthProvider>
+          </AuthProvider>
+        </Provider>
       </body>
     </html>
   );

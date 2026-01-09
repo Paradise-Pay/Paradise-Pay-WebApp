@@ -13,7 +13,7 @@ import type {
   ProfileUpdateRequest,
   UserSecurity 
 } from '@/types/dashboard';
-import { useAuth } from '@/context/AuthProvider';
+import { useAuth } from '@/context/AuthContext';
 import { getUserProfile, updateUserProfile, uploadUserAvatar } from '@/lib/api';
 
 
@@ -289,9 +289,9 @@ export default function ProfileSettingsPage() {
           ...defaultUser,
           id: user.id,
           email: user.email || '',
-          firstName: user.firstName || '',
-          lastName: user.lastName || '',
-          fullName: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+          firstName: (user as any).firstName || '',
+          lastName: (user as any).lastName || '',
+          fullName: `${(user as any).firstName || ''} ${(user as any).lastName || ''}`.trim(),
           phone: '+1 (555) 123-4567',
           avatar: user.avatar || '/avatars/default-avatar.png',
           bio: 'Event organizer and music lover. Creating memorable experiences one event at a time!',
@@ -506,7 +506,14 @@ export default function ProfileSettingsPage() {
         
         // Update the profile in the auth context
         if (updateProfile) {
-          await updateProfile(updatedProfile);
+          await updateProfile({
+            id: String(updatedProfile.id),
+            name: `${updatedProfile.firstName} ${updatedProfile.lastName}`.trim(),
+            email: updatedProfile.email,
+            phone: updatedProfile.phone,
+            avatar: updatedProfile.avatar,
+            emailVerified: updatedProfile.emailVerified,
+          });
         }
       } else {
         throw new Error(response.message || 'Failed to update profile');

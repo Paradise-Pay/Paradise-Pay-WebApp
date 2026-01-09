@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { useAuth } from "@/context/AuthProvider";
+import { useAuth } from "@/context/AuthContext";
 import {
   Button,
   TextField,
@@ -72,7 +72,7 @@ export default function LoginClient() {
       router.push(redirect);
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : "Login failed",
+        "Login failed, User not found",
         { position: "top-center" }
       );
     } finally {

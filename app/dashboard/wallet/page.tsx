@@ -51,7 +51,7 @@ import {
   PhoneAndroid as PhoneIcon,
   History as HistoryIcon
 } from '@mui/icons-material';
-import { useAuth } from '@/context/AuthProvider';
+import { useAuth } from '@/context/AuthContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 
 interface Transaction {

@@ -10,10 +10,10 @@ import {
   CalendarMonth as CalendarIcon, LocationOn as LocationIcon, Person as PersonIcon,
   AttachMoney as AttachMoneyIcon, Share as ShareIcon, Label as TagIcon 
 } from '@mui/icons-material';
+import PurchaseTicketDialog from '@/components/sections/dialogs/PurchaseTicketDialog';
 import { formatDistanceToNow, format } from 'date-fns';
 import { getTicketTypes, getEventById } from '@/lib/api';
 import type { TicketTypeResponse } from '@/types/domain/ticket';
-import { toast } from 'react-toastify';
 
 interface UiEvent {
   id: string;
@@ -42,6 +42,7 @@ export default function EventDetailPage() {
   const router = useRouter();
   const eventId = Array.isArray(params.id) ? params.id[0] : params.id;
 
+  const [purchaseOpen, setPurchaseOpen] = useState(false);
   const [event, setEvent] = useState<UiEvent | null>(null);
   const [ticketTypes, setTicketTypes] = useState<TicketTypeResponse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -53,19 +54,15 @@ export default function EventDetailPage() {
       try {
         setLoading(true);
 
-        // 1. Fetch Event Details
+        // 1. Fetch Event using API
+        // ✅ FIX: No more direct fetch
         const response = await getEventById(eventId);
-        
-        // Handle wrapper if present (apiFetch might unwrap automatically, but being safe)
         const data = (response as any).data || response;
 
         // Parse Tags
         let tags: string[] = [];
-        if (Array.isArray(data.tags)) {
-          tags = data.tags;
-        } else if (typeof data.tags === 'string') {
-          tags = data.tags.split(',').map((t: string) => t.trim()).filter(Boolean);
-        }
+        if (Array.isArray(data.tags)) tags = data.tags;
+        else if (typeof data.tags === 'string') tags = data.tags.split(',').map((t: string) => t.trim()).filter(Boolean);
 
         const mappedEvent: UiEvent = {
           id: data.event_id || data.id,
@@ -90,7 +87,7 @@ export default function EventDetailPage() {
         };
         setEvent(mappedEvent);
 
-        // 2. Fetch Ticket Types
+        // 2. Fetch Tickets
         try {
           const ticketsRes = await getTicketTypes(eventId);
           const ticketsData = Array.isArray(ticketsRes) ? ticketsRes : (ticketsRes as any).data || [];
@@ -157,11 +154,9 @@ export default function EventDetailPage() {
                 <Chip key={index} label={tag} size="small" icon={<TagIcon style={{ fontSize: 14 }} />} sx={{ bgcolor: 'action.hover' }} />
               ))}
             </Stack>
-
             <Typography variant="h3" component="h1" sx={{ fontWeight: 700, mb: 1 }}>{event.title}</Typography>
             {event.shortDescription && <Typography variant="h6" color="text.secondary" sx={{ fontWeight: 400 }}>{event.shortDescription}</Typography>}
           </Box>
-
           <Paper elevation={0} sx={{ p: 0, mb: 4, bgcolor: "transparent" }}>
             <Typography variant="h5" sx={{ mb: 2, fontWeight: 600 }}>About this event</Typography>
             <Typography variant="body1" sx={{ lineHeight: 1.8, whiteSpace: "pre-wrap" }}>{event.description}</Typography>
@@ -172,7 +167,7 @@ export default function EventDetailPage() {
           <Card sx={{ position: "sticky", top: 24, borderRadius: 2, boxShadow: 4 }}>
             <CardContent sx={{ p: 3 }}>
               <Stack spacing={2.5}>
-                {/* Info Stack */}
+                {/* Date & Location (Same as before) */}
                 <Box sx={{ display: "flex", gap: 2 }}>
                   <CalendarIcon color="primary" />
                   <Box>
@@ -199,7 +194,7 @@ export default function EventDetailPage() {
 
                 <Divider />
 
-                {/* Ticket Variants */}
+                {/* Ticket Variants List */}
                 <Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                     <AttachMoneyIcon color="primary" />
@@ -231,7 +226,7 @@ export default function EventDetailPage() {
                   <Button
                     variant="contained" color="primary" fullWidth size="large"
                     disabled={!isUpcoming || event.availableTickets <= 0}
-                    onClick={() => toast.error("Ticket purchasing not implemented in dashboard view")}
+                    onClick={() => setPurchaseOpen(true)}
                     sx={{ py: 1.5, fontWeight: "bold" }}
                   >
                     {event.availableTickets <= 0 ? "Sold Out" : "Get Tickets"}
@@ -245,6 +240,8 @@ export default function EventDetailPage() {
           </Card>
         </Grid>
       </Grid>
+
+      {event && <PurchaseTicketDialog open={purchaseOpen} onClose={() => setPurchaseOpen(false)} eventId={event.id} eventTitle={event.title} />}
     </Container>
   );
 }

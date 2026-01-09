@@ -19,7 +19,13 @@ import {
   ListItemText,
   useTheme,
   useMediaQuery,
-  Grid
+  Grid,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  Divider,
+  Stack,
+  Alert
 } from '@mui/material';
 import {
   ConfirmationNumber as TicketIcon, 
@@ -30,14 +36,19 @@ import {
   CalendarToday as CalendarIcon,
   LocationOn as LocationIcon,
   QrCode as QrCodeIcon,
-  FilterList as FilterListIcon
+  FilterList as FilterListIcon,
+  Close as CloseIcon
 } from '@mui/icons-material';
 import { format } from 'date-fns';
-import { useAuth } from '@/context/AuthProvider';
-import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { useAuth } from '@/context/AuthContext';
+import { getUserTickets } from '@/lib/api';
+import type { UserTicketResponse } from '@/types/domain/ticket';
+import { toast } from 'react-toastify';
 
+// UI Interface (Keep this as is)
 interface Ticket {
   id: string;
+  ticketNumber: string;
   eventId: string;
   eventName: string;
   eventDate: string;
@@ -50,205 +61,75 @@ interface Ticket {
   imageUrl: string;
 }
 
-const mockTickets: Ticket[] = [
-  {
-    id: '1',
-    eventId: 'e1',
-    eventName: 'Summer Music Festival 2023',
-    eventDate: '2023-07-15T19:00:00',
-    eventLocation: 'Central Park, New York',
-    ticketType: 'General Admission',
-    price: 99.99,
-    purchaseDate: '2023-06-10T14:30:00',
-    status: 'upcoming',
-    qrCode: 'QR_CODE_DATA_1',
-    imageUrl: '/assets/images/event-1.jpg'
-  },
-  {
-    id: '2',
-    eventId: 'e2',
-    eventName: 'Tech Conference 2023',
-    eventDate: '2023-06-30T09:00:00',
-    eventLocation: 'Convention Center, San Francisco',
-    ticketType: 'VIP Pass',
-    price: 499.99,
-    purchaseDate: '2023-05-15T10:15:00',
-    status: 'upcoming',
-    qrCode: 'QR_CODE_DATA_2',
-    imageUrl: '/assets/images/event-2.jpg'
-  },
-  {
-    id: '3',
-    eventId: 'e3',
-    eventName: 'Jazz Night',
-    eventDate: '2023-05-10T20:00:00',
-    eventLocation: 'Blue Note Jazz Club, NYC',
-    ticketType: 'Standard',
-    price: 45.00,
-    purchaseDate: '2023-04-20T16:45:00',
-    status: 'past',
-    qrCode: 'QR_CODE_DATA_3',
-    imageUrl: '/assets/images/event-2.jpg'
-  },
-];
+// ... [Keep TicketDetailsDialog Component exactly the same] ...
+const TicketDetailsDialog = ({ open, onClose, ticket }: { open: boolean; onClose: () => void; ticket: Ticket | null; }) => {
+  if (!ticket) return null;
+  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${ticket.ticketNumber}`;
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
+      <Box sx={{ position: 'relative', overflow: 'hidden' }}>
+        <Box component="img" src={ticket.imageUrl} alt={ticket.eventName} sx={{ width: '100%', height: 140, objectFit: 'cover' }} />
+        <IconButton onClick={onClose} sx={{ position: 'absolute', top: 8, right: 8, bgcolor: 'rgba(0,0,0,0.5)', color: 'white', '&:hover': { bgcolor: 'rgba(0,0,0,0.7)' } }}><CloseIcon /></IconButton>
+      </Box>
+      <DialogTitle sx={{ textAlign: 'center', pb: 0 }}>{ticket.eventName}</DialogTitle>
+      <DialogContent>
+        <Box display="flex" flexDirection="column" alignItems="center" my={2}>
+          <Typography variant="caption" color="text.secondary" gutterBottom>SCAN FOR ENTRY</Typography>
+          <Box component="img" src={qrCodeUrl} alt="Ticket QR" sx={{ border: '1px solid #ddd', p: 1, borderRadius: 2, width: 200, height: 200 }} />
+          <Typography variant="h6" sx={{ mt: 2, letterSpacing: 2, fontWeight: 'bold' }}>{ticket.ticketNumber}</Typography>
+          <Chip label={ticket.ticketType} color="primary" variant="outlined" size="small" sx={{ mt: 1 }} />
+        </Box>
+        <Divider sx={{ my: 2, borderStyle: 'dashed' }} />
+        <Stack spacing={2}>
+          <Box display="flex" alignItems="start"><CalendarIcon fontSize="small" color="action" sx={{ mr: 2, mt: 0.5 }} /><Box><Typography variant="body2" color="text.secondary">Date & Time</Typography><Typography variant="body1" fontWeight="medium">{format(new Date(ticket.eventDate), 'EEE, MMM d, yyyy • h:mm a')}</Typography></Box></Box>
+          <Box display="flex" alignItems="start"><LocationIcon fontSize="small" color="action" sx={{ mr: 2, mt: 0.5 }} /><Box><Typography variant="body2" color="text.secondary">Location</Typography><Typography variant="body1" fontWeight="medium">{ticket.eventLocation}</Typography></Box></Box>
+          <Box display="flex" alignItems="start"><TicketIcon fontSize="small" color="action" sx={{ mr: 2, mt: 0.5 }} /><Box><Typography variant="body2" color="text.secondary">Price</Typography><Typography variant="body1" fontWeight="medium">GH₵{ticket.price.toFixed(2)}</Typography></Box></Box>
+        </Stack>
+        <Box mt={3}><Button variant="contained" fullWidth onClick={onClose}>Close Ticket</Button></Box>
+      </DialogContent>
+    </Dialog>
+  );
+};
 
-const TicketCard = ({ ticket }: { ticket: Ticket }) => {
+// ... [Keep TicketCard Component exactly the same] ...
+const TicketCard = ({ ticket, onViewClick }: { ticket: Ticket; onViewClick: (t: Ticket) => void }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const open = Boolean(anchorEl);
-
-  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
-
-  const handleDownload = () => {
-    // Implement download functionality
-    console.log('Download ticket:', ticket.id);
-    handleClose();
-  };
-
-  const handleShare = () => {
-    // Implement share functionality
-    console.log('Share ticket:', ticket.id);
-    handleClose();
-  };
-
-  const handleViewQr = () => {
-    // Implement view QR code functionality
-    console.log('View QR code for ticket:', ticket.id);
-    handleClose();
-  };
-
-  const statusColor = {
-    upcoming: 'primary',
-    past: 'default',
-    cancelled: 'error'
-  } as const;
+  const handleClick = (event: React.MouseEvent<HTMLElement>) => setAnchorEl(event.currentTarget);
+  const handleClose = () => setAnchorEl(null);
+  const statusColor = { upcoming: 'primary', past: 'default', cancelled: 'error' } as const;
 
   return (
     <Card sx={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', mb: 3 }}>
-      <CardMedia
-        component="img"
-        sx={{ 
-          width: isMobile ? '100%' : 200, 
-          height: isMobile ? 160 : 'auto',
-          objectFit: 'cover' 
-        }}
-        image={ticket.imageUrl}
-        alt={ticket.eventName}
-      />
+      <CardMedia component="img" sx={{ width: isMobile ? '100%' : 200, height: isMobile ? 160 : 'auto', objectFit: 'cover' }} image={ticket.imageUrl} alt={ticket.eventName} />
       <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
         <CardContent sx={{ flex: '1 0 auto', position: 'relative' }}>
           <Box display="flex" justifyContent="space-between" alignItems="flex-start">
             <Box>
-              <Typography component="div" variant="h6">
-                {ticket.eventName}
-              </Typography>
-              <Chip 
-                label={ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1)} 
-                size="small" 
-                color={statusColor[ticket.status]}
-                sx={{ mt: 0.5, mb: 1 }}
-              />
+              <Typography component="div" variant="h6">{ticket.eventName}</Typography>
+              <Chip label={ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1)} size="small" color={statusColor[ticket.status] || 'default'} sx={{ mt: 0.5, mb: 1 }} />
             </Box>
-            <IconButton
-              aria-label="more"
-              aria-controls="ticket-menu"
-              aria-haspopup="true"
-              onClick={handleClick}
-            >
-              <MoreVertIcon />
-            </IconButton>
+            <IconButton onClick={handleClick}><MoreVertIcon /></IconButton>
           </Box>
-          
-          <Menu
-            id="ticket-menu"
-            anchorEl={anchorEl}
-            open={open}
-            onClose={handleClose}
-            anchorOrigin={{
-              vertical: 'bottom',
-              horizontal: 'right',
-            }}
-            transformOrigin={{
-              vertical: 'top',
-              horizontal: 'right',
-            }}
-          >
-            <MenuItem onClick={handleDownload}>
-              <ListItemIcon>
-                <DownloadIcon fontSize="small" />
-              </ListItemIcon>
-              <ListItemText>Download Ticket</ListItemText>
-            </MenuItem>
-            <MenuItem onClick={handleShare}>
-              <ListItemIcon>
-                <ShareIcon fontSize="small" />
-              </ListItemIcon>
-              <ListItemText>Share</ListItemText>
-            </MenuItem>
-            <MenuItem onClick={handleViewQr}>
-              <ListItemIcon>
-                <QrCodeIcon fontSize="small" />
-              </ListItemIcon>
-              <ListItemText>View QR Code</ListItemText>
-            </MenuItem>
+          <Menu anchorEl={anchorEl} open={open} onClose={handleClose} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }} transformOrigin={{ vertical: 'top', horizontal: 'right' }}>
+            <MenuItem onClick={handleClose}><ListItemIcon><DownloadIcon fontSize="small" /></ListItemIcon><ListItemText>Download Ticket</ListItemText></MenuItem>
           </Menu>
-
           <Grid container spacing={2} sx={{ mt: 0 }}>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <Box display="flex" alignItems="center" mb={1}>
-                <CalendarIcon color="action" fontSize="small" sx={{ mr: 1 }} />
-                <Typography variant="body2" color="text.secondary">
-                  {format(new Date(ticket.eventDate), 'EEEE, MMMM d, yyyy • h:mm a')}
-                </Typography>
-              </Box>
-              <Box display="flex" alignItems="center" mb={1}>
-                <LocationIcon color="action" fontSize="small" sx={{ mr: 1 }} />
-                <Typography variant="body2" color="text.secondary">
-                  {ticket.eventLocation}
-                </Typography>
-              </Box>
+            <Grid item xs={12} sm={6}>
+              <Box display="flex" alignItems="center" mb={1}><CalendarIcon color="action" fontSize="small" sx={{ mr: 1 }} /><Typography variant="body2" color="text.secondary">{format(new Date(ticket.eventDate), 'EEE, MMM d, yyyy • h:mm a')}</Typography></Box>
+              <Box display="flex" alignItems="center" mb={1}><LocationIcon color="action" fontSize="small" sx={{ mr: 1 }} /><Typography variant="body2" color="text.secondary" noWrap>{ticket.eventLocation}</Typography></Box>
             </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                <strong>Ticket Type:</strong> {ticket.ticketType}
-              </Typography>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                <strong>Order #:</strong> {ticket.id.toUpperCase()}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                <strong>Purchased:</strong> {format(new Date(ticket.purchaseDate), 'MMM d, yyyy')}
-              </Typography>
+            <Grid item xs={12} sm={6}>
+              <Typography variant="body2" color="text.secondary" gutterBottom><strong>Ticket Type:</strong> {ticket.ticketType}</Typography>
+              <Typography variant="body2" color="text.secondary"><strong>Number:</strong> {ticket.ticketNumber}</Typography>
             </Grid>
           </Grid>
         </CardContent>
         <Box sx={{ display: 'flex', p: 2, pt: 0, justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="h6" color="primary">
-            GH₵{ticket.price.toFixed(2)}
-          </Typography>
-          <Box>
-            <Button 
-              variant="outlined" 
-              size="small" 
-              startIcon={<EventIcon />}
-              sx={{ mr: 1 }}
-            >
-              Event Details
-            </Button>
-            <Button 
-              variant="contained" 
-              size="small"
-              startIcon={<QrCodeIcon />}
-            >
-              View Ticket
-            </Button>
-          </Box>
+          <Typography variant="h6" color="primary">GH₵{ticket.price.toFixed(2)}</Typography>
+          <Box><Button variant="contained" size="small" startIcon={<QrCodeIcon />} onClick={() => onViewClick(ticket)}>View Ticket</Button></Box>
         </Box>
       </Box>
     </Card>
@@ -258,33 +139,68 @@ const TicketCard = ({ ticket }: { ticket: Ticket }) => {
 export default function MyTicketsPage() {
   const [tabValue, setTabValue] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [tickets, setTickets] = useState<Ticket[]>([]); 
   const { user } = useAuth();
+  
+  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
-    // Simulate API call to fetch tickets
     const fetchTickets = async () => {
       try {
-        // In a real app, you would fetch this from your API
-        // const response = await fetch(`/api/users/${user?.id}/tickets`);
-        // const data = await response.json();
+        setLoading(true);
         
-        // Mock data for demonstration
-        setTimeout(() => {
-          setTickets(mockTickets);
-          setLoading(false);
-        }, 1000);
+        const response = await getUserTickets();
+        
+        // Handle if response is wrapped or raw array
+        const apiTickets = Array.isArray(response) ? response : (response as any).data || [];
+        
+        const mappedTickets: Ticket[] = apiTickets.map((t: UserTicketResponse) => {
+          let status: 'upcoming' | 'past' | 'cancelled' = 'upcoming';
+          
+          if (t.status === 'cancelled' || t.status === 'refunded') {
+             status = 'cancelled';
+          } else if (t.event_date && new Date(t.event_date) < new Date()) {
+             status = 'past';
+          }
+
+          return {
+            id: t.ticket_id, // Map ticket_id
+            ticketNumber: t.ticket_number,
+            eventId: t.event_id,
+            eventName: t.event_title, // Map event_title
+            eventDate: t.event_date || new Date().toISOString(),
+            eventLocation: t.venue_name || t.city || 'Online', // Map venue_name
+            ticketType: t.ticket_type_name, // Map ticket_type_name
+            price: Number(t.ticket_price), // Map ticket_price
+            purchaseDate: t.created_at, // Use created_at as purchase date
+            status: status,
+            qrCode: t.ticket_number,
+            imageUrl: t.event_image_url || '/assets/images/event-placeholder.jpg'
+          };
+        });
+
+        setTickets(mappedTickets);
       } catch (error) {
         console.error('Error fetching tickets:', error);
+        toast.error('Failed to load tickets'); 
+      } finally {
         setLoading(false);
       }
     };
 
-    fetchTickets();
-  }, [user?.id]);
+    if (user) {
+      fetchTickets();
+    }
+  }, [user]);
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
+  };
+
+  const handleViewTicket = (ticket: Ticket) => {
+    setSelectedTicket(ticket);
+    setDialogOpen(true);
   };
 
   const filteredTickets = tickets.filter(ticket => {
@@ -299,15 +215,8 @@ export default function MyTicketsPage() {
   return (
     <Box>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h4" component="h1">
-          My Tickets
-        </Typography>
-        <Button 
-          variant="outlined" 
-          startIcon={<FilterListIcon />}
-        >
-          Filter
-        </Button>
+        <Typography variant="h4" component="h1">My Tickets</Typography>
+        <Button variant="outlined" startIcon={<FilterListIcon />}>Filter</Button>
       </Box>
 
       <Tabs 
@@ -318,26 +227,23 @@ export default function MyTicketsPage() {
         allowScrollButtonsMobile
         sx={{ mb: 3 }}
       >
-        {tabLabels.map((label, index) => (
-          <Tab 
-            key={index} 
-            label={`${label} ${index === 0 ? `(${tickets.filter(t => t.status === 'upcoming').length})` : 
-                              index === 1 ? `(${tickets.filter(t => t.status === 'past').length})` : 
-                              `(${tickets.filter(t => t.status === 'cancelled').length})`}`} 
-          />
-        ))}
+        {tabLabels.map((label, index) => {
+             const count = index === 0 ? tickets.filter(t => t.status === 'upcoming').length : 
+                           index === 1 ? tickets.filter(t => t.status === 'past').length : 
+                           tickets.filter(t => t.status === 'cancelled').length;
+             return <Tab key={index} label={`${label} (${count})`} />;
+        })}
       </Tabs>
 
       {loading ? (
         <Box>
-          {[1, 2, 3].map((item) => (
+          {[1, 2].map((item) => (
             <Card key={item} sx={{ display: 'flex', mb: 3 }}>
-              <Skeleton variant="rectangular" width={200} height={200} />
+              <Skeleton variant="rectangular" width={200} height={160} />
               <Box sx={{ p: 2, flex: 1 }}>
                 <Skeleton width="60%" height={40} />
                 <Skeleton width="40%" />
                 <Skeleton width="80%" />
-                <Skeleton width="70%" />
               </Box>
             </Card>
           ))}
@@ -345,7 +251,11 @@ export default function MyTicketsPage() {
       ) : filteredTickets.length > 0 ? (
         <Box>
           {filteredTickets.map((ticket) => (
-            <TicketCard key={ticket.id} ticket={ticket} />
+            <TicketCard 
+                key={ticket.id} 
+                ticket={ticket} 
+                onViewClick={handleViewTicket} 
+            />
           ))}
         </Box>
       ) : (
@@ -354,27 +264,19 @@ export default function MyTicketsPage() {
           <Typography variant="h6" color="text.secondary" gutterBottom>
             No {tabLabels[tabValue].toLowerCase()} tickets found
           </Typography>
-          <Typography variant="body1" color="text.secondary" paragraph>
-            {tabValue === 0 
-              ? 'Upcoming events you purchase tickets for will appear here.'
-              : tabValue === 1
-              ? 'Past events you\'ve attended will appear here.'
-              : 'Cancelled tickets will appear here.'
-            }
-          </Typography>
           {tabValue === 0 && (
-            <Button 
-              variant="contained" 
-              color="primary" 
-              component="a" 
-              href="/events"
-              sx={{ mt: 2 }}
-            >
+            <Button variant="contained" color="primary" href="/events" sx={{ mt: 2 }}>
               Browse Events
             </Button>
           )}
         </Box>
       )}
+
+      <TicketDetailsDialog 
+        open={dialogOpen} 
+        onClose={() => setDialogOpen(false)} 
+        ticket={selectedTicket} 
+      />
     </Box>
   );
 }
