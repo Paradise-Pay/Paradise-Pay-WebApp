@@ -311,7 +311,7 @@ export default function PurchaseTicketDialog({
           {activeStep === 0 ? "Cancel" : "Back"}
         </Button>
         <Button variant="contained" onClick={handleNext} disabled={loading || ticketTypes.length === 0} size="large">
-          {loading ? <CircularProgress size={24} color="inherit" /> : activeStep === STEPS.length - 1 ? "Complete Purchase" : "Next"}
+          {loading ? <CircularProgress size={24} color="inherit" /> : activeStep === STEPS.length - 1 ? "Add to Card" : "Next"}
         </Button>
       </DialogActions>
     </Dialog>

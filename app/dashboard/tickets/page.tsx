@@ -35,7 +35,6 @@ import {
   Share as ShareIcon,
   CalendarToday as CalendarIcon,
   LocationOn as LocationIcon,
-  QrCode as QrCodeIcon,
   FilterList as FilterListIcon,
   Close as CloseIcon
 } from '@mui/icons-material';
@@ -64,7 +63,6 @@ interface Ticket {
 // ... [Keep TicketDetailsDialog Component exactly the same] ...
 const TicketDetailsDialog = ({ open, onClose, ticket }: { open: boolean; onClose: () => void; ticket: Ticket | null; }) => {
   if (!ticket) return null;
-  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${ticket.ticketNumber}`;
   return (
     <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
       <Box sx={{ position: 'relative', overflow: 'hidden' }}>
@@ -74,9 +72,6 @@ const TicketDetailsDialog = ({ open, onClose, ticket }: { open: boolean; onClose
       <DialogTitle sx={{ textAlign: 'center', pb: 0 }}>{ticket.eventName}</DialogTitle>
       <DialogContent>
         <Box display="flex" flexDirection="column" alignItems="center" my={2}>
-          <Typography variant="caption" color="text.secondary" gutterBottom>SCAN FOR ENTRY</Typography>
-          <Box component="img" src={qrCodeUrl} alt="Ticket QR" sx={{ border: '1px solid #ddd', p: 1, borderRadius: 2, width: 200, height: 200 }} />
-          <Typography variant="h6" sx={{ mt: 2, letterSpacing: 2, fontWeight: 'bold' }}>{ticket.ticketNumber}</Typography>
           <Chip label={ticket.ticketType} color="primary" variant="outlined" size="small" sx={{ mt: 1 }} />
         </Box>
         <Divider sx={{ my: 2, borderStyle: 'dashed' }} />
@@ -129,7 +124,7 @@ const TicketCard = ({ ticket, onViewClick }: { ticket: Ticket; onViewClick: (t: 
         </CardContent>
         <Box sx={{ display: 'flex', p: 2, pt: 0, justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant="h6" color="primary">GH₵{ticket.price.toFixed(2)}</Typography>
-          <Box><Button variant="contained" size="small" startIcon={<QrCodeIcon />} onClick={() => onViewClick(ticket)}>View Ticket</Button></Box>
+          <Box><Button variant="contained" size="small" onClick={() => onViewClick(ticket)}>View Ticket</Button></Box>
         </Box>
       </Box>
     </Card>
