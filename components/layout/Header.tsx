@@ -19,13 +19,11 @@ import {
   HStack,
   Image,
   IconButton,
-  VStack,
-  Skeleton,
+  VStack
 } from "@chakra-ui/react";
 import { Search, Menu, Sun, Moon } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from 'next/navigation';
-//import { Dashboard } from "@mui/icons-material";
 import { useAuth } from "@/context/AuthContext";
 
 export default function Header() {
@@ -133,6 +131,7 @@ export default function Header() {
               size={{ base: "md", md: "sm" }}
               color="#1A1A1A"
               _hover={{ bg: "gray.100" }}
+              onClick={() => router.push("/discover")}
             >
               <Search size={isMobile ? 22 : 20} />
             </IconButton>
@@ -218,6 +217,7 @@ export default function Header() {
                 onClick={() => {
                   setActiveLink(link.name);
                   setIsMobileMenuOpen(!isMobileMenuOpen);
+                  router.push(link.path);
                 }}
               >
                 {link.name}

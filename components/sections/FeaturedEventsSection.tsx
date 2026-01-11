@@ -13,6 +13,7 @@ import {
 } from "@chakra-ui/react";
 import { MapPin, Calendar, Ticket } from "lucide-react";
 import { getFeaturedEvents } from "@/lib/api";
+import { useRouter } from "next/navigation";
 
 // Define the shape of the data COMING from the backend
 interface BackendEvent {
@@ -40,6 +41,7 @@ export default function FeaturedEventsSection() {
   const [events, setEvents] = useState<FrontendEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     let mounted = true;
@@ -122,6 +124,7 @@ export default function FeaturedEventsSection() {
                     <Box
                       bg="#222222"
                       borderRadius="16px"
+                      cursor={"pointer"}
                       overflow="hidden"
                       shadow="md"
                       h="360px"
@@ -129,6 +132,7 @@ export default function FeaturedEventsSection() {
                       w="full"
                       transition="transform 0.2s"
                       _hover={{ transform: "translateY(-5px)" }}
+                      onClick={() => router.push(`/events/${event.id}`)}
                     >
                       {/* Main Image Area */}
                       <Box 

@@ -141,7 +141,7 @@ const menuItems = [
     text: "Wallet",
     icon: <WalletIcon />,
     path: "/dashboard/wallet",
-    allowedRoles: [ROLES.ADMIN, ROLES.ORGANIZER, ROLES.USER],
+    allowedRoles: [ROLES.ADMIN],
   },
 ];
 

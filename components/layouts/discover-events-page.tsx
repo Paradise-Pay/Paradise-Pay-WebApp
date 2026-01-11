@@ -1,7 +1,7 @@
 "use client";
 
 import FeaturedEventBanner from "@/components/sections/discover-events/FeaturedEventBanner";
-import SearchEventsSection from "@/components/sections/discover-events/SearchEventsSection";
+import DiscoverSection from "@/components/sections/DiscoverSection";
 import DisountedTicketsSection from "@/components/sections/discover-events/DiscountedTicketsSection";
 import PopularEventsSection from "@/components/sections/discover-events/PopularEventsSection";
 import ConcertsSection from "@/components/sections/discover-events/ConcertsSection";
@@ -14,7 +14,7 @@ export default function DiscoverEventsPage() {
   return (
       <Box w="full" bg="white">
         <FeaturedEventBanner />
-        <SearchEventsSection />
+        <DiscoverSection />
         <DisountedTicketsSection />
         <PopularEventsSection />
         <ConcertsSection />

@@ -18,8 +18,11 @@ import {
   Flex,
   Image,
 } from "@chakra-ui/react";
+import { useRouter } from "next/navigation";
 
 export default function FutureTicketingSection() {
+  const router = useRouter();
+
   return (
     <Box bg="#FFC138" py={{ base: 12, md: 16, lg: 24 }} position="relative">
       {/* Top Blue Border */}
@@ -73,6 +76,9 @@ export default function FutureTicketingSection() {
                 _hover={{ bg: "#1976D2" }}
                 transition="all 0.3s ease"
                 w={{ base: "auto", sm: "200px" }}
+                onClick={() => {
+                  router.push("/pricing");
+                }}
               >
                 Get Your Card
               </Button>

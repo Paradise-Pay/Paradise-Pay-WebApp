@@ -18,8 +18,11 @@ import {
   Flex,
   Image,
 } from "@chakra-ui/react";
+import { useRouter } from "next/navigation";
 
 export default function HeroSection() {
+  const router = useRouter();
+
   return (
     <Box
       minH={{ base: "80vh", md: "100vh" }}
@@ -83,6 +86,9 @@ export default function HeroSection() {
                 }}
                 transition="all 0.2s ease"
                 w={{ base: "auto", sm: "200px" }}
+                onClick={() => {
+                  router.push("/pricing");
+                }}
               >
                 Get Your Card
               </Button>

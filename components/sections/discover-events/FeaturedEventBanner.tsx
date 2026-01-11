@@ -9,7 +9,6 @@ import {
   Heading,
   Text,
   Image,
-  HStack,
   Skeleton,
 } from "@chakra-ui/react";
 import { ArrowRight } from "lucide-react";
@@ -32,8 +31,6 @@ export default function FeaturedEventBanner() {
     const fetchFeatured = async () => {
       try {
         const res: any = await getFeaturedEvents();
-        
-        // Handle Response Format (Array vs Object wrapper)
         let rawEvents: any[] = [];
         if (Array.isArray(res)) {
           rawEvents = res;
@@ -42,9 +39,7 @@ export default function FeaturedEventBanner() {
         }
 
         if (rawEvents.length > 0) {
-          // Get the LAST added event (last item in the array)
           const lastEvent = rawEvents[rawEvents.length - 1];
-
           setEvent({
             id: lastEvent.event_id || lastEvent.id,
             title: lastEvent.title,
@@ -69,28 +64,35 @@ export default function FeaturedEventBanner() {
 
   if (loading) {
     return (
-      <Box position="relative" minH="160px" w="full" bg="gray.100">
+      // Adjusted Skeleton height for mobile vs desktop
+      <Box position="relative" minH={{ base: "200px", md: "160px" }} w="full" bg="gray.100">
         <Container w="full" h="full" py={6}>
-          <HStack w="full" h="full" align="center" justify="space-between">
-             <Skeleton height="100px" width="100px" borderRadius="full" />
-             <Skeleton height="40px" width="40%" />
-             <Skeleton height="100px" width="50px" />
-          </HStack>
+          <Flex 
+            w="full" 
+            h="full" 
+            align="center" 
+            justify="space-between" 
+            direction={{ base: "column", md: "row" }} // Column on mobile
+            gap={4}
+          >
+             <Skeleton height={{ base: "80px", md: "100px" }} width={{ base: "80px", md: "100px" }} borderRadius="full" />
+             <Skeleton height="40px" width={{ base: "80%", md: "40%" }} />
+             <Skeleton height="100px" width="50px" display={{ base: "none", md: "block" }} />
+          </Flex>
         </Container>
       </Box>
     );
   }
 
-  if (!event) return null; // Don't show banner if no events exist
+  if (!event) return null;
 
   return (
     <Box
       position="relative"
-      // Reduced height by approx 50% (was 280px)
-      minH={{ base: "140px", md: "160px" }}
+      // Mobile needs more height for stacked content
+      minH={{ base: "220px", md: "160px" }}
       display="flex"
       alignItems="center"
-      // Use the event image as background, or a fallback pattern
       bgImage={`linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('${event.coverImage}')`}
       bgSize="cover"
       backgroundPosition="center"
@@ -103,18 +105,27 @@ export default function FeaturedEventBanner() {
       overflow="hidden"
     >
       <Container maxW="7xl" position="relative" zIndex={2} h="full">
-        <HStack w="full" px={{ base: 4, md: 12 }} py={4} align="center" justify="space-between">
+        <Flex 
+          w="full" 
+          px={{ base: 4, md: 12 }} 
+          py={{ base: 6, md: 4 }} 
+          align="center" 
+          justify="space-between"
+          // ✅ FIX: Stack vertically on mobile, row on desktop
+          direction={{ base: "column", md: "row" }} 
+          gap={{ base: 4, md: 0 }}
+        >
           
           {/* Left Side: Event Logo/Image */}
-          <Box display="flex" justifyContent="flex-start" alignItems="center">
+          <Box display="flex" justifyContent="center" alignItems="center">
             <Box
               border="3px solid #fdcb35"
               borderRadius="full"
               overflow="hidden"
               transition="transform 0.4s ease"
               transform={hovering ? "scale(1.05)" : "scale(1)"}
-              // Scaled down image container
-              boxSize={{ base: "80px", md: "110px" }} 
+              // Slightly smaller on mobile
+              boxSize={{ base: "70px", md: "110px" }} 
               flexShrink={0}
             >
               <Image
@@ -128,15 +139,14 @@ export default function FeaturedEventBanner() {
           </Box>
 
           {/* Center: Event Title & CTA */}
-          <Stack flex="1" align="center" spaceX={1} px={4}>
+          <Stack flex="1" align="center" spaceX={1} px={4} textAlign="center">
             <Heading
               as="h1"
               className="heading-hero"
               color="white"
-              // Scaled down font sizes
-              fontSize={{ base: "1.5rem", sm: "2rem", md: "2.5rem" }}
-              lineHeight="1.1"
-              textAlign="center"
+              // Adjusted font sizes for mobile legibility
+              fontSize={{ base: "1.25rem", sm: "1.75rem", md: "2.5rem" }}
+              lineHeight="1.2"
             >
               {event.title}
             </Heading>
@@ -144,36 +154,35 @@ export default function FeaturedEventBanner() {
             <Flex
               align="center"
               gap={2}
-              fontSize={{ base: "md", md: "xl" }}
+              fontSize={{ base: "sm", md: "xl" }}
               fontWeight="medium"
               color="white"
               transition="color 0.3s ease"
               _hover={{ color: "#fdcb35" }}
-              onClick={() => router.push(`/events/${event.id}`)}
             >
               <Text>Get Tickets</Text>
               <ArrowRight size={18} />
             </Flex>
           </Stack>
 
-          {/* Right Side: Yellow Label */}
+          {/* Right Side: Yellow Label - Hidden on mobile to save space */}
           <Box display={{ base: "none", md: "flex" }} justifyContent="flex-end">
             <Box
-              width="180px" // Scaled down
-              height="60px" // Scaled down
+              width="180px"
+              height="60px"
               transform="rotate(90deg)"
               bg="#fdcb35"
               display="flex"
               justifyContent="center"
               alignItems="center"
-              mr="-60px" // Pull it to the edge
+              mr="-60px"
             >
               <Heading
                 as="h2"
                 className="heading-hero"
                 textAlign="center"
                 color="black"
-                fontSize="lg" // Scaled down font
+                fontSize="lg"
                 fontWeight="bold"
                 whiteSpace="nowrap"
               >
@@ -181,7 +190,7 @@ export default function FeaturedEventBanner() {
               </Heading>
             </Box>
           </Box>
-        </HStack>
+        </Flex>
       </Container>
     </Box>
   );

@@ -8,7 +8,6 @@ import {
   Typography, 
   Button, 
   Skeleton,
-  Alert,
   Grid
 } from '@mui/material';
 import { useAuth } from '@/context/AuthContext';
@@ -18,11 +17,8 @@ import {
   AccountBalanceWallet as WalletIcon 
 } from '@mui/icons-material';
 import Link from 'next/link';
-import { getDashboardStats, getUserActivity } from '@/lib/api';
-import type { DashboardStats, Activity } from '@/types/dashboard';
+import { getOrganizerEvents, getUserTickets } from '@/lib/api'; 
 import ParadiseCardSwitcher from '@/components/sections/dashboard/ParadiseCard';
-
-// User type is imported from the auth context
 
 interface StatCardProps {
   title: string;
@@ -34,8 +30,11 @@ interface StatCardProps {
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [activities, setActivities] = useState<Activity[]>([]);
+  
+  const [upcomingEventsCount, setUpcomingEventsCount] = useState(0);
+  const [activeTicketsCount, setActiveTicketsCount] = useState(0);
+  const [walletBalance, setWalletBalance] = useState(0);
+  
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -46,33 +45,35 @@ export default function DashboardPage() {
       setLoading(true);
       setError(null);
       
-      // Fetch dashboard stats
-      const statsResponse = await getDashboardStats();
-      if (statsResponse.success && statsResponse.data) {
-        setStats(statsResponse.data);
-      } else {
-        throw new Error(statsResponse.message || 'Failed to fetch dashboard stats');
-      }
+      // 1. Fetch Events (Calculate Upcoming Events)
+      // We assume getOrganizerEvents returns an array of events created by user
+      const eventsRes = await getOrganizerEvents();
+      // Handle array or wrapped response
+      const eventsData = Array.isArray(eventsRes) ? eventsRes : (eventsRes as any).data || [];
       
-      // Fetch recent activities
-      const activityResponse = await getUserActivity(5);
-      if (activityResponse.success && activityResponse.data) {
-        setActivities(activityResponse.data);
-      }
+      // Filter for future events if needed, or just count them all
+      const futureEvents = eventsData.filter((e: any) => new Date(e.event_date) > new Date());
+      setUpcomingEventsCount(futureEvents.length);
+
+      // 2. Fetch Tickets (Calculate Active Tickets)
+      const ticketsRes = await getUserTickets();
+      const ticketsData = Array.isArray(ticketsRes) ? ticketsRes : (ticketsRes as any).data || [];
+      
+      // Filter active tickets (assuming active means not past event date)
+      // You might need to adjust logic based on your ticket status field
+      const activeTickets = ticketsData.filter((t: any) => t.status !== 'cancelled' && t.status !== 'refunded');
+      setActiveTicketsCount(activeTickets.length);
+
+      // 3. Wallet Balance (Placeholder Logic)
+      // Since there is no wallet endpoint yet, we can either:
+      // A. Leave as 0
+      // B. Sum up ticket values (if you want to simulate "spent")
+      // C. Hardcode for now
+      setWalletBalance(0.00); 
       
     } catch (err) {
       console.error('Error fetching dashboard data:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load dashboard data';
-      setError(errorMessage);
-      
-      // Fallback to mock data for development
-      if (process.env.NODE_ENV === 'development') {
-        setStats({
-          upcomingEvents: 3,
-          activeTickets: 5,
-          walletBalance: 1250.75,
-        });
-      }
+      // Don't show error to user, just log it. Show 0s instead.
     } finally {
       setLoading(false);
     }
@@ -102,11 +103,11 @@ export default function DashboardPage() {
       }}
     >
       <CardContent sx={{ flexGrow: 1 }}>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+        <Box display="flex" justifyContent="space-between"   mb={2}>
+          <Icon color={color} />
           <Typography color="text.secondary" gutterBottom>
             {title}
           </Typography>
-          <Icon color={color} />
         </Box>
         {loading ? (
           <Skeleton variant="text" width="60%" height={40} />
@@ -133,7 +134,7 @@ export default function DashboardPage() {
   return (
     <Box>
       <Typography variant="h4" component="h1" gutterBottom>
-        Welcome, {user?.name || user?.email?.split("@")[0] || "User"}!
+        Welcome, { user?.name || "User"}!
       </Typography>
       <Typography color="text.secondary" paragraph>
         Here&apos;s what&apos;s happening with your account today.
@@ -142,7 +143,8 @@ export default function DashboardPage() {
       <Grid container spacing={4} sx={{ mt: 2, mb: 4 }}>
         {/* LEFT COLUMN: Paradise Card Switcher */}
         <Grid
-          size={{ xs: 12, md: 7, lg: 8 }}
+          item
+          xs={12} md={7} lg={8}
           sx={{
             display: "flex",
             justifyContent: "center",
@@ -150,22 +152,20 @@ export default function DashboardPage() {
           }}
         >
           <ParadiseCardSwitcher
-            cardHolderName={user?.name || user?.email?.split("@")[0] || "User"}
+            cardHolderName={user?.name || "User"}
             expiryDate="07/29"
-            qrData="https://paradisepay.com/u/eugene"
+            qrData={`https://paradisepay.com/u/${user?.id}`}
           />
         </Grid>
 
         {/* RIGHT COLUMN: Stacked Stat Cards */}
-        <Grid size={{ xs: 12, md: 5, lg: 4 }}>
+        <Grid item xs={12} md={5} lg={4}>
           <Grid container spacing={2}>
             {/* Stat Card 1 */}
-            <Grid size={{ xs: 12 }}>
+            <Grid item xs={12}>
               <StatCard
                 title="Upcoming Events"
-                value={
-                  loading ? "..." : stats?.upcomingEvents?.toString() || "0"
-                }
+                value={upcomingEventsCount}
                 icon={EventIcon}
                 color="primary"
                 href="/dashboard/events"
@@ -173,12 +173,10 @@ export default function DashboardPage() {
             </Grid>
 
             {/* Stat Card 2 */}
-            <Grid size={{ xs: 12 }}>
+            <Grid item xs={12}>
               <StatCard
                 title="Active Tickets"
-                value={
-                  loading ? "..." : stats?.activeTickets?.toString() || "0"
-                }
+                value={activeTicketsCount}
                 icon={TicketIcon}
                 color="secondary"
                 href="/dashboard/tickets"
@@ -186,14 +184,10 @@ export default function DashboardPage() {
             </Grid>
 
             {/* Stat Card 3 */}
-            <Grid size={{ xs: 12 }}>
+            <Grid item xs={12}>
               <StatCard
                 title="Wallet Balance"
-                value={
-                  loading
-                    ? "..."
-                    : `GH₵${stats?.walletBalance?.toFixed(2) || "0.00"}`
-                }
+                value={`GH₵${walletBalance.toFixed(2)}`}
                 icon={WalletIcon}
                 color="success"
                 href="/dashboard/wallet"
@@ -203,85 +197,24 @@ export default function DashboardPage() {
         </Grid>
       </Grid>
 
-      {/* Recent Activity Section */}
-      <Card sx={{ mb: 4 }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            Recent Activity
-          </Typography>
-          {loading ? (
-            <Box>
-              <Skeleton
-                variant="rectangular"
-                height={80}
-                sx={{ mb: 2, borderRadius: 1 }}
-              />
-              <Skeleton
-                variant="rectangular"
-                height={80}
-                sx={{ mb: 2, borderRadius: 1 }}
-              />
-              <Skeleton
-                variant="rectangular"
-                height={80}
-                sx={{ borderRadius: 1 }}
-              />
-            </Box>
-          ) : activities.length > 0 ? (
-            <Box>
-              {activities.map((activity) => (
-                <Box
-                  key={activity.id}
-                  sx={{
-                    mb: 2,
-                    p: 2,
-                    border: "1px solid",
-                    borderColor: "divider",
-                    borderRadius: 1,
-                  }}
-                >
-                  <Box display="flex" alignItems="center" mb={1}>
-                    <Typography variant="subtitle2" sx={{ flexGrow: 1 }}>
-                      {activity.title}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {new Date(activity.timestamp).toLocaleDateString()}
-                    </Typography>
-                  </Box>
-                  <Typography variant="body2" color="text.secondary">
-                    {activity.description}
-                  </Typography>
-                </Box>
-              ))}
-            </Box>
-          ) : (
-            <Box>
-              <Typography color="text.secondary" textAlign="center" py={4}>
-                No recent activity
-              </Typography>
-            </Box>
-          )}
-        </CardContent>
-      </Card>
-
       {/* Quick Actions */}
       <Typography variant="h6" gutterBottom>
         Quick Actions
       </Typography>
       <Box sx={{ mb: 4 }}>
         <Grid container spacing={2}>
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Grid item xs={12} sm={6} md={3}>
             <Button
               variant="outlined"
               fullWidth
               component={Link}
-              href="/events"
+              href="/discover"
               sx={{ py: 2 }}
             >
               Browse Events
             </Button>
           </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Grid item xs={12} sm={6} md={3}>
             <Button
               variant="outlined"
               fullWidth
@@ -292,7 +225,7 @@ export default function DashboardPage() {
               Create Event
             </Button>
           </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Grid item xs={12} sm={6} md={3}>
             <Button
               variant="outlined"
               fullWidth
@@ -303,7 +236,7 @@ export default function DashboardPage() {
               Add Funds
             </Button>
           </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Grid item xs={12} sm={6} md={3}>
             <Button
               variant="outlined"
               fullWidth
