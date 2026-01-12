@@ -1,4 +1,3 @@
-// PricingComponents.tsx
 'use client';
 
 import { Box, Flex, Text, Button, VStack, Badge, Heading } from '@chakra-ui/react';
@@ -148,7 +147,7 @@ export const PricingCard = ({ plan, isAnnual }: CardProps) => {
 
       {/* Price Section */}
       <Flex align="baseline" mb={8}>
-        <Text fontSize="4xl" fontWeight="900" mr={2}>
+        <Text fontSize="2xl" fontWeight="900" mr={2}>
           {price}
         </Text>
         <Text fontSize="xl" fontWeight="bold">

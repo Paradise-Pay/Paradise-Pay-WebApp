@@ -1,4 +1,4 @@
-import type { Event, OrganizerEventResponse, EventCategoryResponse, EventDetailResponse } from "@/types/domain/event";
+import type { Event, OrganizerEventResponse, EventCategoryResponse, EventDetailResponse, SearchParams } from "@/types/domain/event";
 import type { TicketTypePayload, TicketTypeResponse, PurchasePayload, UserTicketResponse } from "@/types/domain/ticket";
 import { ApiResponse } from "@/types/api";
 import { DashboardStats, UserProfile, ProfileUpdateRequest, Activity } from "@/types/dashboard";
@@ -208,16 +208,6 @@ export const createEvent = async (eventData: any) => {
 };
 
 /**
- * Search events (optionally by query, category, etc)
- */
-export const searchEvents = async (params: Record<string, any> = {}) => {
-  const query = new URLSearchParams(params).toString();
-  return apiFetch<Event[]>(`/events/search${query ? `?${query}` : ""}`, {
-    method: "GET",
-  });
-};
-
-/**
  * Get all event categories
  * Endpoint: GET /events/categories
  */
@@ -233,6 +223,25 @@ export const getEventCategories = async () => {
  */
 export const getEventById = async (eventId: string) => {
   return apiFetch<EventDetailResponse>(`/events/${eventId}`, {
+    method: "GET",
+  });
+};
+
+/**
+ * Search events with filters
+ * Endpoint: GET /events/search
+ */
+export const searchEvents = async (params: SearchParams = {}) => {
+  // Convert params object to URL query string
+  const query = new URLSearchParams();
+  
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      query.append(key, String(value));
+    }
+  });
+
+  return apiFetch<any>(`/events/search?${query.toString()}`, {
     method: "GET",
   });
 };

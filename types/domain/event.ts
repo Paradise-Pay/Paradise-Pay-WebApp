@@ -120,3 +120,12 @@ export interface EventDetailResponse {
   currency?: string;
   organizer_id?: string;
 }
+
+export interface SearchParams {
+  search_query?: string;
+  category?: string;
+  startDate?: string;
+  endDate?: string;
+  page?: number;
+  limit?: number;
+}
