@@ -233,7 +233,7 @@ export default function Header() {
                 >
                   <Button
                     bg="#FDCB35"
-                    color="white"
+                    color="black"
                     w="full"
                     py={3}
                     borderRadius="md"
@@ -241,7 +241,7 @@ export default function Header() {
                     fontSize="16px"
                     _hover={{ bg: "#E6B834" }}
                   >
-                    Sign up/Login
+                    {user ? "Dashboard" : "Sign up/Login"}
                   </Button>
                 </Link>
 

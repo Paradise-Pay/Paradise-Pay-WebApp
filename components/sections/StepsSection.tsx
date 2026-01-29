@@ -46,11 +46,11 @@ const steps = [
 export default function StepsSection() {
   return (
     <Box bg="#FFC138" py={{ base: 12, md: 16, lg: 24 }}>
-      <Container maxW="7xl" px={{ base: 4, md: 8, lg: 16 }}>
-        <Grid templateColumns={{ base: "1fr", lg: "1fr 1fr" }} gap={{ base: 8, lg: 0 }}>
-          <GridItem order={{ base: 2, lg: 1 }}>
+      <Container maxW="7xl" px={{ base: 4, md: 8, lg: 16 }} >
+        <Grid templateColumns={{ base: "1fr", lg: "1fr 1fr" }} gap={{ base: 8, lg: 10 }} alignItems="center">
+          <GridItem order={{ base: 2, lg: 1 }}>               
             <VStack gap={{ base: 4, md: 6 }} align="center" w="full">
-              {steps.map((step, idx) => (
+              {steps.map((step, idx) => ( 
                 <Box
                   key={idx}
                   bg={step.bgColor}

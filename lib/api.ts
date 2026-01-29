@@ -374,3 +374,14 @@ export const getUserTickets = async () => {
     method: 'GET',
   });
 };
+
+/**
+ * Subscribe to coming soon updates
+ * Endpoint: POST /coming-soon/subscribe
+ */
+export const subscribeToComingSoon = async (email: string) => {
+  return apiFetch<{ success: boolean; message: string; data?: any }>("/coming-soon/subscribe", {
+    method: "POST",
+    body: { email },
+  });
+};

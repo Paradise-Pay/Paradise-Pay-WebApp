@@ -13,8 +13,8 @@ import {
   InputAdornment,
   IconButton,
   Link as MuiLink,
-  FormHelperText,
   Avatar,
+  Divider,
 } from '@mui/material';
 import { Visibility, VisibilityOff, AccountBalanceWallet as AccountBalanceWalletIcon } from '@mui/icons-material';
 import { useAuth } from '@/context/AuthContext';
@@ -90,7 +90,6 @@ export default function SignupPage() {
     }
   };
 
-  // Handle form submission with validation and API call
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -101,7 +100,6 @@ export default function SignupPage() {
     setIsLoading(true);
     
     try {
-      // Call the signup API directly
       await authService.signup({
         name: formData.name,
         email: formData.email,
@@ -110,16 +108,14 @@ export default function SignupPage() {
         nickname: formData.nickname || formData.name.split(' ')[0],
       });
 
-      // Log the user in after successful signup
       await login(formData.email, formData.password);
       
-      toast.success('Account created successfully! Please check your email to verify your account.', {
+      toast.success('Account created successfully! Please check your email.', {
         position: 'top-center',
         autoClose: 5000,
       });
       
-      // Redirect to login page with success message
-      router.push('/auth/login?status=success&message=Account created successfully! Please check your email to verify your account.');
+      router.push('/auth/login?status=success&message=Account created successfully!');
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Signup failed. Please try again.';
       toast.error(errorMessage, {
@@ -141,20 +137,39 @@ export default function SignupPage() {
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        p: 2
+        p: 2,
+        position: "relative", 
+        backgroundImage: "url('/assets/images/sign-up-page-bg.jpeg')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
       }}
     >
-      <Box sx={{ position: 'absolute', top: 16, right: 16 }}>
+      {/* The Dark Overlay */}
+      <Box
+        sx={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          bgcolor: "black",
+          opacity: 0.5, 
+          zIndex: 0, 
+        }}
+      />
+
+      <Box sx={{ position: 'absolute', top: 16, right: 16, zIndex: 2 }}>
         <ThemeToggle />
       </Box>
       
-      <Container maxWidth="sm">
+      {/* Changed maxWidth to 'sm' for better scaling on tablets/desktop */}
+      <Container maxWidth="sm" sx={{ position: "relative", zIndex: 1 }}>
         <Paper 
           elevation={3} 
           sx={{ 
-            width: '552px',
-            minHeight: '678.267px',
-            p: '32px',
+            width: '100%',
+            p: { xs: 4, sm: 4 }, // Responsive padding
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -163,33 +178,24 @@ export default function SignupPage() {
             boxShadow: '0 4px 20px rgba(0, 0, 0, 0.25)'
           }}
         >
-          <Box sx={{ mb: 4, textAlign: 'center', width: '100%' }}>
-            <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%', mb: 2 }}>
-              <Avatar 
-                sx={{ 
-                  bgcolor: 'primary.main', 
-                  width: 56, 
-                  height: 56,
-                  '& .MuiSvgIcon-root': {
-                    fontSize: '2rem',
-                    color: 'white'
-                  }
-                }}
-              >
-                <AccountBalanceWalletIcon fontSize="large" />
-              </Avatar>
-            </Box>
-            <Typography component="h1" variant="h5" sx={{ fontWeight: 600, mb: 1 }}>
+          <Box sx={{ mb: 3, textAlign: 'center', width: '100%' }}>
+            <Avatar 
+              sx={{ 
+                bgcolor: 'primary.main', 
+                mx: "auto",
+                mb: 2,
+                width: 56, 
+                height: 56,
+              }}
+            >
+              <AccountBalanceWalletIcon fontSize="large" />
+            </Avatar>
+            <Typography component="h1" variant="h5" sx={{ fontWeight: 600 }}>
               Create Your Account
             </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Already have an account?{' '}
-              <MuiLink component={Link} href="/auth/login" underline="hover" color="primary.main">
-                Sign in
-              </MuiLink>
-            </Typography>
           </Box>
-          <Box component="form" onSubmit={handleSubmit} noValidate>
+
+          <Box component="form" onSubmit={handleSubmit} noValidate sx={{ width: '100%' }}>
             <TextField
               margin="normal"
               required
@@ -204,8 +210,6 @@ export default function SignupPage() {
               error={!!errors.name}
               helperText={errors.name}
               variant="outlined"
-              size="small"
-              sx={{ mb: 2 }}
             />
 
             <TextField
@@ -221,8 +225,6 @@ export default function SignupPage() {
               error={!!errors.email}
               helperText={errors.email}
               variant="outlined"
-              size="small"
-              sx={{ mb: 2 }}
             />
 
             <TextField
@@ -238,8 +240,6 @@ export default function SignupPage() {
               error={!!errors.phone}
               helperText={errors.phone}
               variant="outlined"
-              size="small"
-              sx={{ mb: 2 }}
             />
 
             <TextField
@@ -256,8 +256,6 @@ export default function SignupPage() {
               error={!!errors.password}
               helperText={errors.password || 'At least 8 characters'}
               variant="outlined"
-              size="small"
-              sx={{ mb: 2 }}
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
@@ -265,9 +263,8 @@ export default function SignupPage() {
                       aria-label="toggle password visibility"
                       onClick={() => setShowPassword(!showPassword)}
                       edge="end"
-                      size="small"
                     >
-                      {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
                     </IconButton>
                   </InputAdornment>
                 ),
@@ -284,6 +281,9 @@ export default function SignupPage() {
               id="confirmPassword"
               value={formData.confirmPassword}
               onChange={handleInputChange}
+              error={!!errors.confirmPassword}
+              helperText={errors.confirmPassword}
+              variant="outlined"
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
@@ -303,18 +303,21 @@ export default function SignupPage() {
               type="submit"
               fullWidth
               variant="contained"
-              sx={{ mt: 3, mb: 2 }}
+              sx={{ mt: 3, mb: 2, py: 1.5 }}
               disabled={isLoading}
             >
               {isLoading ? 'Signing up...' : 'Sign Up'}
             </Button>
 
-            <Box sx={{ mt: 2, textAlign: 'right' }}>
-              <Link href="/auth/login" style={{ textDecoration: 'none' }}>
-                <Typography variant="body2" color="primary">
-                  Already have an account? Sign in
-                </Typography>
-              </Link>
+            <Divider sx={{ my: 2 }} />
+
+            <Box sx={{ mt: 2, textAlign: 'center' }}>
+              <Typography variant="body2" color="text.secondary">
+                Already have an account?{' '}
+                <MuiLink component={Link} href="/auth/login" underline="hover" sx={{ fontWeight: 600 }}>
+                  Sign in
+                </MuiLink>
+              </Typography>
             </Box>
           </Box>
         </Paper>
