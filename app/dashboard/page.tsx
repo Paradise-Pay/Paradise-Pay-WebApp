@@ -186,69 +186,16 @@ export default function DashboardPage() {
             {/* Stat Card 3 */}
             <Grid item xs={12}>
               <StatCard
-                title="Wallet Balance"
+                title="Bundle Balance"
                 value={`GH₵${walletBalance.toFixed(2)}`}
                 icon={WalletIcon}
                 color="success"
-                href="/dashboard/wallet"
+                href="/dashboard"
               />
             </Grid>
           </Grid>
         </Grid>
       </Grid>
-
-      {/* Quick Actions */}
-      <Typography variant="h6" gutterBottom>
-        Quick Actions
-      </Typography>
-      <Box sx={{ mb: 4 }}>
-        <Grid container spacing={2}>
-          <Grid item xs={12} sm={6} md={3}>
-            <Button
-              variant="outlined"
-              fullWidth
-              component={Link}
-              href="/discover"
-              sx={{ py: 2 }}
-            >
-              Browse Events
-            </Button>
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <Button
-              variant="outlined"
-              fullWidth
-              component={Link}
-              href="/dashboard/events/create"
-              sx={{ py: 2 }}
-            >
-              Create Event
-            </Button>
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <Button
-              variant="outlined"
-              fullWidth
-              component={Link}
-              href="/dashboard/wallet/deposit"
-              sx={{ py: 2 }}
-            >
-              Add Funds
-            </Button>
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <Button
-              variant="outlined"
-              fullWidth
-              component={Link}
-              href="/support"
-              sx={{ py: 2 }}
-            >
-              Get Help
-            </Button>
-          </Grid>
-        </Grid>
-      </Box>
     </Box>
   );
 }

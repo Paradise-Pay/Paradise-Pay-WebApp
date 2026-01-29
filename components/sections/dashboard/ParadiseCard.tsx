@@ -32,7 +32,7 @@ const CARD_VARIANTS = {
     bgColor: "#FFC23C", // Yellow
     stripeColor: "#000000", // Black
     buttonColorScheme: "yellow",
-    textColor: "black",
+    textColor: "white",
     logoPath: "/logos/Paradise Pay_Logo_Blue.png" 
   },
   x: {

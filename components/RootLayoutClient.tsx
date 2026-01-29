@@ -3,7 +3,6 @@
 import { Box } from "@chakra-ui/react";
 import { usePathname } from 'next/navigation';
 
-// Paths where we don't want to show the header/footer (auth pages)
 const EXCLUDED_PATHS = ['/login', '/register', '/forgot-password', '/reset-password'];
 
 // Paths that already include their own header/footer or have them globally

@@ -85,18 +85,36 @@ export default function LoginClient() {
       component="main"
       sx={{
         minHeight: "100vh",
-        bgcolor: "#ffc03a",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         p: 2,
+        position: "relative", // Needed for absolute children
+        backgroundImage: "url('/assets/images/login-page-bg.jpg')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
       }}
     >
-      <Box sx={{ position: "absolute", top: 16, right: 16 }}>
+      {/* The Dark Overlay */}
+      <Box
+        sx={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          bgcolor: "black",
+          opacity: 0.5, 
+          zIndex: 0, 
+        }}
+      />
+
+      <Box sx={{ position: "absolute", top: 16, right: 16, zIndex: 2 }}>
         <ThemeToggle />
       </Box>
 
-      <Container maxWidth="xs">
+      <Container maxWidth="xs" sx={{ position: "relative", zIndex: 1 }}>
         <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
           <Box sx={{ textAlign: "center", mb: 3 }}>
             <Avatar sx={{ bgcolor: "primary.main", mx: "auto", mb: 2 }}>

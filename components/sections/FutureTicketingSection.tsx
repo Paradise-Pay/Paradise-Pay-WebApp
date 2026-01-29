@@ -92,8 +92,8 @@ export default function FutureTicketingSection() {
                   src="/assets/images/hand-with-phone.png"
                   alt="Hand holding phone"
                   w="auto"
-                  h={{ base: "300px", sm: "350px", md: "400px", lg: "500px" }}
-                  maxW={{ base: "250px", sm: "280px", md: "300px" }}
+                  h={{ base: "350px", sm: "400px", md: "450px", lg: "550px" }}
+                  maxW={{ base: "300px", sm: "320px", md: "350px" }}
                   objectFit="contain"
                   position="relative"
                   zIndex={1}

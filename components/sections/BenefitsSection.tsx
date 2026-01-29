@@ -18,6 +18,7 @@ import {
   Button,
 } from "@chakra-ui/react";
 import { CreditCard, Trophy, Ticket, Layers, Users } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 // Benefits data for the Paradise Pay features
 const benefits = [
@@ -49,6 +50,8 @@ const benefits = [
 ];
 
 export default function BenefitsSection() {
+  const router = useRouter();
+
   return (
     <Box bg="#2176FF" py={{ base: 12, md: 14, lg: 16 }}>
       <Container maxW="7xl" px={{ base: 4, md: 8, lg: 16 }}>
@@ -135,6 +138,7 @@ export default function BenefitsSection() {
                   _active={{ bg: "#FFB300" }}
                   w={{ base: "100%", sm: "auto" }}
                   maxW={{ base: "300px", sm: "none" }}
+                  onClick={() => { router.push("/pricing"); }}
                 >
                   Get Started
                 </Button>
