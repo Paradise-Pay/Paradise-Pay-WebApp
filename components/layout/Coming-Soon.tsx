@@ -21,7 +21,7 @@ import {
 import { toast } from 'react-toastify';
 
 // --- Configuration ---
-const LAUNCH_DATE = new Date("March 1, 2026 00:00:00").getTime();
+const LAUNCH_DATE = new Date("April 1, 2026 00:00:00").getTime();
 
 const API_BASE_URL = "https://paradise-pay-backend-production-e0db.up.railway.app/api/v1";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || API_BASE_URL;
@@ -176,7 +176,7 @@ export default function ComingSoonPage() {
         px={6}
         position="relative"
         zIndex={10}
-        pt={{ base: 20, md: 28 }}
+        pt={{ base: 28, md: 28 }}
         pb={12}
         display="flex"
         flexDirection="column"
@@ -194,7 +194,7 @@ export default function ComingSoonPage() {
               textTransform="capitalize"
               lineHeight="1.1"
             >
-              Paradise Pay Is <br /> Launching Soon
+              Paradise Pay Is Launching Soon
             </Heading>
             <Text
               fontSize={{ base: "lg", md: "xl" }}
@@ -203,8 +203,8 @@ export default function ComingSoonPage() {
               maxW="2xl"
               textShadow="0 2px 4px rgba(0,0,0,0.3)"
             >
-              The biggest event management platform is launching soon. Enter
-              your email to be notified when it's ready.
+              Your ultimate event experience is launching soon.
+              Enter your email to be notified when it's ready.
             </Text>
           </Stack>
 
@@ -320,7 +320,7 @@ export default function ComingSoonPage() {
                 path="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"
               />
               <SocialLink
-                href="https://www.tiktok.com/getparadisepay/"
+                href="https://www.tiktok.com/@getparadisepay_/"
                 label="TikTok"
                 hoverColor="#FE2C55"
                 path="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"
