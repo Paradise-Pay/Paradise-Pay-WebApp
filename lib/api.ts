@@ -4,7 +4,7 @@ import { ApiResponse } from "@/types/api";
 import { DashboardStats, UserProfile, ProfileUpdateRequest, Activity } from "@/types/dashboard";
 
 // API configuration/api
-const API_BASE_URL = "https://paradise-pay-backend-production-e0db.up.railway.app/api/v1";
+const API_BASE_URL = "https://paradise-pay-backend-production.up.railway.app/api/v1";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || API_BASE_URL;
 
 interface FetchOptions extends Omit<RequestInit, 'body'> {
