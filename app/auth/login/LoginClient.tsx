@@ -71,10 +71,7 @@ export default function LoginClient() {
       toast.success("Login successful", { position: "top-center" });
       router.push(redirect);
     } catch (err) {
-      toast.error(
-        "Login failed, User not found",
-        { position: "top-center" }
-      );
+      toast.error("Login failed, User not found", { position: "top-center" });
     } finally {
       setIsLoading(false);
     }
@@ -84,12 +81,12 @@ export default function LoginClient() {
     <Box
       component="main"
       sx={{
-        minHeight: "100vh",
+        minHeight: {xs:'100vh', sm: '100vh', md: '120vh'},
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         p: 2,
-        position: "relative", // Needed for absolute children
+        position: "relative",
         backgroundImage: "url('/assets/images/login-page-bg.jpg')",
         backgroundSize: "cover",
         backgroundPosition: "center",
@@ -105,78 +102,79 @@ export default function LoginClient() {
           right: 0,
           bottom: 0,
           bgcolor: "black",
-          opacity: 0.5, 
-          zIndex: 0, 
+          opacity: 0.5,
+          zIndex: 0,
         }}
       />
 
-      <Box sx={{ position: "absolute", top: 16, right: 16, zIndex: 2 }}>
-        <ThemeToggle />
-      </Box>
+      <Container maxWidth="sm" sx={{ position: "relative", zIndex: 1 }}>
+        <Paper 
+          elevation={3} 
+          sx={{ 
+            p: 4, 
+            borderRadius: 2 
+            }}>
+            <Box sx={{ textAlign: "center", mb: 3 }}>
+              <Avatar sx={{ bgcolor: "primary.main", mx: "auto", mb: 2 }}>
+                <AccountBalanceWalletIcon />
+              </Avatar>
+              <Typography variant="h5" fontWeight={600}>
+                Sign in to your account
+              </Typography>
+            </Box>
 
-      <Container maxWidth="xs" sx={{ position: "relative", zIndex: 1 }}>
-        <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
-          <Box sx={{ textAlign: "center", mb: 3 }}>
-            <Avatar sx={{ bgcolor: "primary.main", mx: "auto", mb: 2 }}>
-              <AccountBalanceWalletIcon />
-            </Avatar>
-            <Typography variant="h5" fontWeight={600}>
-              Sign in to your account
-            </Typography>
-          </Box>
+            <Box component="form" onSubmit={handleSubmit}>
+              <TextField
+                fullWidth
+                margin="normal"
+                label="Email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+              />
 
-          <Box component="form" onSubmit={handleSubmit}>
-            <TextField
-              fullWidth
-              margin="normal"
-              label="Email"
-              name="email"
-              value={formData.email}
-              onChange={handleInputChange}
-            />
+              <TextField
+                fullWidth
+                margin="normal"
+                label="Password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                value={formData.password}
+                onChange={handleInputChange}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton onClick={() => setShowPassword(!showPassword)}>
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+              />
 
-            <TextField
-              fullWidth
-              margin="normal"
-              label="Password"
-              name="password"
-              type={showPassword ? "text" : "password"}
-              value={formData.password}
-              onChange={handleInputChange}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton onClick={() => setShowPassword(!showPassword)}>
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-            />
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                sx={{ mt: 2 }}
+                disabled={isLoading}
+              >
+                {isLoading ? "Signing in..." : "Sign In"}
+              </Button>
 
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              sx={{ mt: 2 }}
-              disabled={isLoading}
-            >
-              {isLoading ? "Signing in..." : "Sign In"}
-            </Button>
+              <Divider sx={{ my: 3 }}>OR</Divider>
 
-            <Divider sx={{ my: 3 }}>OR</Divider>
+              <Button fullWidth variant="outlined" startIcon={<GoogleIcon />}>
+                Continue with Google
+              </Button>
 
-            <Button fullWidth variant="outlined" startIcon={<GoogleIcon />}>
-              Continue with Google
-            </Button>
-
-            <Typography align="center" mt={2}>
-              Don’t have an account?{" "}
-              <MuiLink component={Link} href="/auth/signup">
-                Sign up
-              </MuiLink>
-            </Typography>
-          </Box>
+              <Typography align="center" mt={2}>
+                Don’t have an account?{" "}
+                <MuiLink component={Link} href="/auth/signup">
+                  Sign up
+                </MuiLink>
+              </Typography>
+            </Box>
         </Paper>
       </Container>
     </Box>

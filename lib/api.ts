@@ -72,6 +72,7 @@ export const login = async (email: string, password: string) => {
     id: user.user_id || user.id,
     email: user.email,
     role: user.role,
+    phone: user.phone || user.phoneNumber || '',
     firstName: user.name?.split(' ')[0] || user.firstName || '',
     lastName: user.name?.split(' ').slice(1).join(' ') || user.lastName || '',
     avatar: user.avatar
@@ -186,6 +187,31 @@ export const resetPasswordRequest = async (email: string) => {
   return data;
 };
 
+/**
+ * User profile: Get current user's profile data
+ */
+export const getUserProfile = async () => {
+  return apiFetch<UserProfile>("/user/profile", {
+    method: "GET",
+  });
+};
+
+/**
+ * Update user details (Used for Organizer Application)
+ * Endpoint: POST /auth/updateuser/{userId}
+ */
+export const updateUserDetails = async (
+  userId: string, 
+  data: { name?: string; phone?: string; nickname?: string }
+) => {
+  return apiFetch<{ success: boolean; message: string; user: any }>(
+    `/auth/updateuser/${userId}`, 
+    {
+      method: "POST",
+      body: data,
+    }
+  );
+};
 
 /**
  * Get featured events for homepage
@@ -286,25 +312,6 @@ export const getDashboardStats = async () => {
 };
 
 /**
- * User profile: Get current user's profile data
- */
-export const getUserProfile = async () => {
-  return apiFetch<UserProfile>("/user/profile", {
-    method: "GET",
-  });
-};
-
-/**
- * User profile: Update user profile data
- */
-export const updateUserProfile = async (profileData: ProfileUpdateRequest) => {
-  return apiFetch<UserProfile>("/user/profile", {
-    method: "PUT",
-    body: profileData,
-  });
-};
-
-/**
  * User avatar: Upload user avatar image
  */
 export const uploadUserAvatar = async (avatarFile: File) => {
@@ -383,5 +390,47 @@ export const subscribeToComingSoon = async (email: string) => {
   return apiFetch<{ success: boolean; message: string; data?: any }>("/coming-soon/subscribe", {
     method: "POST",
     body: { email },
+  });
+};
+
+/**
+ * ADMIN: Get a list of all users
+ * Endpoint: GET /admin/users
+ */
+export const getAllUsers = async () => {
+  return apiFetch<{ users: any[], total: number }>('/admin/users', { 
+    method: 'GET',
+  });
+};
+
+/**
+ * ADMIN: Get a list of all events
+ * Endpoint: GET /admin/events
+ */
+export const getAllEvents = async () => {
+  // Assuming the admin router is mounted at /admin
+  return apiFetch<any[]>('/admin/events', {
+    method: 'GET',
+  });
+};
+
+/**
+ * ADMIN: Get admin dashboard stats
+ * Endpoint: GET /admin/dashboard
+ */
+export const getAdminDashboardStats = async () => {
+  return apiFetch<any>('/admin/dashboard', {
+    method: 'GET',
+  });
+};
+
+/**
+ * ADMIN: Update a user's plan
+ * Endpoint: PUT /admin/users/{user_id}/plan
+ */
+export const updateUserPlan = async (userId: string, plan: string) => {
+  return apiFetch<{ success: boolean; message: string }>(`/admin/users/${userId}/plan`, {
+    method: 'PUT',
+    body: { plan }, 
   });
 };
