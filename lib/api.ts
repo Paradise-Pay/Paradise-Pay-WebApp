@@ -1,5 +1,6 @@
 import type { Event, OrganizerEventResponse, EventCategoryResponse, EventDetailResponse, SearchParams } from "@/types/domain/event";
 import type { TicketTypePayload, TicketTypeResponse, PurchasePayload, UserTicketResponse } from "@/types/domain/ticket";
+import type { Bundle, CreateBundlePayload, UpdateBundlePayload } from "@/types/domain/bundle";
 import { ApiResponse } from "@/types/api";
 import { DashboardStats, UserProfile, ProfileUpdateRequest, Activity } from "@/types/dashboard";
 
@@ -303,6 +304,37 @@ export const deleteEvent = async (eventId: string) => {
 };
 
 /**
+ * Get the current user's list of favorite events
+ * Endpoint: GET /events/favorites/list
+ */
+export const getUserFavorites = async () => {
+  // Returns an array of Events
+  return apiFetch<any[]>('/events/favorites/list', {
+    method: 'GET',
+  });
+};
+
+/**
+ * Add a specific event to the user's favorites
+ * Endpoint: POST /events/{event_id}/favorites
+ */
+export const addEventToFavorites = async (eventId: string) => {
+  return apiFetch<{ message: string }>(`/events/${eventId}/favorites`, {
+    method: 'POST',
+  });
+};
+
+/**
+ * Remove a specific event from the user's favorites
+ * Endpoint: DELETE /events/{event_id}/favorites
+ */
+export const removeEventFromFavorites = async (eventId: string) => {
+  return apiFetch<{ message: string }>(`/events/${eventId}/favorites`, {
+    method: 'DELETE',
+  });
+};
+
+/**
  * Dashboard stats: Get user's dashboard statistics
  */
 export const getDashboardStats = async () => {
@@ -432,5 +464,80 @@ export const updateUserPlan = async (userId: string, plan: string) => {
   return apiFetch<{ success: boolean; message: string }>(`/admin/users/${userId}/plan`, {
     method: 'PUT',
     body: { plan }, 
+  });
+};
+
+// --- BUNDLES ---
+
+/**
+ * Get all bundles for the logged-in organizer (or all if Admin)
+ * Endpoint: GET /bundles
+ */
+export const getBundles = async () => {
+  return apiFetch<Bundle[]>('/bundles', {
+    method: 'GET',
+  });
+};
+
+/**
+ * Get a specific bundle by ID
+ * Endpoint: GET /bundles/{bundle_id}
+ */
+export const getBundleById = async (bundleId: string) => {
+  return apiFetch<Bundle>(`/bundles/${bundleId}`, {
+    method: 'GET',
+  });
+};
+
+/**
+ * Create a new bundle
+ * Endpoint: POST /bundles
+ */
+export const createBundle = async (data: CreateBundlePayload) => {
+  return apiFetch<Bundle>('/bundles', {
+    method: 'POST',
+    body: data,
+  });
+};
+
+/**
+ * Update a bundle
+ * Endpoint: PUT /bundles/{bundle_id}
+ */
+export const updateBundle = async (bundleId: string, data: UpdateBundlePayload) => {
+  return apiFetch<Bundle>(`/bundles/${bundleId}`, {
+    method: 'PUT',
+    body: data,
+  });
+};
+
+/**
+ * Delete a bundle
+ * Endpoint: DELETE /bundles/{bundle_id}
+ */
+export const deleteBundle = async (bundleId: string) => {
+  return apiFetch<{ success: boolean; message: string }>(`/bundles/${bundleId}`, {
+    method: 'DELETE',
+  });
+};
+
+/**
+ * Add an event to a bundle
+ * Endpoint: POST /bundles/{bundle_id}/events
+ */
+export const addEventToBundle = async (bundleId: string, eventId: string) => {
+  return apiFetch<Bundle>(`/bundles/${bundleId}/events`, {
+    method: 'POST',
+    body: { event_id: eventId },
+  });
+};
+
+/**
+ * Remove an event from a bundle
+ * Endpoint: DELETE /bundles/{bundle_id}/events/{event_id}
+ */
+export const removeEventFromBundle = async (bundleId: string, eventId: string) => {
+  return apiFetch<Bundle>(`/bundles/${bundleId}/events/${eventId}`, {
+    method: 'DELETE',
   });
 };
