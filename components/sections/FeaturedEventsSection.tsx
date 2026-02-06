@@ -10,12 +10,13 @@ import {
   Text,
   VStack,
   HStack,
+  IconButton,
 } from "@chakra-ui/react";
-import { MapPin, Calendar, Ticket } from "lucide-react";
-import { getFeaturedEvents } from "@/lib/api";
+import { MapPin, Calendar, Ticket, Heart } from "lucide-react";
+import { getFeaturedEvents, getUserFavorites, addEventToFavorites, removeEventFromFavorites } from "@/lib/api";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 
-// Define the shape of the data COMING from the backend
 interface BackendEvent {
   event_id: string;
   title: string;
@@ -27,7 +28,6 @@ interface BackendEvent {
   current_attendees: number;
 }
 
-// Define the shape of the data used by THIS component
 interface FrontendEvent {
   id: string;
   title: string;
@@ -39,36 +39,34 @@ interface FrontendEvent {
 
 export default function FeaturedEventsSection() {
   const [events, setEvents] = useState<FrontendEvent[]>([]);
+  const [favorites, setFavorites] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
   const router = useRouter();
+  const { user } = useAuth();
 
   useEffect(() => {
     let mounted = true;
     setLoading(true);
 
-    getFeaturedEvents()
-      .then((res: any) => { // Using 'any' to bypass the type mismatch temporarily
+    const fetchData = async () => {
+      try {
+        const [eventsRes, favoritesRes] = await Promise.all([
+          getFeaturedEvents(),
+          user ? getUserFavorites() : Promise.resolve([]) 
+        ]);
+
         if (!mounted) return;
 
-        // 1. Handle Response Format (Array vs Object)
         let rawEvents: BackendEvent[] = [];
-        
-        if (Array.isArray(res)) {
-          // If backend sends raw array [{}, {}]
-          rawEvents = res;
-        } else if (res.success && Array.isArray(res.data)) {
-          // If backend sends wrapper { success: true, data: [] }
-          rawEvents = res.data;
-        } else {
-          throw new Error("Invalid data format received");
-        }
+        const res = eventsRes as any;
+        if (Array.isArray(res)) rawEvents = res;
+        else if (res.success && Array.isArray(res.data)) rawEvents = res.data;
 
-        // 2. Map Backend Names (snake_case) to Frontend Names (camelCase)
         const mappedEvents: FrontendEvent[] = rawEvents.map((e) => ({
           id: e.event_id,
           title: e.title,
-          // Use a fallback image if URL is missing
           coverImage: e.event_image_url || "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?auto=format&fit=crop&w=800",
           location: `${e.venue_name || 'Unknown Venue'}, ${e.city || ''}`,
           startDate: e.event_date,
@@ -76,33 +74,48 @@ export default function FeaturedEventsSection() {
         }));
 
         setEvents(mappedEvents);
-      })
-      .catch((err) => {
+        
+        // Handle favorites array safely
+        if (Array.isArray(favoritesRes)) {
+             const favs = favoritesRes.map((f: any) => f.event_id || f.id);
+             setFavorites(favs);
+        }
+
+      } catch (err) {
         console.error("Fetch error:", err);
         if (mounted) setError("Failed to load events");
-      })
-      .finally(() => {
+      } finally {
         if (mounted) setLoading(false);
-      });
-
-    return () => {
-      mounted = false;
+      }
     };
-  }, []);
+
+    fetchData();
+    return () => { mounted = false; };
+  }, [user]);
+
+  const toggleFavorite = async (e: React.MouseEvent, eventId: string) => {
+    e.stopPropagation();
+    if (!user) {
+      router.push('/auth/login');
+      return;
+    }
+
+    const isFav = favorites.includes(eventId);
+    setFavorites(prev => isFav ? prev.filter(id => id !== eventId) : [...prev, eventId]);
+
+    try {
+      if (isFav) await removeEventFromFavorites(eventId);
+      else await addEventToFavorites(eventId);
+    } catch (error) {
+      setFavorites(prev => isFav ? [...prev, eventId] : prev.filter(id => id !== eventId));
+    }
+  };
 
   return (
-    <Box bg="#2196F3" py={16} px={4}> {/* Adjusted px for mobile responsiveness */}
+    <Box bg="#2196F3" py={16} px={4}>
       <Container maxW="7xl">
         <VStack gap={16} align="start">
-          <Heading
-            as="h2"
-            color="white"
-            fontWeight={700}
-            fontSize="36px"
-            textAlign="left"
-            w="full"
-            lineHeight="1.1"
-          >
+          <Heading as="h2" color="white" fontWeight={700} fontSize="36px" textAlign="left" w="full" lineHeight="1.1">
             Featured Events
           </Heading>
           
@@ -111,83 +124,63 @@ export default function FeaturedEventsSection() {
           ) : error ? (
             <Text color="red.300">{error}</Text>
           ) : (
-            <Grid 
-              templateColumns={{ base: "1fr", md: "repeat(2, 1fr)", lg: "repeat(4, 1fr)" }} 
-              gap={8} 
-              w="full"
-            >
+            <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)", lg: "repeat(4, 1fr)" }} gap={8} w="full">
               {events.length === 0 ? (
                 <Text color="white">No featured events found.</Text>
               ) : (
-                events.map((event) => (
-                  <GridItem key={event.id}>
-                    <Box
-                      bg="#222222"
-                      borderRadius="16px"
-                      cursor={"pointer"}
-                      overflow="hidden"
-                      shadow="md"
-                      h="360px"
-                      position="relative"
-                      w="full"
-                      transition="transform 0.2s"
-                      _hover={{ transform: "translateY(-5px)" }}
-                      onClick={() => router.push(`/events/${event.id}`)}
-                    >
-                      {/* Main Image Area */}
-                      <Box 
-                        h="50%" 
-                        bgImage={`url('${event.coverImage}')`} 
-                        bgSize="cover" 
-                        backgroundPosition="center" 
+                events.map((event) => {
+                  const isFavorite = favorites.includes(event.id);
+                  return (
+                    <GridItem key={event.id}>
+                      <Box
+                        bg="#222222"
+                        borderRadius="16px"
+                        cursor={"pointer"}
+                        overflow="hidden"
+                        shadow="md"
+                        h="360px"
                         position="relative"
+                        w="full"
+                        transition="transform 0.2s"
+                        _hover={{ transform: "translateY(-5px)" }}
+                        onClick={() => router.push(`/events/${event.id}`)}
                       >
-                        <Box position="absolute" top={0} left={0} right={0} bottom={0} bg="rgba(0,0,0,0.1)" />
+                        <Box h="50%" bgImage={`url('${event.coverImage}')`} bgSize="cover" backgroundPosition="center" position="relative">
+                          <Box position="absolute" top={0} left={0} right={0} bottom={0} bg="rgba(0,0,0,0.1)" />
+                        </Box>
+
+                        <Box bg="#222222" p="20px">
+                          <VStack align="start" gap="12px" h="full">
+                            <Box w="full">
+                              <Heading size="md" color="white" fontWeight={700} fontSize="18px" mb="8px" textAlign="left">
+                                {event.title}
+                              </Heading>
+                              <VStack align="start" gap="6px" w="full">
+                                <HStack gap="8px" align="center"><MapPin size={14} color="#CCCCCC" /><Text color="#CCCCCC" fontSize="14px">{event.location}</Text></HStack>
+                                <HStack gap="8px" align="center"><Calendar size={14} color="#CCCCCC" /><Text color="#CCCCCC" fontSize="14px">{new Date(event.startDate).toLocaleDateString()}</Text></HStack>
+                                <HStack gap="8px" align="center"><Ticket size={14} color="#CCCCCC" /><Text color="#CCCCCC" fontSize="14px">{event.availableTickets} Tickets Available</Text></HStack>
+                              </VStack>
+                            </Box>
+                          </VStack>
+                        </Box>
+
+                        <IconButton
+                          aria-label="Add to favorites"
+                          position="absolute"
+                          bottom="20px"
+                          right="20px"
+                          variant="ghost"
+                          borderRadius="full"
+                          _hover={{ bg: "whiteAlpha.200", transform: "scale(1.1)" }}
+                          onClick={(e) => toggleFavorite(e, event.id)}
+                          zIndex={2}
+                        >
+                          <Heart size={20} fill={isFavorite ? "red" : "none"} color={isFavorite ? "red" : "white"} />
+                        </IconButton>
                       </Box>
-
-                      {/* Content Area */}
-                      <Box bg="#222222" p="20px">
-                        <VStack align="start" gap="12px" h="full">
-                          <Box w="full">
-                            <Heading
-                              size="md"
-                              color="white"
-                              fontWeight={700}
-                              fontSize="18px"
-                              mb="8px"
-                              textAlign="left"
-                            >
-                              {event.title}
-                            </Heading>
-
-                            <VStack align="start" gap="6px" w="full">
-                              <HStack gap="8px" align="center">
-                                <MapPin size={14} color="#CCCCCC" />
-                                <Text color="#CCCCCC" fontSize="14px" >
-                                  {event.location}
-                                </Text>
-                              </HStack>
-
-                              <HStack gap="8px" align="center">
-                                <Calendar size={14} color="#CCCCCC" />
-                                <Text color="#CCCCCC" fontSize="14px">
-                                  {new Date(event.startDate).toLocaleDateString()}
-                                </Text>
-                              </HStack>
-
-                              <HStack gap="8px" align="center">
-                                <Ticket size={14} color="#CCCCCC" />
-                                <Text color="#CCCCCC" fontSize="14px">
-                                  {event.availableTickets} Tickets Available
-                                </Text>
-                              </HStack>
-                            </VStack>
-                          </Box>
-                        </VStack>
-                      </Box>
-                    </Box>
-                  </GridItem>
-                ))
+                    </GridItem>
+                  );
+                })
               )}
             </Grid>
           )}

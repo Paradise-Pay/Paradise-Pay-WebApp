@@ -131,7 +131,7 @@ export default function SignupPage() {
     <Box
       component="main"
       sx={{
-        minHeight: '100vh',
+        minHeight: {xs:'100vh', sm: '100vh', md: '150vh'},
         width: '100%',
         bgcolor: '#2f89ff',
         display: 'flex',
@@ -158,10 +158,6 @@ export default function SignupPage() {
           zIndex: 0, 
         }}
       />
-
-      <Box sx={{ position: 'absolute', top: 16, right: 16, zIndex: 2 }}>
-        <ThemeToggle />
-      </Box>
       
       {/* Changed maxWidth to 'sm' for better scaling on tablets/desktop */}
       <Container maxWidth="sm" sx={{ position: "relative", zIndex: 1 }}>
@@ -169,7 +165,7 @@ export default function SignupPage() {
           elevation={3} 
           sx={{ 
             width: '100%',
-            p: { xs: 4, sm: 4 }, // Responsive padding
+            p: { xs: 4, sm: 4}, // Responsive padding
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',

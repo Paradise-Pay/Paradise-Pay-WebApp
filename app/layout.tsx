@@ -34,9 +34,9 @@ export default function RootLayout({
           <AuthProvider>
             <CssBaseline enableColorScheme={true} />
             <div className="min-h-screen flex flex-col">
-              {/* <HeaderWrapper /> */}
+              <HeaderWrapper />
               <main className="flex-grow">{children}</main>
-              {/* <FooterWrapper /> */}
+              <FooterWrapper />
             </div>
             <ToastContainer
               position="bottom-right"

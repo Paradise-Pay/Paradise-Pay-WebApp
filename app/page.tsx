@@ -20,7 +20,6 @@ import ComingSoonPage from "@/components/layout/Coming-Soon";
 export default function Home() {
   return (
     <Box w="full" bg="white">
-      {/*
       <HeroSection />
       <StepsSection />
       <FeaturedEventsSection />
@@ -30,9 +29,8 @@ export default function Home() {
       <DiscoverSection />
       <OrganizerSection />
       <FAQSection />
-      */}
 
-      <ComingSoonPage />
+      {/* <ComingSoonPage />*/}
     </Box>
   );
 }

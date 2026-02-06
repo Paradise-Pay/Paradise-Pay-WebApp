@@ -1,5 +1,6 @@
 import type { Event, OrganizerEventResponse, EventCategoryResponse, EventDetailResponse, SearchParams } from "@/types/domain/event";
 import type { TicketTypePayload, TicketTypeResponse, PurchasePayload, UserTicketResponse } from "@/types/domain/ticket";
+import type { Bundle, CreateBundlePayload, UpdateBundlePayload } from "@/types/domain/bundle";
 import { ApiResponse } from "@/types/api";
 import { DashboardStats, UserProfile, ProfileUpdateRequest, Activity } from "@/types/dashboard";
 
@@ -72,6 +73,7 @@ export const login = async (email: string, password: string) => {
     id: user.user_id || user.id,
     email: user.email,
     role: user.role,
+    phone: user.phone || user.phoneNumber || '',
     firstName: user.name?.split(' ')[0] || user.firstName || '',
     lastName: user.name?.split(' ').slice(1).join(' ') || user.lastName || '',
     avatar: user.avatar
@@ -186,6 +188,31 @@ export const resetPasswordRequest = async (email: string) => {
   return data;
 };
 
+/**
+ * User profile: Get current user's profile data
+ */
+export const getUserProfile = async () => {
+  return apiFetch<UserProfile>("/user/profile", {
+    method: "GET",
+  });
+};
+
+/**
+ * Update user details (Used for Organizer Application)
+ * Endpoint: POST /auth/updateuser/{userId}
+ */
+export const updateUserDetails = async (
+  userId: string, 
+  data: { name?: string; phone?: string; nickname?: string }
+) => {
+  return apiFetch<{ success: boolean; message: string; user: any }>(
+    `/auth/updateuser/${userId}`, 
+    {
+      method: "POST",
+      body: data,
+    }
+  );
+};
 
 /**
  * Get featured events for homepage
@@ -277,30 +304,42 @@ export const deleteEvent = async (eventId: string) => {
 };
 
 /**
+ * Get the current user's list of favorite events
+ * Endpoint: GET /events/favorites/list
+ */
+export const getUserFavorites = async () => {
+  // Returns an array of Events
+  return apiFetch<any[]>('/events/favorites/list', {
+    method: 'GET',
+  });
+};
+
+/**
+ * Add a specific event to the user's favorites
+ * Endpoint: POST /events/{event_id}/favorites
+ */
+export const addEventToFavorites = async (eventId: string) => {
+  return apiFetch<{ message: string }>(`/events/${eventId}/favorites`, {
+    method: 'POST',
+  });
+};
+
+/**
+ * Remove a specific event from the user's favorites
+ * Endpoint: DELETE /events/{event_id}/favorites
+ */
+export const removeEventFromFavorites = async (eventId: string) => {
+  return apiFetch<{ message: string }>(`/events/${eventId}/favorites`, {
+    method: 'DELETE',
+  });
+};
+
+/**
  * Dashboard stats: Get user's dashboard statistics
  */
 export const getDashboardStats = async () => {
   return apiFetch<DashboardStats>("/dashboard/stats", {
     method: "GET",
-  });
-};
-
-/**
- * User profile: Get current user's profile data
- */
-export const getUserProfile = async () => {
-  return apiFetch<UserProfile>("/user/profile", {
-    method: "GET",
-  });
-};
-
-/**
- * User profile: Update user profile data
- */
-export const updateUserProfile = async (profileData: ProfileUpdateRequest) => {
-  return apiFetch<UserProfile>("/user/profile", {
-    method: "PUT",
-    body: profileData,
   });
 };
 
@@ -383,5 +422,122 @@ export const subscribeToComingSoon = async (email: string) => {
   return apiFetch<{ success: boolean; message: string; data?: any }>("/coming-soon/subscribe", {
     method: "POST",
     body: { email },
+  });
+};
+
+/**
+ * ADMIN: Get a list of all users
+ * Endpoint: GET /admin/users
+ */
+export const getAllUsers = async () => {
+  return apiFetch<{ users: any[], total: number }>('/admin/users', { 
+    method: 'GET',
+  });
+};
+
+/**
+ * ADMIN: Get a list of all events
+ * Endpoint: GET /admin/events
+ */
+export const getAllEvents = async () => {
+  // Assuming the admin router is mounted at /admin
+  return apiFetch<any[]>('/admin/events', {
+    method: 'GET',
+  });
+};
+
+/**
+ * ADMIN: Get admin dashboard stats
+ * Endpoint: GET /admin/dashboard
+ */
+export const getAdminDashboardStats = async () => {
+  return apiFetch<any>('/admin/dashboard', {
+    method: 'GET',
+  });
+};
+
+/**
+ * ADMIN: Update a user's plan
+ * Endpoint: PUT /admin/users/{user_id}/plan
+ */
+export const updateUserPlan = async (userId: string, plan: string) => {
+  return apiFetch<{ success: boolean; message: string }>(`/admin/users/${userId}/plan`, {
+    method: 'PUT',
+    body: { plan }, 
+  });
+};
+
+// --- BUNDLES ---
+
+/**
+ * Get all bundles for the logged-in organizer (or all if Admin)
+ * Endpoint: GET /bundles
+ */
+export const getBundles = async () => {
+  return apiFetch<Bundle[]>('/bundles', {
+    method: 'GET',
+  });
+};
+
+/**
+ * Get a specific bundle by ID
+ * Endpoint: GET /bundles/{bundle_id}
+ */
+export const getBundleById = async (bundleId: string) => {
+  return apiFetch<Bundle>(`/bundles/${bundleId}`, {
+    method: 'GET',
+  });
+};
+
+/**
+ * Create a new bundle
+ * Endpoint: POST /bundles
+ */
+export const createBundle = async (data: CreateBundlePayload) => {
+  return apiFetch<Bundle>('/bundles', {
+    method: 'POST',
+    body: data,
+  });
+};
+
+/**
+ * Update a bundle
+ * Endpoint: PUT /bundles/{bundle_id}
+ */
+export const updateBundle = async (bundleId: string, data: UpdateBundlePayload) => {
+  return apiFetch<Bundle>(`/bundles/${bundleId}`, {
+    method: 'PUT',
+    body: data,
+  });
+};
+
+/**
+ * Delete a bundle
+ * Endpoint: DELETE /bundles/{bundle_id}
+ */
+export const deleteBundle = async (bundleId: string) => {
+  return apiFetch<{ success: boolean; message: string }>(`/bundles/${bundleId}`, {
+    method: 'DELETE',
+  });
+};
+
+/**
+ * Add an event to a bundle
+ * Endpoint: POST /bundles/{bundle_id}/events
+ */
+export const addEventToBundle = async (bundleId: string, eventId: string) => {
+  return apiFetch<Bundle>(`/bundles/${bundleId}/events`, {
+    method: 'POST',
+    body: { event_id: eventId },
+  });
+};
+
+/**
+ * Remove an event from a bundle
+ * Endpoint: DELETE /bundles/{bundle_id}/events/{event_id}
+ */
+export const removeEventFromBundle = async (bundleId: string, eventId: string) => {
+  return apiFetch<Bundle>(`/bundles/${bundleId}/events/${eventId}`, {
+    method: 'DELETE',
   });
 };

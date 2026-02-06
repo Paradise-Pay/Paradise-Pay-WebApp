@@ -1,33 +1,6 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { SelectChangeEvent } from '@mui/material/Select';
-import {
-  type User as DomainUser,
-  type UserRole,
-  type ActivityLog,
-  type ID,
-  type SecuritySettings
-} from '@/types/domain/user';
-import type { 
-  ProfileUpdateRequest,
-  UserSecurity 
-} from '@/types/dashboard';
-import { useAuth } from '@/context/AuthContext';
-import { getUserProfile, updateUserProfile, uploadUserAvatar } from '@/lib/api';
-
-
-// Helper function to map ActivityLog to SecurityActivity
-const mapActivityLogToSecurityActivity = (log: ActivityLog) => {
-  return {
-    id: String(log.id), // Ensure ID is always a string
-    action: log.action,
-    device: log.userAgent || 'Unknown device',
-    location: log.location || log.ipAddress || 'Unknown location',
-    timestamp: log.createdAt instanceof Date ? log.createdAt.toISOString() : String(log.createdAt || new Date().toISOString()),
-    successful: log.status === 'success'
-  };
-};
 import { 
   Box,
   Typography, 
@@ -44,7 +17,6 @@ import {
   Select, 
   MenuItem, 
   Switch,
-  FormControlLabel, 
   Alert, 
   Snackbar,
   IconButton,
@@ -54,9 +26,10 @@ import {
   ListItemIcon,
   InputAdornment,
   Skeleton,
-  Chip
+  Chip,
+  Grid
 } from '@mui/material';
-import { Grid } from '@mui/material';
+import { SelectChangeEvent } from '@mui/material/Select';
 import { 
   Person as PersonIcon,
   Email as EmailIcon,
@@ -67,7 +40,6 @@ import {
   Save as SaveIcon,
   Edit as EditIcon,
   CameraAlt as CameraAltIcon,
-  VpnKey as VpnKeyIcon,
   Devices as DevicesIcon,
   History as HistoryIcon,
   Delete as DeleteIcon,
@@ -76,271 +48,203 @@ import {
   Language as LanguageIcon
 } from '@mui/icons-material';
 
-// Define the additional fields that will be stored in the user's metadata
+import { useAuth } from '@/context/AuthContext';
+import { getUserProfile, updateUserDetails, uploadUserAvatar } from '@/lib/api';
+
+// --- Types ---
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  emailVerified?: boolean;
+  phone?: string;
+  avatar?: string;
+}
+
+interface ExtendedProfile extends User {
+  bio?: string;
+  location?: string;
+  timezone?: string;
+  preferences?: {
+    theme?: string;
+    language?: string;
+    currency?: string;
+  };
+  notifications?: {
+    email?: boolean;
+    push?: boolean;
+    sms?: boolean;
+    marketing?: boolean;
+  };
+  security?: {
+    twoFactorAuth?: boolean;
+    loginAlerts?: boolean;
+    recentActivity?: any[];
+  };
+}
+
+interface ProfileFormData {
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  bio?: string;
+  location?: string;
+  timezone?: string;
+  preferences?: ExtendedProfile['preferences'];
+  notifications?: ExtendedProfile['notifications'];
+  security?: ExtendedProfile['security'];
+}
+
 interface SnackbarState {
   open: boolean;
   message: string;
   severity?: 'success' | 'error' | 'info' | 'warning';
 }
 
-// User metadata type that extends the base user data
-type UserMetadata = {
-  bio?: string;
-  location?: string;
-  timezone?: string;
-  notifications?: {
-    email: boolean;
-    push: boolean;
-    sms: boolean;
-  };
-  security?: {
-    twoFactorAuth: boolean;
-    loginAlerts: boolean;
-  };
-  preferences?: {
-    theme: 'light' | 'dark' | 'system';
-    language: string;
-    currency: string;
-  };
-}
-
-// Define the form data type based on DomainUser
-type ProfileFormData = Partial<Omit<DomainUser, 'id' | 'role' | 'createdAt' | 'updatedAt'>> & {
-  // Add any additional form fields that aren't in the DomainUser type
-  confirmPassword?: string;
-};
+// --- Constants ---
 
 const timezones = [
-  'UTC-12:00', 'UTC-11:00', 'UTC-10:00', 'UTC-09:00', 'UTC-08:00', 'UTC-07:00', 'UTC-06:00',
-  'UTC-05:00', 'UTC-04:00', 'UTC-03:30', 'UTC-03:00', 'UTC-02:00', 'UTC-01:00', 'UTC±00:00',
-  'UTC+01:00', 'UTC+02:00', 'UTC+03:00', 'UTC+03:30', 'UTC+04:00', 'UTC+04:30', 'UTC+05:00',
-  'UTC+05:30', 'UTC+05:45', 'UTC+06:00', 'UTC+06:30', 'UTC+07:00', 'UTC+08:00', 'UTC+08:45',
-  'UTC+09:00', 'UTC+09:30', 'UTC+10:00', 'UTC+10:30', 'UTC+11:00', 'UTC+12:00', 'UTC+12:45',
-  'UTC+13:00', 'UTC+14:00'
+  'UTC-12:00', 'UTC-08:00', 'UTC-05:00', 'UTC+00:00', 
+  'UTC+01:00', 'UTC+03:00', 'UTC+05:30', 'UTC+08:00', 'UTC+09:00'
 ];
 
 const languages = [
   { code: 'en', name: 'English' },
   { code: 'es', name: 'Español' },
   { code: 'fr', name: 'Français' },
-  { code: 'de', name: 'Deutsch' },
-  { code: 'zh', name: '中文' },
-  { code: 'ja', name: '日本語' },
-  { code: 'ko', name: '한국어' },
-  { code: 'ru', name: 'Русский' },
-  { code: 'ar', name: 'العربية' },
-  { code: 'pt', name: 'Português' },
-  { code: 'hi', name: 'हिन्दी' },
 ];
 
 const currencies = [
+  { code: 'GHS', name: 'Ghanaian Cedi (GH₵)' },
   { code: 'USD', name: 'US Dollar ($)' },
   { code: 'EUR', name: 'Euro (€)' },
   { code: 'GBP', name: 'British Pound (£)' },
-  { code: 'JPY', name: 'Japanese Yen (¥)' },
-  { code: 'AUD', name: 'Australian Dollar (A$)' },
-  { code: 'CAD', name: 'Canadian Dollar (C$)' },
-  { code: 'CHF', name: 'Swiss Franc (CHF)' },
-  { code: 'CNY', name: 'Chinese Yuan (¥)' },
-  { code: 'INR', name: 'Indian Rupee (₹)' },
-  { code: 'MXN', name: 'Mexican Peso (Mex$)' },
 ];
 
-// Default user object with empty values
-const defaultUser: DomainUser = {
-  id: '' as ID,
-  email: '',
-  role: 'user' as UserRole,
-  firstName: '',
-  lastName: '',
-  fullName: '',
-  avatar: '',
-  phone: '',
-  bio: '',
-  location: '',
-  timezone: 'UTC-08:00',
-  emailVerified: false,
-  preferences: {
-    theme: 'system' as const,
-    language: 'en',
-    currency: 'USD',
-  },
-  notifications: {
-    email: true,
-    push: true,
-    sms: false,
-    eventReminders: true,
-    ticketUpdates: true,
-    paymentReceipts: true,
-    marketing: false,
-  },
-  security: {
-    twoFactorAuth: false,
-    loginAlerts: true,
-    deviceManagement: false,
-    recentActivity: [],
-  } as SecuritySettings,
-  createdAt: new Date('2024-01-01T00:00:00.000Z'),
-  updatedAt: new Date('2024-01-01T00:00:00.000Z'),
-};
-
 export default function ProfileSettingsPage() {
+  const { user: authUser, updateProfile } = useAuth();
+  
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { user, updateProfile } = useAuth();
   const [activeTab, setActiveTab] = useState(0);
-  const [profile, setProfile] = useState<DomainUser & { metadata?: UserMetadata }>({
-    ...defaultUser,
-    metadata: {
-      bio: '',
-      location: '',
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      notifications: {
-        email: true,
-        push: true,
-        sms: false
-      },
-      security: {
-        twoFactorAuth: false,
-        loginAlerts: true
-      },
-      preferences: {
-        theme: 'system',
-        language: 'en',
-        currency: 'USD'
-      }
-    }
-  });
+  
+  const [profile, setProfile] = useState<ExtendedProfile | null>(null);
   const [formData, setFormData] = useState<ProfileFormData>({});
+  
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string>('');
+  
   const [isEditing, setIsEditing] = useState(false);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
-  const [snackbar, setSnackbar] = useState<SnackbarState>({
-    open: false,
-    message: ''
-  });
-  const handleCloseSnackbar = () => {
-    setSnackbar(prev => ({ ...prev, open: false }));
-  };
+  const [snackbar, setSnackbar] = useState<SnackbarState>({ open: false, message: '' });
 
-  const showError = useCallback((message: string) => {
-    setSnackbar({
-      open: true,
-      message,
-    });
-  }, []);
+  // --- Helpers ---
 
-  const handleError = useCallback((err: unknown) => {
-    const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
-    showError(errorMessage);
-    console.error(err);
-  }, [showError]);
-  const fetchProfile = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      // Fetch user profile from API
-      const response = await getUserProfile();
-      
-      if (response.success && response.data) {
-        const profileData = response.data;
-        
-        // Map API response to local DomainUser format
-        const userData: DomainUser = {
-          id: profileData.id as ID,
-          email: profileData.email,
-          firstName: profileData.firstName,
-          lastName: profileData.lastName,
-          fullName: profileData.fullName,
-          avatar: profileData.avatar || '/avatars/default-avatar.png',
-          phone: profileData.phone || '',
-          bio: profileData.bio || '',
-          location: profileData.location || '',
-          timezone: profileData.timezone,
-          emailVerified: profileData.emailVerified,
-          role: profileData.role as UserRole,
-          preferences: profileData.preferences,
-          notifications: profileData.notifications,
-          security: profileData.security ? {
-            ...profileData.security,
-            recentActivity: profileData.security.recentActivity?.map(activity => 
-              mapActivityLogToSecurityActivity(activity as unknown as ActivityLog)
-            ) || [],
-          } : defaultUser.security,
-          createdAt: profileData.createdAt,
-          updatedAt: profileData.updatedAt,
-        };
-        
-        setProfile(userData);
-        setFormData({});
-        setLoading(false);
-      } else {
-        throw new Error(response.message || 'Failed to fetch profile');
-      }
-    } catch (error) {
-      handleError(error);
-      
-      // Fallback to mock data for development
-      if (user) {
-        const userData: DomainUser = {
-          ...defaultUser,
-          id: user.id,
-          email: user.email || '',
-          firstName: (user as any).firstName || '',
-          lastName: (user as any).lastName || '',
-          fullName: `${(user as any).firstName || ''} ${(user as any).lastName || ''}`.trim(),
-          phone: '+1 (555) 123-4567',
-          avatar: user.avatar || '/avatars/default-avatar.png',
-          bio: 'Event organizer and music lover. Creating memorable experiences one event at a time!',
-          location: 'San Francisco, CA',
-          timezone: 'UTC-08:00',
-          emailVerified: false,
-          role: 'user',
-          notifications: {
-            ...defaultUser.notifications,
-            email: true,
-            push: true,
-            sms: false,
-          },
-          security: {
-            twoFactorAuth: true,
-            loginAlerts: true,
-            deviceManagement: false,
-            recentActivity: []
-          },
-          preferences: {
-            theme: 'system',
-            language: 'en',
-            currency: 'USD',
-          },
-        };
-        setProfile(userData);
-      }
-      
-      setLoading(false);
-    }
-  }, [user, handleError]);
-
+  const handleCloseSnackbar = () => setSnackbar(prev => ({ ...prev, open: false }));
+  
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target as HTMLInputElement;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
-    }));
+  const splitName = (fullName: string) => {
+    const parts = fullName ? fullName.split(' ') : [''];
+    const first = parts[0] || '';
+    const last = parts.slice(1).join(' ') || '';
+    return { first, last };
+  };
+
+  // --- Fetch Data ---
+  const fetchProfile = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    let profileData: ExtendedProfile | null = null;
+
+    try {
+      // 1. Try fetching from API
+      const response = await getUserProfile();
+      if (response.success && response.data) {
+        profileData = response.data as unknown as ExtendedProfile;
+      }
+    } catch (err) {
+      console.warn("API Fetch failed, falling back to context:", err);
+      // Suppress UI error if we have authUser fallback
+    }
+
+    // 2. Fallback to Auth Context if API failed or returned null
+    if (!profileData && authUser) {
+      console.log("Using AuthContext Fallback. Current User:", authUser); // Debug log
+      profileData = {
+        ...authUser,
+        bio: '',
+        location: '',
+        timezone: 'UTC+00:00',
+        preferences: { currency: 'USD', language: 'en', theme: 'system' },
+        notifications: { email: true, push: false, sms: false, marketing: false },
+        security: { twoFactorAuth: false, loginAlerts: true, recentActivity: [] }
+      };
+    }
+
+    if (profileData) {
+      setProfile(profileData);
+      
+      const { first, last } = splitName(profileData.name || '');
+      
+      const rawData = profileData as any;
+      const phoneNumber = profileData.phone || rawData.phoneNumber || rawData.mobile || '';
+
+      setFormData({
+        firstName: first,
+        lastName: last,
+        phone: phoneNumber,
+        bio: profileData.bio || '',
+        location: profileData.location || '',
+        timezone: profileData.timezone || 'UTC+00:00',
+        preferences: profileData.preferences || { currency: 'USD', language: 'en', theme: 'system' },
+        notifications: profileData.notifications || { email: true, push: false, sms: false, marketing: false },
+        security: profileData.security || { twoFactorAuth: false, loginAlerts: true, recentActivity: [] }
+      });
+    } else {
+      setError("Unable to load user profile.");
+    }
+
+    setLoading(false);
+  }, [authUser]);
+
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
+
+  // --- Input Handlers ---
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    if (formErrors[name]) setFormErrors(prev => ({ ...prev, [name]: '' }));
   };
 
   const handleSelectChange = (e: SelectChangeEvent<unknown>) => {
     const { name, value } = e.target;
-    setProfile(prev => ({
+    if (name === 'timezone') {
+        setFormData(prev => ({ ...prev, [name]: value as string }));
+    }
+  };
+
+  const handleNestedChange = (
+    e: React.ChangeEvent<HTMLInputElement> | { target: { name: string; value: any; type?: string; checked?: boolean } }, 
+    section: 'preferences' | 'notifications' | 'security'
+  ) => {
+    const target = e.target;
+    const value = target.type === 'checkbox' ? target.checked : target.value;
+    
+    setFormData(prev => ({
       ...prev,
-      [name as string]: value
+      [section]: {
+        ...(prev[section] || {}),
+        [target.name]: value
+      }
     }));
   };
 
@@ -348,260 +252,73 @@ export default function ProfileSettingsPage() {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setAvatarFile(file);
-      
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setAvatarPreview(reader.result as string);
-      };
+      reader.onloadend = () => setAvatarPreview(reader.result as string);
       reader.readAsDataURL(file);
     }
   };
-  
-  type InputEvent = {
-    target: {
-      name: string;
-      value: unknown;
-      type?: string;
-      checked?: boolean;
-    };
-  };
 
-  const handleNestedChange = (e: InputEvent | React.ChangeEvent<HTMLInputElement>, parent: keyof DomainUser) => {
-    const target = 'target' in e ? e.target : e;
-    const { name, type } = target as HTMLInputElement;
-    if (!name) return;
-    
-    const value = type === 'checkbox' ? target.checked : target.value;
-    
-    setFormData(prev => ({
-      ...prev,
-      [parent]: {
-        ...(prev[parent as keyof ProfileFormData] as object || {}),
-        [name]: value
-      }
-    }));
-  };
-
-  useEffect(() => {
-    fetchProfile();
-  }, [fetchProfile]);
+  // --- Save Logic ---
 
   const handleSaveProfile = async () => {
-    // Validate form before saving
-    if (!validateForm()) {
-      return;
-    }
-
+    if (!profile) return;
     setSaving(true);
+
     try {
-      console.log('Saving profile:', formData);
-      
-      // Handle avatar upload first if there's a new avatar
-      let avatarUrl = profile.avatar;
+      // 1. Upload Avatar if changed
+      let newAvatarUrl = profile.avatar;
       if (avatarFile) {
-        try {
-          const avatarResponse = await uploadUserAvatar(avatarFile);
-          if (avatarResponse.success && avatarResponse.data) {
-            avatarUrl = avatarResponse.data.avatarUrl;
-          }
-        } catch (avatarError) {
-          console.error('Error uploading avatar:', avatarError);
-          // Continue with profile update even if avatar upload fails
+        const avatarRes = await uploadUserAvatar(avatarFile);
+        if (avatarRes.success && avatarRes.data) {
+          newAvatarUrl = avatarRes.data.avatarUrl;
         }
       }
-      
-      // Activity log types are defined elsewhere
 
-      // Get security data with mapped recentActivity
-      const securityData = formData.security || profile.security || {};
-      const mappedSecurity: UserSecurity = {
-        twoFactorAuth: securityData?.twoFactorAuth ?? false,
-        loginAlerts: securityData?.loginAlerts ?? false,
-        deviceManagement: securityData?.deviceManagement ?? false,
-        recentActivity: Array.isArray(securityData?.recentActivity) 
-          ? securityData.recentActivity.map(activity => 
-              mapActivityLogToSecurityActivity(activity as unknown as ActivityLog)
-            )
-          : []
-      };
+      // 2. Combine Names for the API
+      const newName = `${formData.firstName || ''} ${formData.lastName || ''}`.trim();
 
-      // Prepare the update data
-      const updateData: ProfileUpdateRequest = {
-        firstName: formData.firstName ?? profile.firstName,
-        lastName: formData.lastName ?? profile.lastName,
-        phone: formData.phone ?? profile.phone,
-        bio: formData.bio ?? profile.bio,
-        location: formData.location ?? profile.location,
-        timezone: formData.timezone ?? profile.timezone,
-        preferences: {
-          theme: formData.preferences?.theme || profile.preferences?.theme || 'system',
-          language: formData.preferences?.language || profile.preferences?.language || 'en',
-          currency: formData.preferences?.currency || profile.preferences?.currency || 'USD',
-        },
-        notifications: formData.notifications ?? profile.notifications,
-        security: mappedSecurity,
-      };
-      
-      // Update the profile via API
-      const response = await updateUserProfile(updateData);
-      
-      if (response.success && response.data) {
-        // Default values for required fields
-        const defaultTheme: 'light' | 'dark' | 'system' = 'system';
-        const defaultLanguage = 'en';
-        const defaultCurrency = 'USD';
-        const defaultNotifications = {
-          email: false,
-          push: false,
-          sms: false,
-          eventReminders: false,
-          ticketUpdates: false,
-          paymentReceipts: false,
-          marketing: false
+      // 3. Update using updateUserDetails
+      const response = await updateUserDetails(profile.id, {
+        name: newName,
+        phone: formData.phone,
+        // The updateUserDetails function in api.ts only accepts name, phone, and nickname
+        // We will only send those. Other fields like preferences might need a different endpoint.
+      });
+
+      if (response.success) {
+        // Update local state
+        const updatedUser = { 
+            ...profile, 
+            name: newName,
+            phone: formData.phone,
+            avatar: newAvatarUrl,
+            bio: formData.bio,
+            location: formData.location,
+            preferences: formData.preferences,
+            notifications: formData.notifications
         };
+        setProfile(updatedUser);
         
-        // Update local profile state with new data
-        const updatedProfile: DomainUser = {
-          ...profile,
-          ...updateData,
-          // Ensure required fields have values
-          firstName: updateData.firstName || profile.firstName,
-          lastName: updateData.lastName || profile.lastName,
-          email: profile.email, // Should always come from profile
-          emailVerified: profile.emailVerified,
-          role: profile.role,
-          // Handle avatar
-          avatar: avatarUrl || profile.avatar,
-          // Ensure preferences have all required fields
-          preferences: {
-            theme: updateData.preferences?.theme || profile.preferences?.theme || defaultTheme,
-            language: updateData.preferences?.language || profile.preferences?.language || defaultLanguage,
-            currency: updateData.preferences?.currency || profile.preferences?.currency || defaultCurrency,
-          },
-          // Ensure notifications have all required fields
-          notifications: {
-            ...defaultNotifications,
-            ...profile.notifications,
-            ...(updateData.notifications || {})
-          },
-          // Ensure security has all required fields
-          security: {
-            twoFactorAuth: updateData.security?.twoFactorAuth ?? profile.security?.twoFactorAuth ?? false,
-            loginAlerts: updateData.security?.loginAlerts ?? profile.security?.loginAlerts ?? false,
-            deviceManagement: updateData.security?.deviceManagement ?? profile.security?.deviceManagement ?? false,
-            recentActivity: profile.security?.recentActivity || []
-          },
-          // Update timestamps
-          updatedAt: new Date().toISOString(),
-          createdAt: profile.createdAt,
-          // Ensure timezone has a value
-          timezone: updateData.timezone || profile.timezone || 'UTC',
-          // Handle deletedAt if it exists
-          ...(profile.deletedAt ? { deletedAt: profile.deletedAt } : {})
-        };
-        setProfile(updatedProfile);
-        setFormData({}); // Clear form data after successful save
-        setAvatarFile(null); // Clear avatar file
-        setAvatarPreview(''); // Clear avatar preview
-        
-        // Update the profile in the auth context
+        // Update Auth Context
         if (updateProfile) {
           await updateProfile({
-            id: String(updatedProfile.id),
-            name: `${updatedProfile.firstName} ${updatedProfile.lastName}`.trim(),
-            email: updatedProfile.email,
-            phone: updatedProfile.phone,
-            avatar: updatedProfile.avatar,
-            emailVerified: updatedProfile.emailVerified,
+            ...authUser, // Keep existing auth fields
+            id: profile.id,
+            name: newName,
+            email: profile.email,
+            avatar: newAvatarUrl,
+            role: profile.role
           });
         }
+
+        setSnackbar({ open: true, message: 'Profile updated successfully', severity: 'success' });
+        setIsEditing(false);
       } else {
         throw new Error(response.message || 'Failed to update profile');
       }
-      
-    } catch (error) {
-      console.error('Error saving profile:', error);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const validatePhone = (phone: string): boolean => {
-    const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
-    return phoneRegex.test(phone.replace(/[\s\-\(\)]/g, ''));
-  };
-
-  const validateForm = (): boolean => {
-    const errors: { [key: string]: string } = {};
-
-    // Validate first name
-    if (formData.firstName && formData.firstName.length < 2) {
-      errors.firstName = 'First name must be at least 2 characters';
-    }
-
-    // Validate last name
-    if (formData.lastName && formData.lastName.length < 2) {
-      errors.lastName = 'Last name must be at least 2 characters';
-    }
-
-    // Validate phone number
-    if (formData.phone && !validatePhone(formData.phone)) {
-      errors.phone = 'Please enter a valid phone number';
-    }
-
-    // Validate bio length
-    if (formData.bio && formData.bio.length > 500) {
-      errors.bio = 'Bio must be less than 500 characters';
-    }
-
-    // Validate location
-    if (formData.location && formData.location.length < 2) {
-      errors.location = 'Location must be at least 2 characters';
-    }
-
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  const handleInputChangeWithValidation = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name } = e.target;
-    
-    // Clear error for this field when user starts typing
-    if (formErrors[name]) {
-      setFormErrors(prev => ({ ...prev, [name]: '' }));
-    }
-    
-    handleInputChange(e);
-  };
-
-  const handleDeleteAccount = async () => {
-    if (!window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-      return;
-    }
-    
-    try {
-      setSaving(true);
-      // TODO: Implement delete account API call
-      // await api.deleteAccount();
-      console.log('Account deleted');
-      
-      setSnackbar({
-        open: true,
-        message: 'Your account has been deleted successfully',
-        severity: 'success',
-      });
-      
-      // Redirect to home or login page after a short delay
-      setTimeout(() => {
-        window.location.href = '/';
-      }, 2000);
-    } catch (error) {
-      console.error('Error deleting account:', error);
-      setSnackbar({
-        open: true,
-        message: 'Failed to delete account. Please try again.',
-        severity: 'error',
-      });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Error updating profile';
+      setSnackbar({ open: true, message: msg, severity: 'error' });
     } finally {
       setSaving(false);
     }
@@ -609,9 +326,9 @@ export default function ProfileSettingsPage() {
 
   if (loading) {
     return (
-      <Box>
-        <Skeleton variant="rectangular" height={56} sx={{ mb: 2 }} />
-        <Skeleton variant="rectangular" height={400} />
+      <Box sx={{ p: 3 }}>
+        <Skeleton variant="rectangular" height={100} sx={{ mb: 2, borderRadius: 2 }} />
+        <Skeleton variant="rectangular" height={400} sx={{ borderRadius: 2 }} />
       </Box>
     );
   }
@@ -619,71 +336,41 @@ export default function ProfileSettingsPage() {
   if (error && !profile) {
     return (
       <Box sx={{ p: 3 }}>
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-        <Button variant="contained" onClick={fetchProfile}>
-          Retry
-        </Button>
-      </Box>
-    );
-  }
-
-  if (!profile) {
-    return (
-      <Box sx={{ p: 3 }}>
-        <Alert severity="error">
-          No profile data available. Please try refreshing the page.
-        </Alert>
+        <Alert severity="error">{error}</Alert>
       </Box>
     );
   }
 
   return (
     <Box>
+      {/* Header */}
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3} flexWrap="wrap" gap={2}>
-        <Typography variant="h4" component="h1">
+        <Typography variant="h4" component="h1" fontWeight="bold">
           Profile Settings
         </Typography>
         <Box display="flex" gap={2}>
           {isEditing ? (
             <>
-              <Button 
-                variant="outlined" 
-                onClick={() => setIsEditing(false)}
-                disabled={saving}
-              >
+              <Button variant="outlined" onClick={() => { setIsEditing(false); fetchProfile(); }} disabled={saving}>
                 Cancel
               </Button>
-              <Button 
-                variant="contained" 
-                color="primary" 
-                startIcon={<SaveIcon />}
-                onClick={handleSaveProfile}
-                disabled={saving}
-              >
+              <Button variant="contained" color="primary" startIcon={<SaveIcon />} onClick={handleSaveProfile} disabled={saving}>
                 {saving ? 'Saving...' : 'Save Changes'}
               </Button>
             </>
           ) : (
-            <Button 
-              variant="contained" 
-              color="primary" 
-              startIcon={<EditIcon />}
-              onClick={() => setIsEditing(true)}
-            >
+            <Button variant="contained" color="primary" startIcon={<EditIcon />} onClick={() => setIsEditing(true)}>
               Edit Profile
             </Button>
           )}
         </Box>
       </Box>
 
+      {/* Tabs */}
       <Tabs 
         value={activeTab} 
         onChange={handleTabChange} 
         variant="scrollable"
-        scrollButtons="auto"
-        allowScrollButtonsMobile
         sx={{ mb: 3, borderBottom: 1, borderColor: 'divider' }}
       >
         <Tab label="Profile" icon={<PersonIcon />} iconPosition="start" />
@@ -692,339 +379,134 @@ export default function ProfileSettingsPage() {
         <Tab label="Security" icon={<SecurityIcon />} iconPosition="start" />
       </Tabs>
 
-      {activeTab === 0 && (
+      {/* TAB 1: PROFILE */}
+      {activeTab === 0 && profile && (
         <Grid container spacing={3}>
-          {/* Profile Picture Section */}
-          <Grid size={{ xs: 12, md: 4, lg: 3 }}>
+          <Grid item xs={12} md={4} lg={3}>
             <Card sx={{ height: '100%' }}>
-              <CardContent sx={{ 
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                p: 3,
-                textAlign: 'center',
-                height: '100%',
-                boxSizing: 'border-box'
-              }}>
+              <CardContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', p: 3, textAlign: 'center' }}>
                 <Box position="relative" mb={3}>
                   <Avatar 
                     src={avatarPreview || profile.avatar || ''} 
-                    alt={profile.fullName || (profile.firstName && profile.lastName ? `${profile.firstName} ${profile.lastName}` : 'User')}
-                    sx={{ 
-                      width: { xs: 120, md: 150 },
-                      height: { xs: 120, md: 150 },
-                      mx: 'auto',
-                      fontSize: '3rem',
-                      bgcolor: 'primary.main',
-                      boxShadow: 3
-                    }}
+                    alt="Profile"
+                    sx={{ width: 120, height: 120, fontSize: '3rem', bgcolor: 'primary.main' }}
                   >
-                    {!profile.avatar && !avatarPreview && ((profile.firstName?.[0] || '') + (profile.lastName?.[0] || '') || 'U')}
+                    {formData.firstName?.[0] || profile.name?.[0]}
                   </Avatar>
                   {isEditing && (
                     <label htmlFor="avatar-upload">
-                      <input
-                        accept="image/*"
-                        id="avatar-upload"
-                        type="file"
-                        className="hidden"
-                        onChange={handleAvatarChange}
-                        aria-label="Upload profile picture"
-                        title="Choose a profile picture to upload"
-                      />
-                      <IconButton
-                        color="primary"
-                        aria-label="upload picture"
-                        component="span"
-                        sx={{
-                          position: 'absolute',
-                          bottom: 0,
-                          right: 0,
-                          bgcolor: 'background.paper',
-                          '&:hover': {
-                            bgcolor: 'action.hover',
-                          },
-                        }}
-                      >
+                      <input accept="image/*" id="avatar-upload" type="file" className="hidden" style={{ display: 'none' }} onChange={handleAvatarChange} />
+                      <IconButton color="primary" component="span" sx={{ position: 'absolute', bottom: 0, right: 0, bgcolor: 'background.paper', boxShadow: 1 }}>
                         <CameraAltIcon />
                       </IconButton>
                     </label>
                   )}
                 </Box>
-                <Typography variant="h6" gutterBottom>
-                  {profile.firstName && profile.lastName ? `${profile.firstName} ${profile.lastName}` : profile.fullName || 'User'}
-                </Typography>
-                <Typography variant="body2" color="text.secondary" gutterBottom>
-                  {profile.email}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Member since {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}
-                </Typography>
-                
-                {!isEditing && (
-                  <Button 
-                    variant="outlined" 
-                    color="primary" 
-                    fullWidth 
-                    sx={{ mt: 2 }}
-                    onClick={() => setIsEditing(true)}
-                  >
-                    Edit Profile
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-            
-            <Card sx={{ mt: 3 }}>
-              <CardContent>
-                <Typography variant="subtitle1" gutterBottom fontWeight="medium">
-                  Account Status
-                </Typography>
-                <Box display="flex" justifyContent="space-between" mb={1}>
-                  <Typography variant="body2" color="text.secondary">
-                    Email Verified
-                  </Typography>
-                  <Chip 
-                    label="Verified"
-                    size="small" 
-                    color="success"
-                    variant="outlined"
-                  />
-                </Box>
-                <Box display="flex" justifyContent="space-between" mb={1}>
-                  <Typography variant="body2" color="text.secondary">
-                    Phone Verified
-                  </Typography>
-                  <Chip 
-                    label={profile.phone ? 'Verified' : 'Not Set'} 
-                    size="small" 
-                    color={profile.phone ? 'success' : 'default'}
-                    variant="outlined"
-                  />
-                </Box>
-                <Box display="flex" justifyContent="space-between">
-                  <Typography variant="body2" color="text.secondary">
-                    2FA Enabled
-                  </Typography>
-                  <Chip 
-                    label={profile.security?.twoFactorAuth ? 'Enabled' : 'Disabled'} 
-                    size="small" 
-                    color={profile.security?.twoFactorAuth ? 'success' : 'default'}
-                    variant="outlined"
-                  />
-                </Box>
-                
-                <Divider sx={{ my: 2 }} />
-                
-                <Button 
+                <Typography variant="h6">{profile.name}</Typography>
+                <Typography variant="body2" color="text.secondary">{profile.email}</Typography>
+                <Chip 
+                  label={profile.role?.toUpperCase()} 
+                  size="small" 
+                  color="primary" 
                   variant="outlined" 
-                  color="error" 
-                  fullWidth 
-                  startIcon={<DeleteIcon />}
-                  onClick={handleDeleteAccount}
-                  sx={{ mt: 1 }}
-                >
-                  Delete Account
-                </Button>
+                  sx={{ mt: 1 }} 
+                />
               </CardContent>
             </Card>
           </Grid>
           
-          <Grid size={{ xs: 12, md: 8 }}>
+          <Grid item xs={12} md={8}>
             <Card>
               <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Personal Information
-                </Typography>
-                <Typography variant="body2" color="text.secondary" paragraph>
-                  Update your personal information and how we can reach you.
-                </Typography>
-                
+                <Typography variant="h6" gutterBottom>Personal Information</Typography>
                 <Grid container spacing={3} sx={{ mt: 1 }}>
-                  <Grid size={{ xs: 12, sm: 6 }}>
+                  <Grid item xs={12} sm={6}>
                     <TextField
-                      fullWidth
-                      label="First Name"
-                      name="firstName"
-                      value={formData.firstName ?? profile.firstName ?? ''}
-                      onChange={handleInputChangeWithValidation}
-                      disabled={!isEditing}
-                      error={!!formErrors.firstName}
-                      helperText={formErrors.firstName}
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <PersonIcon color="action" />
-                          </InputAdornment>
-                        ),
-                      }}
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 6 }}>
-                    <TextField
-                      fullWidth
-                      label="Email Address"
-                      name="email"
-                      type="email"
-                      value={profile.email || ''}
+                      fullWidth label="First Name" name="firstName"
+                      value={formData.firstName || ''}
                       onChange={handleInputChange}
-                      disabled={true} // Email is typically not editable directly
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <EmailIcon color="action" />
-                          </InputAdornment>
-                        ),
-                      }}
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 6 }}>
-                    <TextField
-                      fullWidth
-                      label="Phone Number"
-                      name="phone"
-                      type="tel"
-                      value={formData.phone ?? profile.phone ?? ''}
-                      onChange={handleInputChangeWithValidation}
                       disabled={!isEditing}
-                      error={!!formErrors.phone}
-                      helperText={formErrors.phone}
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <PhoneIcon color="action" />
-                          </InputAdornment>
-                        ),
-                      }}
                     />
                   </Grid>
-                  <Grid size={{ xs: 12, sm: 6 }}>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth label="Last Name" name="lastName"
+                      value={formData.lastName || ''}
+                      onChange={handleInputChange}
+                      disabled={!isEditing}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth label="Email" value={profile.email} disabled
+                      InputProps={{ startAdornment: <InputAdornment position="start"><EmailIcon /></InputAdornment> }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth label="Phone" name="phone"
+                      value={formData.phone || ''}
+                      onChange={handleInputChange}
+                      disabled={!isEditing}
+                      InputProps={{ startAdornment: <InputAdornment position="start"><PhoneIcon /></InputAdornment> }}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth label="Bio" name="bio"
+                      value={formData.bio || ''}
+                      onChange={handleInputChange}
+                      disabled={!isEditing}
+                      multiline rows={3}
+                      placeholder="Tell us about yourself..."
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
                     <FormControl fullWidth disabled={!isEditing}>
-                      <InputLabel id="timezone-label">Timezone</InputLabel>
+                      <InputLabel>Timezone</InputLabel>
                       <Select
-                        labelId="timezone-label"
-                        id="timezone"
                         name="timezone"
-                        value={profile.timezone || ''}
+                        value={formData.timezone || ''}
                         label="Timezone"
                         onChange={handleSelectChange}
                       >
                         {timezones.map((tz) => (
-                          <MenuItem key={tz} value={tz}>
-                            {tz}
-                          </MenuItem>
+                          <MenuItem key={tz} value={tz}>{tz}</MenuItem>
                         ))}
                       </Select>
                     </FormControl>
-                  </Grid>
-                  <Grid size={{ xs: 12 }}>
-                    <TextField
-                      fullWidth
-                      label="Location"
-                      name="location"
-                      value={formData.location ?? profile.location ?? ''}
-                      onChange={handleInputChangeWithValidation}
-                      disabled={!isEditing}
-                      error={!!formErrors.location}
-                      helperText={formErrors.location}
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 12 }}>
-                    <TextField
-                      fullWidth
-                      label="Bio"
-                      name="bio"
-                      value={formData.bio ?? profile.bio ?? ''}
-                      onChange={handleInputChangeWithValidation}
-                      disabled={!isEditing}
-                      error={!!formErrors.bio}
-                      helperText={formErrors.bio || `${(formData.bio ?? profile.bio ?? '').length}/500 characters`}
-                      multiline
-                      rows={4}
-                      placeholder="Tell us about yourself..."
-                    />
                   </Grid>
                 </Grid>
               </CardContent>
             </Card>
-            
+
             <Card sx={{ mt: 3 }}>
               <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Preferences
-                </Typography>
-                <Typography variant="body2" color="text.secondary" paragraph>
-                  Customize your experience on our platform.
-                </Typography>
-                
+                <Typography variant="h6" gutterBottom>Preferences</Typography>
                 <Grid container spacing={3} sx={{ mt: 1 }}>
-                  <Grid size={{ xs: 12, sm: 6 }}>
-                    <FormControl fullWidth>
-                      <InputLabel id="language-label">Language</InputLabel>
+                  <Grid item xs={12} sm={6}>
+                    <FormControl fullWidth disabled={!isEditing}>
+                      <InputLabel>Currency</InputLabel>
                       <Select
-                        labelId="language-label"
-                        id="language"
-                        name="language"
-                        value={profile.preferences?.language || 'en'}
-                        label="Language"
-                        onChange={(e: SelectChangeEvent<string>) => handleNestedChange({
-                          target: {
-                            name: 'language',
-                            value: e.target.value
-                          }
-                        } as React.ChangeEvent<HTMLInputElement>, 'preferences')}
-                        disabled={!isEditing}
-                      >
-                        {languages.map((lang) => (
-                          <MenuItem key={lang.code} value={lang.code}>
-                            {lang.name}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 6 }}>
-                    <FormControl fullWidth>
-                      <InputLabel id="currency-label">Currency</InputLabel>
-                      <Select
-                        labelId="currency-label"
-                        id="currency"
                         name="currency"
-                        value={profile.preferences?.currency || 'USD'}
+                        value={formData.preferences?.currency || 'USD'}
                         label="Currency"
-                        onChange={(e: SelectChangeEvent<string>) => handleNestedChange({
-                          target: { name: 'currency', value: e.target.value }
-                        } as React.ChangeEvent<HTMLInputElement>, 'preferences')}
-                        disabled={!isEditing}
+                        onChange={(e: any) => handleNestedChange({ target: { name: 'currency', value: e.target.value } } as any, 'preferences')}
                       >
-                        {currencies.map((curr) => (
-                          <MenuItem key={curr.code} value={curr.code}>
-                            {curr.name}
-                          </MenuItem>
-                        ))}
+                        {currencies.map(c => <MenuItem key={c.code} value={c.code}>{c.name}</MenuItem>)}
                       </Select>
                     </FormControl>
                   </Grid>
-                  <Grid size={{ xs: 12 }}>
-                    <FormControl fullWidth>
-                      <InputLabel id="theme-label">Theme</InputLabel>
+                  <Grid item xs={12} sm={6}>
+                    <FormControl fullWidth disabled={!isEditing}>
+                      <InputLabel>Language</InputLabel>
                       <Select
-                        labelId="theme-label"
-                        id="theme"
-                        name="theme"
-                        value={profile.preferences?.theme || 'system'}
-                        label="Theme"
-                        onChange={(e: SelectChangeEvent<string>) => handleNestedChange({
-                          target: {
-                            name: 'theme',
-                            value: e.target.value
-                          }
-                        } as React.ChangeEvent<HTMLInputElement>, 'preferences')}
-                        disabled={!isEditing}
+                        name="language"
+                        value={formData.preferences?.language || 'en'}
+                        label="Language"
+                        onChange={(e: any) => handleNestedChange({ target: { name: 'language', value: e.target.value } } as any, 'preferences')}
                       >
-                        <MenuItem value="light">Light</MenuItem>
-                        <MenuItem value="dark">Dark</MenuItem>
-                        <MenuItem value="system">System Default</MenuItem>
+                        {languages.map(l => <MenuItem key={l.code} value={l.code}>{l.name}</MenuItem>)}
                       </Select>
                     </FormControl>
                   </Grid>
@@ -1034,450 +516,99 @@ export default function ProfileSettingsPage() {
           </Grid>
         </Grid>
       )}
-      
+
+      {/* TAB 2: ACCOUNT */}
       {activeTab === 1 && (
         <Card>
           <CardContent>
-            <Typography variant="h6" gutterBottom>
-              Account Settings
-            </Typography>
-            <Typography variant="body2" color="text.secondary" paragraph>
-              Manage your account settings and security preferences.
-            </Typography>
-            
-            <Box sx={{ maxWidth: 800 }}>
-              <List disablePadding>
-                <ListItemButton component="div">
-                  <ListItemIcon>
-                    <LockIcon color="primary" />
-                  </ListItemIcon>
-                  <ListItemText 
-                    primary="Change Password" 
-                    secondary="Update your account password" 
-                  />
-                  <ChevronRightIcon color="action" />
-                </ListItemButton>
-                
-                <ListItemButton component="div">
-                  <ListItemIcon>
-                    <EmailIcon color="primary" />
-                  </ListItemIcon>
-                  <ListItemText 
-                    primary="Email Preferences" 
-                    secondary="Manage email notifications" 
-                  />
-                  <ChevronRightIcon color="action" />
-                </ListItemButton>
-                
-                <ListItemButton component="div">
-                  <ListItemIcon>
-                    <DevicesIcon color="primary" />
-                  </ListItemIcon>
-                  <ListItemText 
-                    primary="Connected Devices" 
-                    secondary="Manage your logged-in devices" 
-                  />
-                  <Chip label="3 active" size="small" />
-                  <ChevronRightIcon color="action" />
-                </ListItemButton>
-                
-                <ListItemButton component="div">
-                  <ListItemIcon>
-                    <LanguageIcon color="primary" />
-                  </ListItemIcon>
-                  <ListItemText 
-                    primary="Language & Region" 
-                    secondary="Change language and regional settings" 
-                  />
-                  <Box display="flex" alignItems="center">
-                    <Typography variant="body2" color="text.secondary" sx={{ mr: 1 }}>
-                      English (US)
-                    </Typography>
-                    <ChevronRightIcon color="action" />
-                  </Box>
-                </ListItemButton>
-              </List>
-            </Box>
+            <Typography variant="h6">Account Settings</Typography>
+            <List>
+              <ListItemButton>
+                <ListItemIcon><LockIcon /></ListItemIcon>
+                <ListItemText primary="Change Password" secondary="Update your secure password" />
+                <ChevronRightIcon />
+              </ListItemButton>
+              <Divider />
+              <ListItemButton onClick={() => setSnackbar({ open: true, message: "Delete functionality coming soon", severity: 'info' })}>
+                <ListItemIcon><DeleteIcon color="error" /></ListItemIcon>
+                <ListItemText primary="Delete Account" secondary="Permanently delete your data" />
+              </ListItemButton>
+            </List>
           </CardContent>
         </Card>
       )}
-      
+
+      {/* TAB 3: NOTIFICATIONS */}
       {activeTab === 2 && (
-        <Grid container spacing={3}>
-          <Grid size={{ xs: 12, md: 6 }}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Email Notifications
-                </Typography>
-                <Typography variant="body2" color="text.secondary" paragraph>
-                  Manage when and how we send you email notifications.
-                </Typography>
-                
-                <List disablePadding>
-                  <ListItemButton component="div">
-                    <ListItemText 
-                      primary="Account Notifications"
-                      secondary="Important updates about your account"
-                    />
-                    <Switch 
-                      edge="end"
-                      checked={profile.notifications?.email ?? true}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleNestedChange(e, 'notifications')}
-                    />
-                  </ListItemButton>
-                  <Divider component="li" />
-                  <ListItemButton component="div">
-                    <ListItemText 
-                      primary="Event Updates"
-                      secondary="Updates about events you're attending or hosting"
-                    />
-                    <Switch 
-                      edge="end"
-                      checked={profile.notifications?.push ?? true}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleNestedChange(e, 'notifications')}
-                    />
-                  </ListItemButton>
-                  <Divider component="li" />
-                  <ListItemButton component="div">
-                    <ListItemText 
-                      primary="Promotional Emails"
-                      secondary="News, offers, and recommendations"
-                    />
-                    <Switch 
-                      edge="end"
-                      checked={profile.notifications?.sms ?? false}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleNestedChange({
-                        target: {
-                          name: 'sms',
-                          checked: e.target.checked,
-                          type: 'checkbox'
-                        }
-                      } as React.ChangeEvent<HTMLInputElement>, 'notifications')}
-                    />
-                  </ListItemButton>
-                </List>
-              </CardContent>
-            </Card>
-          </Grid>
-          
-          <Grid size={{ xs: 12, md: 6 }}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Push Notifications
-                </Typography>
-                <Typography variant="body2" color="text.secondary" paragraph>
-                  Manage your push notification preferences.
-                </Typography>
-                
-                <List disablePadding>
-                  <ListItemButton component="div">
-                    <ListItemText 
-                      primary="Event Reminders"
-                      secondary="Get reminders about upcoming events"
-                    />
-                    <Switch 
-                      edge="end"
-                      defaultChecked
-                    />
-                  </ListItemButton>
-                  <Divider component="li" />
-                  <ListItemButton component="div">
-                    <ListItemText 
-                      primary="Ticket Updates"
-                      secondary="Get updates about your ticket purchases"
-                    />
-                    <Switch 
-                      edge="end"
-                      defaultChecked
-                    />
-                  </ListItemButton>
-                  <Divider component="li" />
-                  <ListItemButton component="div">
-                    <ListItemText 
-                      primary="Special Offers"
-                      secondary="Receive special offers and discounts"
-                    />
-                    <Switch 
-                      edge="end"
-                      defaultChecked
-                    />
-                  </ListItemButton>
-                </List>
-              </CardContent>
-            </Card>
-            
-            <Card sx={{ mt: 3 }}>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  SMS Notifications
-                </Typography>
-                <Typography variant="body2" color="text.secondary" paragraph>
-                  Manage your SMS notification preferences.
-                </Typography>
-                
-                <FormControlLabel
-                  control={
-                    <Switch 
-                      checked={profile.notifications?.sms ?? false}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleNestedChange({
-                        target: {
-                          name: 'sms',
-                          checked: e.target.checked,
-                          type: 'checkbox'
-                        }
-                      } as React.ChangeEvent<HTMLInputElement>, 'notifications')}
-                    />
-                  }
-                  label="Enable SMS Notifications"
-                  sx={{ mb: 2 }}
+        <Card>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>Email Notifications</Typography>
+            <List>
+              <ListItemButton>
+                <ListItemText primary="Marketing Emails" secondary="Receive updates about new features" />
+                <Switch 
+                  checked={formData.notifications?.marketing ?? false}
+                  onChange={(e: any) => handleNestedChange(e, 'notifications')}
+                  name="marketing"
+                  disabled={!isEditing}
                 />
-                
-                <Typography variant="body2" color="text.secondary">
-                  Standard message and data rates may apply. Reply HELP for help or STOP to cancel.
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
+              </ListItemButton>
+              <ListItemButton>
+                <ListItemText primary="Security Alerts" secondary="Get notified about logins" />
+                <Switch 
+                  checked={true} disabled 
+                />
+              </ListItemButton>
+            </List>
+          </CardContent>
+        </Card>
       )}
-      
+
+      {/* TAB 4: SECURITY */}
       {activeTab === 3 && (
-        <Grid container spacing={3}>
-          <Grid size={{ xs: 12, md: 6 }}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Security Settings
-                </Typography>
-                <Typography variant="body2" color="text.secondary" paragraph>
-                  Manage your account security settings.
-                </Typography>
-                
-                <List disablePadding>
-                  <ListItemButton component="div">
-                    <ListItemIcon>
-                      <LockIcon color="primary" />
-                    </ListItemIcon>
-                    <ListItemText 
-                      primary="Two-Factor Authentication"
-                      secondary="Add an extra layer of security to your account"
-                    />
-                    <Switch 
-                      edge="end"
-                      checked={profile.security?.twoFactorAuth ?? false}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                        handleNestedChange({
-                          target: {
-                            name: 'twoFactorAuth',
-                            value: e.target.checked,
-                            type: 'checkbox'
-                          }
-                        }, 'security');
-                      }}
-                    />
-                  </ListItemButton>
-                  <Divider component="li" />
-                  <ListItemButton component="div">
-                    <ListItemIcon>
-                      <SecurityIcon color="primary" />
-                    </ListItemIcon>
-                    <ListItemText 
-                      primary="Login Alerts"
-                      secondary="Get notified of new logins to your account"
-                    />
-                    <Switch 
-                      edge="end"
-                      checked={profile.security?.loginAlerts ?? true}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                        // Create a new event with the correct structure
-                        const event = {
-                          ...e,
-                          target: {
-                            ...e.target,
-                            name: 'loginAlerts',
-                            checked: e.target.checked,
-                            type: 'checkbox'
-                          }
-                        };
-                        return handleNestedChange(event, 'security');
-                      }}
-                    />
-                  </ListItemButton>
-                  <Divider component="li" />
-                  <ListItemButton component="div" sx={{ cursor: 'pointer' }}>
-                    <ListItemIcon>
-                      <DevicesIcon color="primary" />
-                    </ListItemIcon>
-                    <ListItemText 
-                      primary="Active Sessions"
-                      secondary="View and manage your logged-in devices"
-                    />
-                    <Chip label="3 active" size="small" sx={{ mr: 1 }} />
-                    <ChevronRightIcon color="action" />
-                  </ListItemButton>
-                </List>
-                
-                <Button 
-                  variant="outlined" 
-                  color="primary" 
-                  fullWidth 
-                  sx={{ mt: 2 }}
-                  startIcon={<HistoryIcon />}
-                >
-                  View Security Logs
-                </Button>
-              </CardContent>
-            </Card>
+        <Card>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>Security</Typography>
+            <List>
+              <ListItemButton>
+                <ListItemIcon><SecurityIcon /></ListItemIcon>
+                <ListItemText primary="Two-Factor Authentication" secondary="Add an extra layer of security" />
+                <Switch 
+                  checked={formData.security?.twoFactorAuth ?? false}
+                  onChange={(e: any) => handleNestedChange(e, 'security')}
+                  name="twoFactorAuth"
+                  disabled={!isEditing}
+                />
+              </ListItemButton>
+            </List>
             
-            <Card sx={{ mt: 3 }}>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Data & Privacy
-                </Typography>
-                <Typography variant="body2" color="text.secondary" paragraph>
-                  Manage your data and privacy settings.
-                </Typography>
-                
-                <List disablePadding>
-                  <ListItemButton component="div" sx={{ cursor: 'pointer' }}>
-                    <ListItemIcon>
-                      <DownloadIcon color="primary" />
-                    </ListItemIcon>
+            <Typography variant="h6" sx={{ mt: 3, mb: 2 }}>Recent Activity</Typography>
+            {formData.security?.recentActivity && formData.security.recentActivity.length > 0 ? (
+              <List dense>
+                {formData.security.recentActivity.map((log: any, index: number) => (
+                  <ListItemButton key={index}>
+                    <ListItemIcon><HistoryIcon /></ListItemIcon>
                     <ListItemText 
-                      primary="Download Your Data"
-                      secondary="Get a copy of your data"
+                      primary={log.action} 
+                      secondary={`${new Date(log.timestamp).toLocaleString()} • ${log.location}`} 
                     />
-                    <ChevronRightIcon color="action" />
                   </ListItemButton>
-                  <Divider component="li" />
-                  <ListItemButton component="div" sx={{ cursor: 'pointer' }}>
-                    <ListItemIcon>
-                      <DeleteIcon color="primary" />
-                    </ListItemIcon>
-                    <ListItemText 
-                      primary="Request Data Deletion"
-                      secondary="Request to delete your personal data"
-                    />
-                    <ChevronRightIcon color="action" />
-                  </ListItemButton>
-                </List>
-              </CardContent>
-            </Card>
-          </Grid>
-          
-          <Grid xs={12} md={6}>
-            <Card sx={{ mt: 3 }}>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Change Password
-                </Typography>
-                <Typography variant="body2" color="text.secondary" paragraph>
-                  Update your password to keep your account secure.
-                </Typography>
-                
-                <form>
-                  <TextField
-                    fullWidth
-                    label="Current Password"
-                    type="password"
-                    margin="normal"
-                    required
-                  />
-                  <TextField
-                    fullWidth
-                    label="New Password"
-                    type="password"
-                    margin="normal"
-                    required
-                    helperText="Password must be at least 8 characters long"
-                  />
-                  <TextField
-                    fullWidth
-                    label="Confirm New Password"
-                    type="password"
-                    margin="normal"
-                    required
-                  />
-                  <Box sx={{ mt: 2 }}>
-                    <Button 
-                      variant="contained" 
-                      color="primary"
-                      fullWidth
-                      type="submit"
-                    >
-                      Update Password
-                    </Button>
-                  </Box>
-                </form>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardContent>
-                <Box display="flex" alignItems="center" mb={2}>
-                  <SecurityIcon color="warning" sx={{ mr: 1 }} />
-                  <Typography variant="h6">
-                    Advanced Security
-                  </Typography>
-                </Box>
-                <Typography variant="body2" color="text.secondary" paragraph>
-                  For advanced users who want more control over their account security.
-                </Typography>
-                
-                <List disablePadding>
-                  <ListItemButton component="div" sx={{ cursor: 'pointer' }}>
-                    <ListItemIcon>
-                      <VpnKeyIcon color="primary" />
-                    </ListItemIcon>
-                    <ListItemText 
-                      primary="API Keys"
-                      secondary="Manage your API access keys"
-                    />
-                    <ChevronRightIcon color="action" />
-                  </ListItemButton>
-                  <Divider component="li" />
-                  <ListItemButton component="div" sx={{ cursor: 'pointer' }}>
-                    <ListItemIcon>
-                      <SecurityIcon color="primary" />
-                    </ListItemIcon>
-                    <ListItemText 
-                      primary="Authorized Apps"
-                      secondary="Manage third-party app access"
-                    />
-                    <Chip label="5 connected" size="small" sx={{ mr: 1 }} />
-                    <ChevronRightIcon color="action" />
-                  </ListItemButton>
-                  <Divider component="li" />
-                  <ListItemButton component="div" sx={{ cursor: 'pointer' }}>
-                    <ListItemIcon>
-                      <LockIcon color="primary" />
-                    </ListItemIcon>
-                    <ListItemText 
-                      primary="Trusted Devices"
-                      secondary="Manage your trusted devices"
-                    />
-                    <ChevronRightIcon color="action" />
-                  </ListItemButton>
-                </List>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
+                ))}
+              </List>
+            ) : (
+              <Typography color="text.secondary">No recent activity logs found.</Typography>
+            )}
+          </CardContent>
+        </Card>
       )}
-      
+
       <Snackbar
         open={snackbar.open}
         autoHideDuration={6000}
         onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
-        <Alert 
-          onClose={handleCloseSnackbar} 
-          severity={snackbar.severity}
-          sx={{ width: '100%' }}
-        >
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} variant="filled">
           {snackbar.message}
         </Alert>
       </Snackbar>

@@ -6,6 +6,7 @@
  */
 
 import React from "react";
+import { useRouter } from 'next/navigation';
 import {
   Box,
   Container,
@@ -21,6 +22,8 @@ import {
 import { Check } from "lucide-react";
 
 export default function OrganizerSection() {
+  const router = useRouter();
+
   return (
     <Box bg="#2196F3" py={{ base: 16, md: 20, lg: 24 }}>
       <Container maxW="7xl" px={{ base: 4, md: 6, lg: 8 }}>
@@ -105,6 +108,7 @@ export default function OrganizerSection() {
                 shadow="0 4px 12px rgba(0, 0, 0, 0.15)"
                 transition="all 0.3s ease"
                 w={{ base: "100%", sm: "auto" }}
+                onClick={() => router.push('/auth/organizer-apply')}
               >
                 Start Selling Today
               </Button>

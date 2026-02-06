@@ -75,7 +75,7 @@ const menuItems = [
     text: "Manage Events",
     icon: <EventIcon />,
     path: "/dashboard/manage-events",
-    allowedRoles: [ROLES.ADMIN],
+    allowedRoles: [ROLES.ADMIN, ROLES.ORGANIZER, ROLES.USER],
   },
   {
     text: "Manage Tickets & Bundles",
@@ -94,12 +94,6 @@ const menuItems = [
     icon: <MarketIcon />,
     path: "/dashboard/marketing",
     allowedRoles: [ROLES.ADMIN],
-  },
-  {
-    text: "My Events",
-    icon: <EventIcon />,
-    path: "/dashboard/events",
-    allowedRoles: [ROLES.ADMIN, ROLES.ORGANIZER],
   },
   {
     text: "My Tickets",
