@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -16,12 +16,12 @@ import {
   Avatar,
   Divider,
 } from '@mui/material';
-import { Visibility, VisibilityOff, AccountBalanceWallet as AccountBalanceWalletIcon } from '@mui/icons-material';
+import { Visibility, VisibilityOff, AccountBalanceWallet as AccountBalanceWalletIcon, Google as GoogleIcon } from '@mui/icons-material';
 import { useAuth } from '@/context/AuthContext';
 import { authService } from '@/lib/api/auth';
+import { googleLogin } from '@/lib/api';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { ThemeToggle } from '@/components/ThemeToggle';
 
 interface SignupFormData {
   name: string;
@@ -48,6 +48,32 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Partial<SignupFormData>>({});
+
+  // --- Initialize Google Button ---
+  useEffect(() => {
+    if (typeof window !== 'undefined' && (window as any).google) {
+      try {
+        (window as any).google.accounts.id.initialize({
+          client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+          use_fedcm_for_prompt: false,
+          callback: async (response: any) => {
+            try {
+              setIsLoading(true);
+              await googleLogin(response.credential);
+              toast.success("Account created via Google!", { position: "top-center" });
+              router.push('/dashboard');
+            } catch (error) {
+              toast.error("Google signup failed", { position: "top-center" });
+            } finally {
+              setIsLoading(false);
+            }
+          }
+        });
+      } catch (e) {
+        console.error("Google SDK init error", e);
+      }
+    }
+  }, [router]);
 
   const validateForm = (): boolean => {
     const newErrors: Partial<SignupFormData> = {};
@@ -76,27 +102,15 @@ export default function SignupPage() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value,
-    }));
-    
-    // Clear error when user starts typing
+    setFormData(prev => ({ ...prev, [name]: value }));
     if (errors[name as keyof typeof errors]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: undefined,
-      }));
+      setErrors(prev => ({ ...prev, [name]: undefined }));
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
-    
+    if (!validateForm()) return;
     setIsLoading(true);
     
     try {
@@ -118,10 +132,7 @@ export default function SignupPage() {
       router.push('/auth/login?status=success&message=Account created successfully!');
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Signup failed. Please try again.';
-      toast.error(errorMessage, {
-        position: 'top-center',
-        autoClose: 5000,
-      });
+      toast.error(errorMessage, { position: 'top-center', autoClose: 5000 });
     } finally {
       setIsLoading(false);
     }
@@ -131,7 +142,7 @@ export default function SignupPage() {
     <Box
       component="main"
       sx={{
-        minHeight: '100vh',
+        minHeight: {xs:'110vh', sm: '110vh', md: '175vh'},
         width: '100%',
         bgcolor: '#2f89ff',
         display: 'flex',
@@ -145,31 +156,14 @@ export default function SignupPage() {
         backgroundRepeat: "no-repeat",
       }}
     >
-      {/* The Dark Overlay */}
-      <Box
-        sx={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          bgcolor: "black",
-          opacity: 0.5, 
-          zIndex: 0, 
-        }}
-      />
-
-      <Box sx={{ position: 'absolute', top: 16, right: 16, zIndex: 2 }}>
-        <ThemeToggle />
-      </Box>
+      <Box sx={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, bgcolor: "black", opacity: 0.5, zIndex: 0 }} />
       
-      {/* Changed maxWidth to 'sm' for better scaling on tablets/desktop */}
       <Container maxWidth="sm" sx={{ position: "relative", zIndex: 1 }}>
         <Paper 
           elevation={3} 
           sx={{ 
             width: '100%',
-            p: { xs: 4, sm: 4 }, // Responsive padding
+            p: { xs: 4, sm: 4}, 
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -179,15 +173,7 @@ export default function SignupPage() {
           }}
         >
           <Box sx={{ mb: 3, textAlign: 'center', width: '100%' }}>
-            <Avatar 
-              sx={{ 
-                bgcolor: 'primary.main', 
-                mx: "auto",
-                mb: 2,
-                width: 56, 
-                height: 56,
-              }}
-            >
+            <Avatar sx={{ bgcolor: 'primary.main', mx: "auto", mb: 2, width: 56, height: 56 }}>
               <AccountBalanceWalletIcon fontSize="large" />
             </Avatar>
             <Typography component="h1" variant="h5" sx={{ fontWeight: 600 }}>
@@ -309,7 +295,24 @@ export default function SignupPage() {
               {isLoading ? 'Signing up...' : 'Sign Up'}
             </Button>
 
-            <Divider sx={{ my: 2 }} />
+            <Divider sx={{ my: 2 }}>OR</Divider>
+
+            {/* Google Sign Up Button */}
+            <Button 
+              fullWidth 
+              variant="outlined" 
+              startIcon={<GoogleIcon />}
+              sx={{ mb: 2, py: 1 }}
+              onClick={() => {
+                if ((window as any).google) {
+                  (window as any).google.accounts.id.prompt();
+                } else {
+                  toast.error("Google SDK not loaded");
+                }
+              }}
+            >
+              Sign up with Google
+            </Button>
 
             <Box sx={{ mt: 2, textAlign: 'center' }}>
               <Typography variant="body2" color="text.secondary">

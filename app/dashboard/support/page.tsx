@@ -1,237 +1,401 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Box, Table, Badge, Button, IconButton, Heading, Text, Flex, 
   Tabs, SimpleGrid, Card, Stat, HStack, Stack, 
-  Dialog, Textarea, Portal, Separator
+  Dialog, Textarea, Portal, Separator, Input, Select, Spinner, Center, VStack, Avatar
 } from '@chakra-ui/react';
 import { Toaster, toaster } from '@/components/ui/toaster';
 import { 
   BsHeadset, BsPersonBadge, BsShieldLock, BsJournalText, 
-  BsCheckCircle, BsXCircle, BsEye, BsReply, BsClockHistory 
+  BsEye, BsReply, BsPlusCircle, BsPerson
 } from 'react-icons/bs';
+
+// --- API & Context ---
+import { useAuth } from '@/context/AuthContext';
 import { 
-  mockTickets, mockKYC, mockAuditLogs, mockCompliance, Ticket 
-} from '@/public/data/SupportData';
+  getSupportTickets, 
+  createSupportTicket, 
+  addTicketResponse, 
+  updateSupportTicket,
+  getSupportTicketById // Import this to fetch details + responses
+} from '@/lib/api';
+import { SupportTicket } from '@/types/domain/support'; 
+
+// --- MOCK DATA ---
+import { createListCollection } from '@chakra-ui/react';
 
 export default function SupportPage() {
-  const [tickets, setTickets] = useState(mockTickets);
-  const [kycRequests, setKycRequests] = useState(mockKYC);
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [tickets, setTickets] = useState<SupportTicket[]>([]);
+  const [ticketStats, setTicketStats] = useState({ total: 0, open: 0, resolved: 0 });
   
-  // -- State for Ticket Reply --
-  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
-  const [isTicketDialogOpen, setIsTicketDialogOpen] = useState(false);
+  // -- State for Dialogs --
+  const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
+  const [isLoadingDetails, setIsLoadingDetails] = useState(false); // Loading state for single ticket
+  const [isReplyDialogOpen, setIsReplyDialogOpen] = useState(false);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  
+  // -- Form States --
   const [replyMessage, setReplyMessage] = useState('');
+  const [newSubject, setNewSubject] = useState('');
+  const [newDescription, setNewDescription] = useState('');
+  const [newCategory, setNewCategory] = useState('General');
+  const [newPriority, setNewPriority] = useState('Low');
+
+  // --- DATA FETCHING ---
+  const fetchTickets = useCallback(async () => {
+    if (!user) return;
+    setLoading(true);
+    try {
+      const response = await getSupportTickets({ 
+        limit: 100, // Increased limit to get better stats accuracy
+        sort_by: 'created_at', 
+        sort_order: 'DESC' 
+      });
+      
+      if (response.success && response.data) {
+        const ticketsList = (response.data as any).tickets || response.data;
+        const safeList = Array.isArray(ticketsList) ? ticketsList : [];
+        setTickets(safeList);
+
+        // ✅ FIX 2: robust stat calculation (handling case sensitivity)
+        const total = (response.data as any).total || safeList.length;
+        const open = safeList.filter((t: SupportTicket) => t.status.toLowerCase() === 'open' || t.status.toLowerCase() === 'pending').length;
+        const resolved = safeList.filter((t: SupportTicket) => t.status.toLowerCase() === 'resolved' || t.status.toLowerCase() === 'closed').length;
+        
+        setTicketStats({ total, open, resolved });
+      }
+    } catch (error) {
+      console.error("Fetch tickets error:", error);
+      toaster.create({ title: "Failed to load tickets", type: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    fetchTickets();
+  }, [fetchTickets]);
 
   // --- ACTIONS ---
 
-  const handleResolveTicket = () => {
-    if (selectedTicket) {
-      setTickets(tickets.map(t => t.id === selectedTicket.id ? { ...t, status: 'Resolved' } : t));
-      setIsTicketDialogOpen(false);
-      setReplyMessage('');
-      toaster.create({ title: 'Ticket Resolved', type: 'success' });
+  // ✅ FIX 1: Fetch full ticket details (including responses) on click
+  const handleViewTicket = async (ticket: SupportTicket) => {
+    setSelectedTicket(ticket); // Show immediate data
+    setIsReplyDialogOpen(true);
+    setIsLoadingDetails(true);
+
+    try {
+      const response = await getSupportTicketById(ticket.ticket_id);
+      if (response.success && response.data) {
+        setSelectedTicket(response.data); // Update with full data including responses
+      }
+    } catch (error) {
+      toaster.create({ title: "Failed to load conversation", type: 'error' });
+    } finally {
+      setIsLoadingDetails(false);
     }
   };
 
-  const handleKYCAction = (id: string, action: 'Approved' | 'Rejected') => {
-    setKycRequests(kycRequests.map(k => k.id === id ? { ...k, status: action } : k));
-    toaster.create({ title: `Organizer ${action}`, type: action === 'Approved' ? 'success' : 'error' });
+  const handleCreateTicket = async () => {
+    if (!newSubject || !newDescription) {
+      toaster.create({ title: "Subject and Description required", type: 'error' });
+      return;
+    }
+
+    try {
+      await createSupportTicket({
+        subject: newSubject,
+        description: newDescription,
+        category: newCategory,
+        priority: newPriority
+      });
+      
+      toaster.create({ title: "Ticket Created", type: 'success' });
+      setIsCreateDialogOpen(false);
+      setNewSubject(''); setNewDescription(''); 
+      fetchTickets(); 
+    } catch (error) {
+      toaster.create({ title: "Failed to create ticket", type: 'error' });
+    }
+  };
+
+  const handleSendResponse = async () => {
+    if (!selectedTicket || !replyMessage) return;
+
+    try {
+      // 1. Add Response (Admin internal=false so users see it)
+      await addTicketResponse(selectedTicket.ticket_id, replyMessage, false);
+      
+      toaster.create({ title: "Response Sent", type: 'success' });
+      setReplyMessage('');
+      
+      // Refresh the open conversation to show new message immediately
+      handleViewTicket(selectedTicket);
+      fetchTickets(); // Update list status if changed
+    } catch (error) {
+      toaster.create({ title: "Failed to send response", type: 'error' });
+    }
+  };
+
+  const handleResolveTicket = async () => {
+    if (!selectedTicket) return;
+    try {
+      await updateSupportTicket(selectedTicket.ticket_id, { status: 'Resolved' });
+      toaster.create({ title: "Ticket Resolved", type: 'success' });
+      setIsReplyDialogOpen(false);
+      fetchTickets();
+    } catch (error) {
+      toaster.create({ title: "Failed to resolve", type: 'error' });
+    }
   };
 
   // --- HELPERS ---
 
+  const isAdmin = user?.role === 'Admin';
+
   const PriorityBadge = ({ level }: { level: string }) => {
-    const colors: Record<string, string> = { 'High': 'red', 'Medium': 'orange', 'Low': 'gray' };
-    return <Badge colorPalette={colors[level]} variant="subtle">{level}</Badge>;
+    const colors: Record<string, string> = { 'High': 'red', 'Medium': 'orange', 'Low': 'gray', 'Urgent': 'red' };
+    return <Badge colorPalette={colors[level] || 'gray'} variant="subtle">{level}</Badge>;
   };
 
   const StatusBadge = ({ status }: { status: string }) => {
+    const s = status.toLowerCase();
     const colors: Record<string, string> = {
-      'Open': 'red', 'In Progress': 'blue', 'Resolved': 'green',
-      'Pending': 'orange', 'Approved': 'green', 'Rejected': 'red',
-      'Pass': 'green', 'Fail': 'red', 'Warning': 'orange'
+      'open': 'red', 'in progress': 'blue', 'resolved': 'green', 'closed': 'gray', 'pending': 'orange'
     };
-    return <Badge colorPalette={colors[status]}>{status}</Badge>;
+    return <Badge colorPalette={colors[s] || 'gray'}>{status}</Badge>;
   };
+
+  // --- TAB CONTENT: TICKETS ---
+  const TicketsView = () => (
+    <Box bg="white" borderRadius="lg" shadow="sm" overflowX="auto">
+      {loading ? (
+        <Center p={10}><Spinner size="xl" /></Center>
+      ) : (
+        <Table.Root>
+          <Table.Header bg="gray.50">
+            <Table.Row>
+              <Table.ColumnHeader>Subject</Table.ColumnHeader>
+              <Table.ColumnHeader>Category</Table.ColumnHeader>
+              <Table.ColumnHeader>Priority</Table.ColumnHeader>
+              <Table.ColumnHeader>Status</Table.ColumnHeader>
+              <Table.ColumnHeader>Created</Table.ColumnHeader>
+              <Table.ColumnHeader textAlign="right">Action</Table.ColumnHeader>
+            </Table.Row>
+          </Table.Header>
+          <Table.Body>
+            {tickets.length === 0 ? (
+              <Table.Row><Table.Cell colSpan={6} textAlign="center" py={8} color="gray.500">No tickets found.</Table.Cell></Table.Row>
+            ) : (
+              tickets.map(t => (
+                <Table.Row key={t.ticket_id} _hover={{ bg: 'gray.50' }}>
+                  <Table.Cell fontWeight="medium">
+                    {t.subject}
+                    <Text fontSize="xs" color="gray.500">{t.description}</Text>
+                  </Table.Cell>
+                  <Table.Cell>{t.category}</Table.Cell>
+                  <Table.Cell><PriorityBadge level={t.priority} /></Table.Cell>
+                  <Table.Cell><StatusBadge status={t.status} /></Table.Cell>
+                  <Table.Cell fontSize="sm" color="gray.500">
+                    {new Date(t.created_at).toLocaleDateString()}
+                  </Table.Cell>
+                  <Table.Cell textAlign="right">
+                    <Button size="xs" variant="outline" onClick={() => handleViewTicket(t)}>
+                      {isAdmin ? <><BsReply style={{ marginRight: '5px' }} /> Reply</> : <><BsEye style={{ marginRight: '5px' }} /> View</>}
+                    </Button>
+                  </Table.Cell>
+                </Table.Row>
+              ))
+            )}
+          </Table.Body>
+        </Table.Root>
+      )}
+    </Box>
+  );
 
   return (
     <Box p={8} bg="gray.50" minH="100vh">
+      <Toaster />
       
       {/* Header */}
       <Flex justify="space-between" align="center" mb={6}>
         <Box>
-          <Heading size="lg">Support & Compliance</Heading>
-          <Text color="gray.600">Resolve issues, verify identities, and monitor system integrity.</Text>
+          <Heading size="lg">Support Center</Heading>
+          <Text color="gray.600">
+            {isAdmin ? "Manage support tickets and system compliance." : "Get help with your events and account."}
+          </Text>
         </Box>
+        {!isAdmin && (
+          <Button colorPalette="blue" onClick={() => setIsCreateDialogOpen(true)}>
+            <BsPlusCircle style={{ marginRight: '8px' }} /> Create Ticket
+          </Button>
+        )}
       </Flex>
 
       <Tabs.Root defaultValue="helpdesk" variant="line">
         <Tabs.List bg="white" p={2} borderRadius="md" shadow="sm" mb={6}>
-          <Tabs.Trigger value="helpdesk"><BsHeadset style={{marginRight:'6px'}}/> Help Desk</Tabs.Trigger>
-          <Tabs.Trigger value="kyc"><BsPersonBadge style={{marginRight:'6px'}}/> KYC Verification</Tabs.Trigger>
-          <Tabs.Trigger value="audit"><BsJournalText style={{marginRight:'6px'}}/> Audit Logs</Tabs.Trigger>
-          <Tabs.Trigger value="compliance"><BsShieldLock style={{marginRight:'6px'}}/> Compliance</Tabs.Trigger>
+          <Tabs.Trigger value="helpdesk"><BsHeadset style={{marginRight:'6px'}}/> {isAdmin ? 'Help Desk' : 'My Tickets'}</Tabs.Trigger>
+          
+          {isAdmin && (
+            <>
+              <Tabs.Trigger value="kyc"><BsPersonBadge style={{marginRight:'6px'}}/> KYC Verification</Tabs.Trigger>
+              <Tabs.Trigger value="audit"><BsJournalText style={{marginRight:'6px'}}/> Audit Logs</Tabs.Trigger>
+              <Tabs.Trigger value="compliance"><BsShieldLock style={{marginRight:'6px'}}/> Compliance</Tabs.Trigger>
+            </>
+          )}
         </Tabs.List>
 
-        {/* --- TAB 1: HELP DESK --- */}
         <Tabs.Content value="helpdesk">
-           <SimpleGrid columns={{ base: 1, md: 3 }} gap={4} mb={6}>
-             <Card.Root p={4} variant="subtle"><Stat.Root><Stat.Label>Open Tickets</Stat.Label><Stat.ValueText color="red.500">12</Stat.ValueText></Stat.Root></Card.Root>
-             <Card.Root p={4} variant="subtle"><Stat.Root><Stat.Label>Avg. Response Time</Stat.Label><Stat.ValueText>45 mins</Stat.ValueText></Stat.Root></Card.Root>
-             <Card.Root p={4} variant="subtle"><Stat.Root><Stat.Label>Customer Satisfaction</Stat.Label><Stat.ValueText color="green.600">4.8/5</Stat.ValueText></Stat.Root></Card.Root>
-           </SimpleGrid>
-
-           <Box bg="white" borderRadius="lg" shadow="sm" overflowX="auto">
-             <Table.Root >
-               <Table.Header bg="gray.50">
-                 <Table.Row>
-                   <Table.ColumnHeader>ID</Table.ColumnHeader>
-                   <Table.ColumnHeader>User</Table.ColumnHeader>
-                   <Table.ColumnHeader>Subject</Table.ColumnHeader>
-                   <Table.ColumnHeader>Priority</Table.ColumnHeader>
-                   <Table.ColumnHeader>Status</Table.ColumnHeader>
-                   <Table.ColumnHeader textAlign="right">Action</Table.ColumnHeader>
-                 </Table.Row>
-               </Table.Header>
-               <Table.Body>
-                 {tickets.map(t => (
-                   <Table.Row key={t.id} _hover={{ bg: 'gray.50' }}>
-                     <Table.Cell fontWeight="bold">{t.id}</Table.Cell>
-                     <Table.Cell>{t.user}</Table.Cell>
-                     <Table.Cell>
-                       <Text fontSize="sm">{t.subject}</Text>
-                       <Text fontSize="xs" color="gray.500">{t.category} • {t.submitted}</Text>
-                     </Table.Cell>
-                     <Table.Cell><PriorityBadge level={t.priority} /></Table.Cell>
-                     <Table.Cell><StatusBadge status={t.status} /></Table.Cell>
-                     <Table.Cell textAlign="right">
-                       <Button size="xs" variant="outline" onClick={() => { setSelectedTicket(t); setIsTicketDialogOpen(true); }}>
-                         <BsReply style={{ marginRight: '5px' }} /> Reply
-                       </Button>
-                     </Table.Cell>
-                   </Table.Row>
-                 ))}
-               </Table.Body>
-             </Table.Root>
-           </Box>
+           {isAdmin && (
+             <SimpleGrid columns={{ base: 1, md: 3 }} gap={4} mb={6}>
+               <Card.Root p={4} variant="subtle"><Stat.Root><Stat.Label>Open Tickets</Stat.Label><Stat.ValueText color="red.500">{ticketStats.open}</Stat.ValueText></Stat.Root></Card.Root>
+               <Card.Root p={4} variant="subtle"><Stat.Root><Stat.Label>Resolved</Stat.Label><Stat.ValueText color="green.600">{ticketStats.resolved}</Stat.ValueText></Stat.Root></Card.Root>
+               <Card.Root p={4} variant="subtle"><Stat.Root><Stat.Label>Total</Stat.Label><Stat.ValueText>{ticketStats.total}</Stat.ValueText></Stat.Root></Card.Root>
+             </SimpleGrid>
+           )}
+           <TicketsView />
         </Tabs.Content>
 
-        {/* --- TAB 2: KYC VERIFICATION --- */}
-        <Tabs.Content value="kyc">
-           <Box bg="white" borderRadius="lg" shadow="sm" overflowX="auto">
-             <Table.Root >
-               <Table.Header bg="gray.50">
-                 <Table.Row>
-                   <Table.ColumnHeader>Organizer Name</Table.ColumnHeader>
-                   <Table.ColumnHeader>Document Type</Table.ColumnHeader>
-                   <Table.ColumnHeader>Submitted</Table.ColumnHeader>
-                   <Table.ColumnHeader>Status</Table.ColumnHeader>
-                   <Table.ColumnHeader textAlign="right">Actions</Table.ColumnHeader>
-                 </Table.Row>
-               </Table.Header>
-               <Table.Body>
-                 {kycRequests.map(k => (
-                   <Table.Row key={k.id}>
-                     <Table.Cell fontWeight="medium">{k.organizer}</Table.Cell>
-                     <Table.Cell>{k.docType}</Table.Cell>
-                     <Table.Cell>{k.submittedDate}</Table.Cell>
-                     <Table.Cell><StatusBadge status={k.status} /></Table.Cell>
-                     <Table.Cell textAlign="right">
-                       {k.status === 'Pending' ? (
-                         <Flex justify="end" gap={2}>
-                           <Button size="xs" variant="ghost"><BsEye /> View Doc</Button>
-                           <IconButton size="xs" colorPalette="green" onClick={() => handleKYCAction(k.id, 'Approved')}><BsCheckCircle /></IconButton>
-                           <IconButton size="xs" colorPalette="red" onClick={() => handleKYCAction(k.id, 'Rejected')}><BsXCircle /></IconButton>
-                         </Flex>
-                       ) : (
-                         <Text fontSize="xs" color="gray.400">Processed</Text>
-                       )}
-                     </Table.Cell>
-                   </Table.Row>
-                 ))}
-               </Table.Body>
-             </Table.Root>
-           </Box>
-        </Tabs.Content>
-
-        {/* --- TAB 3: AUDIT LOGS --- */}
-        <Tabs.Content value="audit">
-          <Box bg="white" borderRadius="lg" shadow="sm">
-            <Table.Root size="sm" striped>
-              <Table.Header>
-                <Table.Row>
-                  <Table.ColumnHeader>Timestamp</Table.ColumnHeader>
-                  <Table.ColumnHeader>Admin User</Table.ColumnHeader>
-                  <Table.ColumnHeader>Action Taken</Table.ColumnHeader>
-                  <Table.ColumnHeader>Target</Table.ColumnHeader>
-                </Table.Row>
-              </Table.Header>
-              <Table.Body>
-                {mockAuditLogs.map(log => (
-                  <Table.Row key={log.id}>
-                    <Table.Cell fontFamily="mono" fontSize="xs" color="gray.500">{log.timestamp}</Table.Cell>
-                    <Table.Cell fontWeight="medium">{log.admin}</Table.Cell>
-                    <Table.Cell>{log.action}</Table.Cell>
-                    <Table.Cell color="blue.600">{log.target}</Table.Cell>
-                  </Table.Row>
-                ))}
-              </Table.Body>
-            </Table.Root>
-          </Box>
-        </Tabs.Content>
-
-        {/* --- TAB 4: COMPLIANCE MONITOR --- */}
-        <Tabs.Content value="compliance">
-          <SimpleGrid columns={{ base: 1, md: 3 }} gap={6}>
-            {mockCompliance.map(check => (
-              <Card.Root key={check.id} borderTop="4px solid" borderColor={check.status === 'Pass' ? 'green.400' : check.status === 'Fail' ? 'red.500' : 'orange.400'}>
-                <Card.Body>
-                  <Flex justify="space-between" mb={3}>
-                    <StatusBadge status={check.status} />
-                    <BsShieldLock size={20} color="gray" />
-                  </Flex>
-                  <Heading size="md" mb={2}>{check.name}</Heading>
-                  <HStack color="gray.500" fontSize="sm">
-                    <BsClockHistory />
-                    <Text>Last run: {check.lastRun}</Text>
-                  </HStack>
-                  <Button variant="outline" size="sm" width="full" mt={4}>View Detailed Report</Button>
-                </Card.Body>
-              </Card.Root>
-            ))}
-          </SimpleGrid>
-        </Tabs.Content>
-
+        {/* --- PLACEHOLDER TABS --- */}
+        {isAdmin && (
+          <>
+            <Tabs.Content value="kyc"><Box bg="white" p={4} borderRadius="lg"><Text color="gray.500">KYC Placeholder</Text></Box></Tabs.Content>
+            <Tabs.Content value="audit"><Box bg="white" p={4} borderRadius="lg"><Text color="gray.500">Audit Placeholder</Text></Box></Tabs.Content>
+            <Tabs.Content value="compliance"><Box bg="white" p={4} borderRadius="lg"><Text color="gray.500">Compliance Placeholder</Text></Box></Tabs.Content>
+          </>
+        )}
       </Tabs.Root>
 
-      {/* Ticket Reply Dialog */}
-      <Dialog.Root open={isTicketDialogOpen} onOpenChange={(e) => setIsTicketDialogOpen(e.open)}>
+      {/* --- CREATE TICKET DIALOG --- */}
+      <Dialog.Root open={isCreateDialogOpen} onOpenChange={(e) => setIsCreateDialogOpen(e.open)}>
         <Portal>
           <Dialog.Backdrop />
           <Dialog.Positioner>
             <Dialog.Content>
-              <Dialog.Header>
-                <Dialog.Title>Reply to Ticket #{selectedTicket?.id}</Dialog.Title>
-              </Dialog.Header>
+              <Dialog.Header><Dialog.Title>Create Support Ticket</Dialog.Title></Dialog.Header>
               <Dialog.Body>
                 <Stack gap={4}>
-                  <Box bg="gray.50" p={3} borderRadius="md">
-                    <Text fontWeight="bold" fontSize="sm">{selectedTicket?.subject}</Text>
-                    <Text fontSize="sm" color="gray.600" mt={1}>User asks: "I need help with..."</Text>
-                  </Box>
-                  <Textarea 
-                    placeholder="Type your reply here..." 
-                    rows={4}
-                    value={replyMessage}
-                    onChange={(e) => setReplyMessage(e.target.value)}
-                  />
+                  <Stack gap={1}>
+                    <Text fontSize="sm" fontWeight="medium">Subject</Text>
+                    <Input placeholder="Brief summary" value={newSubject} onChange={(e) => setNewSubject(e.target.value)} />
+                  </Stack>
+                  <HStack gap={4}>
+                    <Stack gap={1} flex={1}>
+                      <Text fontSize="sm" fontWeight="medium">Category</Text>
+                      <Select.Root collection={createListCollection({items: ['General', 'Billing', 'Technical', 'Event']})} value={[newCategory]} onValueChange={(e) => setNewCategory(e.value[0])}>
+                        <Select.Trigger><Select.ValueText placeholder="Select" /></Select.Trigger>
+                        <Select.Content>{['General', 'Billing', 'Technical', 'Event'].map(c => <Select.Item item={c} key={c}>{c}</Select.Item>)}</Select.Content>
+                      </Select.Root>
+                    </Stack>
+                    <Stack gap={1} flex={1}>
+                      <Text fontSize="sm" fontWeight="medium">Priority</Text>
+                      <Select.Root collection={createListCollection({items: ['Low', 'Medium', 'High']})} value={[newPriority]} onValueChange={(e) => setNewPriority(e.value[0])}>
+                        <Select.Trigger><Select.ValueText placeholder="Select" /></Select.Trigger>
+                        <Select.Content>{['Low', 'Medium', 'High'].map(p => <Select.Item item={p} key={p}>{p}</Select.Item>)}</Select.Content>
+                      </Select.Root>
+                    </Stack>
+                  </HStack>
+                  <Stack gap={1}>
+                    <Text fontSize="sm" fontWeight="medium">Description</Text>
+                    <Textarea placeholder="Describe detail..." rows={4} value={newDescription} onChange={(e) => setNewDescription(e.target.value)} />
+                  </Stack>
                 </Stack>
               </Dialog.Body>
               <Dialog.Footer>
-                <Button variant="outline" onClick={() => setIsTicketDialogOpen(false)}>Cancel</Button>
-                <Button colorPalette="blue" onClick={handleResolveTicket}>Send & Resolve</Button>
+                <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>Cancel</Button>
+                <Button colorPalette="blue" onClick={handleCreateTicket}>Submit</Button>
+              </Dialog.Footer>
+            </Dialog.Content>
+          </Dialog.Positioner>
+        </Portal>
+      </Dialog.Root>
+
+      {/* --- REPLY / VIEW DIALOG --- */}
+      <Dialog.Root open={isReplyDialogOpen} onOpenChange={(e) => setIsReplyDialogOpen(e.open)} size="lg" scrollBehavior="inside">
+        <Portal>
+          <Dialog.Backdrop />
+          <Dialog.Positioner>
+            <Dialog.Content maxH="80vh">
+              <Dialog.Header>
+                <Dialog.Title>Ticket #{selectedTicket?.ticket_id.substring(0,8)}...</Dialog.Title>
+                <StatusBadge status={selectedTicket?.status || ''} />
+              </Dialog.Header>
+              <Dialog.Body>
+                <Stack gap={4}>
+                  {/* Original Ticket Info */}
+                  <Box bg="gray.50" p={4} borderRadius="md" borderLeft="4px solid" borderColor="blue.500">
+                    <Heading size="sm" mb={1}>{selectedTicket?.subject}</Heading>
+                    <Text fontSize="sm" color="gray.700">{selectedTicket?.description}</Text>
+                    <HStack fontSize="xs" color="gray.500" mt={2}>
+                      <Text>{selectedTicket?.category}</Text>
+                      <Text>•</Text>
+                      <Text>{selectedTicket?.priority} Priority</Text>
+                    </HStack>
+                  </Box>
+
+                  <Separator />
+
+                  <VStack align="stretch" gap={3} my={2}>
+                    <Text fontSize="sm" fontWeight="bold" color="gray.500">Conversation History</Text>
+                    
+                    {isLoadingDetails ? (
+                      <Center><Spinner size="sm" /></Center>
+                    ) : !selectedTicket?.responses || selectedTicket.responses.length === 0 ? (
+                      <Text fontSize="xs" color="gray.400" fontStyle="italic">No replies yet.</Text>
+                    ) : (
+                      selectedTicket.responses.map((response: any) => (
+                        <Box 
+                          key={response.response_id} 
+                          alignSelf={response.user_id === user?.id ? 'flex-end' : 'flex-start'}
+                          bg={response.user_id === user?.id ? 'blue.50' : 'gray.100'}
+                          p={3}
+                          borderRadius="md"
+                          maxW="80%"
+                        >
+                          <HStack mb={1} justify="space-between" minW="150px">
+                            <Text fontSize="xs" fontWeight="bold" color="gray.700">
+                              {response.user_id === user?.id ? 'You' : (response.user?.name || 'Support')}
+                            </Text>
+                            <Text fontSize="10px" color="gray.400">
+                              {new Date(response.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                            </Text>
+                          </HStack>
+                          <Text fontSize="sm">{response.message}</Text>
+                        </Box>
+                      ))
+                    )}
+                  </VStack>
+
+                  <Separator />
+
+                  {/* Reply Input Area */}
+                  {selectedTicket?.status !== 'Resolved' && (
+                    <Stack gap={2}>
+                      <Text fontWeight="medium" fontSize="sm">
+                        {isAdmin ? "Admin Reply" : "Add a Reply"}
+                      </Text>
+                      <Textarea 
+                        placeholder="Type your response..." 
+                        rows={3}
+                        value={replyMessage}
+                        onChange={(e) => setReplyMessage(e.target.value)}
+                      />
+                    </Stack>
+                  )}
+                </Stack>
+              </Dialog.Body>
+              <Dialog.Footer>
+                <Button variant="outline" onClick={() => setIsReplyDialogOpen(false)}>Close</Button>
+                {selectedTicket?.status !== 'Resolved' && (
+                  <Button colorPalette="blue" onClick={handleSendResponse}>Send Reply</Button>
+                )}
+                {isAdmin && selectedTicket?.status !== 'Resolved' && (
+                  <Button colorPalette="green" variant="surface" onClick={handleResolveTicket}>Mark Resolved</Button>
+                )}
               </Dialog.Footer>
             </Dialog.Content>
           </Dialog.Positioner>
