@@ -1,6 +1,7 @@
 import type { Event, OrganizerEventResponse, EventCategoryResponse, EventDetailResponse, SearchParams } from "@/types/domain/event";
 import type { TicketTypePayload, TicketTypeResponse, PurchasePayload, UserTicketResponse } from "@/types/domain/ticket";
 import type { Bundle, CreateBundlePayload, UpdateBundlePayload } from "@/types/domain/bundle";
+import type { SupportTicket, CreateTicketPayload, SupportSearchParams, TicketResponse } from "@/types/domain/support";
 import { ApiResponse } from "@/types/api";
 import { DashboardStats, UserProfile, ProfileUpdateRequest, Activity } from "@/types/dashboard";
 
@@ -77,6 +78,53 @@ export const login = async (email: string, password: string) => {
     firstName: user.name?.split(' ')[0] || user.firstName || '',
     lastName: user.name?.split(' ').slice(1).join(' ') || user.lastName || '',
     avatar: user.avatar
+  };
+
+  // Store authentication data
+  if (typeof window !== "undefined") {
+    localStorage.setItem("accessToken", data.accessToken);
+    localStorage.setItem("refreshToken", data.refreshToken);
+    localStorage.setItem("user", JSON.stringify(transformedUser));
+  }
+
+  return {
+    success: true,
+    user: transformedUser,
+    accessToken: data.accessToken,
+    refreshToken: data.refreshToken
+  };
+};
+
+/**
+ * Google Sign-In
+ * Exchanges a Google ID Token for an app session (Access/Refresh tokens)
+ * Endpoint: POST /auth/google
+ */
+export const googleLogin = async (idToken: string) => {
+  const res = await fetch(`${API_URL}/auth/google`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ idToken }),
+  });
+
+  if (!res.ok) throw new Error("Google login failed");
+  const response = await res.json();
+
+  // Handle backend response structure
+  const data = response.data || response;
+  const user = data.user;
+
+  if (!user) throw new Error("No user data in response");
+
+  // Transform user object to match your frontend AuthUser type
+  const transformedUser = {
+    id: user.user_id || user.id,
+    email: user.email,
+    role: user.role,
+    name: user.name,
+    firstName: user.name?.split(' ')[0] || '',
+    lastName: user.name?.split(' ').slice(1).join(' ') || '',
+    avatar: user.profile_picture_url || user.avatar
   };
 
   // Store authentication data
@@ -198,12 +246,17 @@ export const getUserProfile = async () => {
 };
 
 /**
- * Update user details (Used for Organizer Application)
+ * Update user details (Name, Phone, Nickname, Role)
  * Endpoint: POST /auth/updateuser/{userId}
  */
 export const updateUserDetails = async (
   userId: string, 
-  data: { name?: string; phone?: string; nickname?: string }
+  data: { 
+    name?: string; 
+    phone?: string; 
+    nickname?: string; 
+    role?: string; // Added role here
+  }
 ) => {
   return apiFetch<{ success: boolean; message: string; user: any }>(
     `/auth/updateuser/${userId}`, 
@@ -539,5 +592,67 @@ export const addEventToBundle = async (bundleId: string, eventId: string) => {
 export const removeEventFromBundle = async (bundleId: string, eventId: string) => {
   return apiFetch<Bundle>(`/bundles/${bundleId}/events/${eventId}`, {
     method: 'DELETE',
+  });
+};
+
+/**
+ * Create a new support ticket
+ * Endpoint: POST /support/tickets
+ */
+export const createSupportTicket = async (data: CreateTicketPayload) => {
+  return apiFetch<SupportTicket>('/support/tickets', {
+    method: 'POST',
+    body: data,
+  });
+};
+
+/**
+ * Get a list of support tickets (with pagination & filters)
+ * Endpoint: GET /support/tickets
+ */
+export const getSupportTickets = async (params: SupportSearchParams = {}) => {
+  const query = new URLSearchParams();
+  
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      query.append(key, String(value));
+    }
+  });
+
+  return apiFetch<{ tickets: SupportTicket[]; total: number; page: number }>(
+    `/support/tickets?${query.toString()}`, 
+    { method: 'GET' }
+  );
+};
+
+/**
+ * Get a single ticket details with responses
+ * Endpoint: GET /support/tickets/{ticket_id}
+ */
+export const getSupportTicketById = async (ticketId: string) => {
+  return apiFetch<SupportTicket>(`/support/tickets/${ticketId}`, {
+    method: 'GET',
+  });
+};
+
+/**
+ * ADMIN: Update a ticket (status, priority, assignment)
+ * Endpoint: PUT /support/tickets/{ticket_id}
+ */
+export const updateSupportTicket = async (ticketId: string, updates: Partial<SupportTicket>) => {
+  return apiFetch<SupportTicket>(`/support/tickets/${ticketId}`, {
+    method: 'PUT',
+    body: updates,
+  });
+};
+
+/**
+ * Add a response/reply to a ticket
+ * Endpoint: POST /support/tickets/{ticket_id}/responses
+ */
+export const addTicketResponse = async (ticketId: string, message: string, isInternal: boolean = false) => {
+  return apiFetch<TicketResponse>(`/support/tickets/${ticketId}/responses`, {
+    method: 'POST',
+    body: { message, is_internal: isInternal },
   });
 };

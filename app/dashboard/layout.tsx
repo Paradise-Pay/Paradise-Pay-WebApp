@@ -123,20 +123,8 @@ const menuItems = [
     text: "Support",
     icon: <SupportIcon />,
     path: "/dashboard/support",
-    allowedRoles: [ROLES.ADMIN],
-  },
-  {
-    text: "Test API",
-    icon: <AssignmentIcon />,
-    path: "/dashboard/test-api",
-    allowedRoles: [ROLES.ADMIN],
-  },
-  {
-    text: "Wallet",
-    icon: <WalletIcon />,
-    path: "/dashboard/wallet",
-    allowedRoles: [ROLES.ADMIN],
-  },
+    allowedRoles: [ROLES.ADMIN, ROLES.ORGANIZER, ROLES.USER],
+  }
 ];
 
 export const getMenuByRole = (userRole: string) => {

@@ -630,8 +630,10 @@ export default function EventsPage() {
     if (!loading) {
       if (user?.role === 'Admin') {
         setMainTab('all-events');
-      } else {
+      } else if (user?.role === 'Organizer') {
         setMainTab('my-events');
+      } else {
+        setMainTab('favorites');  
       }
     }
   }, [loading, user]);
@@ -639,6 +641,7 @@ export default function EventsPage() {
   if (loading) return <Center h="50vh"><Spinner size="xl" /></Center>;
 
   const isAdmin = user?.role === 'Admin';
+  const isOrganizer = user?.role === 'Organizer';
 
   return (
     <Box p={8} bg="gray.50" minH="100vh">
@@ -659,11 +662,13 @@ export default function EventsPage() {
             </Tabs.Trigger>
           )}
           
-          <Tabs.Trigger value="my-events" flex="1" fontWeight="medium">
+          {(isAdmin || isOrganizer) && (
+            <Tabs.Trigger value="my-events" flex="1" fontWeight="medium">
             <BsCalendarEvent style={{ marginRight: '8px' }} /> My Events
           </Tabs.Trigger>
+          )}
 
-          {/* New Favorites Tab */}
+          {/* Favorites Tab */}
           <Tabs.Trigger value="favorites" flex="1" fontWeight="medium">
             <BsHeartFill style={{ marginRight: '8px' }} /> My Favorites
           </Tabs.Trigger>
@@ -677,9 +682,11 @@ export default function EventsPage() {
             </Tabs.Content>
           )}
 
-          <Tabs.Content value="my-events">
-            <OrganizerMyEventsView />
-          </Tabs.Content>
+          {isAdmin || isOrganizer && ( 
+            <Tabs.Content value="my-events">
+              <OrganizerMyEventsView />
+            </Tabs.Content>
+          )}
 
           <Tabs.Content value="favorites">
             <FavoritesView />

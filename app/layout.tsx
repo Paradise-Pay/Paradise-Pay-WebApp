@@ -8,6 +8,7 @@ import { CssBaseline } from '@mui/material';
 import { Provider } from "@/components/ui/provider";
 import HeaderWrapper from './HeaderWrapper';
 import FooterWrapper from './FooterWrapper';
+import Script from 'next/script';
 
 // Load Google Fonts Inter with all necessary weights
 const inter = Inter({
@@ -30,6 +31,10 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.ico" sizes="any" />
       </head>
       <body className="font-sans">
+        <Script 
+          src="https://accounts.google.com/gsi/client" 
+          strategy="beforeInteractive" 
+        />
         <Provider>
           <AuthProvider>
             <CssBaseline enableColorScheme={true} />
